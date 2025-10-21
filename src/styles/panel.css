@@ -109,3 +109,32 @@ header {
   padding: 20px;
   border-radius: 8px;
 }
+.sidebar .logo span,
+.sidebar .nav-list a span,
+.sidebar .logout span {
+  /* Evita que el texto se parta en dos líneas */
+  white-space: nowrap;
+  /* Define la animación de opacidad */
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* 2. Oculta el texto cuando el menú esté colapsado */
+.sidebar.collapsed .logo span,
+.sidebar.collapsed .nav-list a span,
+.sidebar.collapsed .logout span {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  /* Evita que el texto invisible sea clickeable */
+  pointer-events: none;
+}
+
+/* 3. (Opcional pero recomendado) Centra los iconos cuando está colapsado */
+.sidebar.collapsed .logo,
+.sidebar.collapsed .nav-list a,
+.sidebar.collapsed .logout {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
