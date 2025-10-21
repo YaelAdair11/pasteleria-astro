@@ -1,0 +1,81 @@
+---
+// PASO 1: IMPORTAR EL CSS
+// Reutilizamos el mismo CSS del panel de admin
+import '/src/styles/panel.css';
+
+// --- PASO 2: EL GUARDIÁN DE SEGURIDAD (VERSIÓN CAJERO) ---
+const sessionCookie = Astro.cookies.get("session");
+
+if (!sessionCookie) {
+  // 1. Si NO hay cookie, fuera.
+  return Astro.redirect("/login?error=Debes iniciar sesión");
+}
+
+const usuario = JSON.parse(sessionCookie.value);
+
+// --- ¡CAMBIO IMPORTANTE! ---
+// 2. Revisamos que el rol sea "usuario"
+if (usuario.rol !== "usuario") {
+  // Si no es "usuario" (ej. es un admin), lo mandamos al login
+  // (O podrías mandarlo a /admin/dashboard si quisieras)
+  return Astro.redirect("/login?error=No autorizado");
+}
+// --- FIN DEL GUARDIÁN ---
+---
+
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Punto de Venta - Usuario</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  </head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <i class='bx bx-cart-alt'></i>
+      <span>Punto de Venta</span>
+    </div>
+    <ul class="nav-list">
+      <li><a href="#"><i class='bx bx-home'></i><span>Inicio</span></a></li>
+      <li><a href="#"><i class='bx bx-receipt'></i><span>Registrar Venta</span></a></li>
+      <li><a href="#"><i class='bx bx-package'></i><span>Productos</span></a></li>
+      <li><a href="#"><i class='bx bx-bar-chart-alt'></i><span>Reportes</span></a></li>
+    </ul>
+    <button id="logoutBtn" class="logout"><i class='bx bx-log-out'></i><span>Cerrar Sesión</span></button>
+  </div>
+
+  <section class="main-content">
+    <header>
+      <i class='bx bx-menu' id="menuToggle"></i>
+      <h2>Panel de Ventas</h2>
+    </header>
+
+    <div class="content">
+      <h3 id="bienvenida">Bienvenido, {usuario.usuario} 💼</h3>
+      <p>Desde aquí podrás registrar ventas y consultar productos.</p>
+    </div>
+  </section>
+
+  <script>
+    // Botón del menú retráctil
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+
+    if (menuToggle && sidebar) {
+      menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+      });
+    }
+
+    // Cerrar sesión
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', () => {
+        // Apunta a la misma API de logout
+        window.location.href = '/api/auth/logout';
+      });
+    }
+  </script>
+</body>
+</html>

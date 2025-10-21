@@ -1,0 +1,111 @@
+/* Estilo general */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  display: flex;
+  background-color: #f4f4f4;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  width: 220px;
+  height: 100vh;
+  background: #1e1e2f;
+  color: #fff;
+  transition: width 0.3s;
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: 70px;
+}
+
+.sidebar .logo {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  font-size: 18px;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .nav-list {
+  list-style: none;
+  margin-top: 20px;
+}
+
+.sidebar .nav-list li {
+  margin: 10px 0;
+}
+
+.sidebar .nav-list a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 20px;
+  transition: background 0.2s;
+}
+
+.sidebar .nav-list a:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar .logout {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  width: 100%;
+  border: none;
+  background: none;
+  color: #fff;
+  text-align: left;
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.sidebar .logout:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Main content */
+.main-content {
+  margin-left: 220px;
+  width: calc(100% - 220px);
+  transition: margin-left 0.3s, width 0.3s;
+  padding: 20px;
+}
+
+.sidebar.collapsed ~ .main-content {
+  margin-left: 70px;
+  width: calc(100% - 70px);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+#menuToggle {
+  font-size: 24px;
+  cursor: pointer;
+  color: #1e1e2f;
+}
+
+.content {
+  margin-top: 30px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+}

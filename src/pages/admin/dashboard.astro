@@ -1,0 +1,87 @@
+---
+// PASO 1: IMPORTAR EL CSS
+// (Usa "admin.css" o el nuevo nombre que le hayas puesto, ej: "dashboard.css")
+import '/src/styles/panel.css';
+
+// --- PASO 2: EL GUARDIÁN DE SEGURIDAD ---
+// Esto se ejecuta en el SERVIDOR antes de mostrar la página.
+// Revisa la cookie que creamos en la API de login.
+
+const sessionCookie = Astro.cookies.get("session"); // Busca la cookie
+
+if (!sessionCookie) {
+  // 1. Si NO hay cookie, no está autenticado.
+  return Astro.redirect("/login?error=Debes iniciar sesión");
+}
+
+// Si hay cookie, la leemos
+const usuario = JSON.parse(sessionCookie.value);
+
+if (usuario.rol !== "admin") {
+  // 2. Si hay cookie, PERO no es 'admin', no tiene permiso.
+  return Astro.redirect("/login?error=No autorizado");
+}
+
+// Si llegamos hasta aquí, el usuario es un admin válido.
+// La página se mostrará.
+// --- FIN DEL GUARDIÁN ---
+---
+
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Punto de Venta - Admin</title>
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <i class='bx bx-store-alt'></i>
+      <span>Punto de Venta</span>
+    </div>
+    <ul class="nav-list">
+      <li><a href="#"><i class='bx bx-home'></i><span>Inicio</span></a></li>
+      <li><a href="#"><i class='bx bx-user'></i><span>Empleados</span></a></li>
+      <li><a href="#"><i class='bx bx-package'></i><span>Inventario</span></a></li>
+      <li><a href="#"><i class='bx bx-cart'></i><span>Ventas</span></a></li>
+      <li><a href="#"><i class='bx bx-bar-chart-alt'></i><span>Reportes</span></a></li>
+    </ul>
+    <button id="logoutBtn" class="logout"><i class='bx bx-log-out'></i><span>Cerrar Sesión</span></button>
+  </div>
+
+  <section class="main-content">
+    <header>
+      <i class='bx bx-menu' id="menuToggle"></i>
+      <h2>Panel de Administración</h2>
+    </header>
+
+    <div class="content">
+      <p>Bienvenido {usuario.usuario}. Selecciona una opción del menú.</p>
+    </div>
+  </section>
+
+  <script>
+    // Botón del menú retráctil (exactamente tu código)
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+
+    if (menuToggle && sidebar) {
+      menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+      });
+    }
+
+    // --- ¡CAMBIO IMPORTANTE! ---
+    // Cerrar sesión
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      // ANTES: localStorage.removeItem('usuarioActivo');
+      // AHORA: Redirigimos a una API para que el SERVIDOR borre la cookie.
+      logoutBtn.addEventListener('click', () => {
+        window.location.href = '/api/auth/logout';
+      });
+    }
+  </script>
+</body>
+</html>

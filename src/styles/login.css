@@ -1,0 +1,98 @@
+/* ======== Reset básico ======== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ======== Fondo general ======== */
+body {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #00416a, #e4e5e6);
+  font-family: "Poppins", sans-serif;
+}
+
+/* ======== Contenedor del login ======== */
+.login-container {
+  background: white;
+  padding: 2.5rem 3rem;
+  border-radius: 20px;
+  box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+  animation: fadeIn 1s ease-in-out;
+}
+
+/* ======== Títulos ======== */
+.login-container h1 {
+  font-size: 1.8rem;
+  color: #00416a;
+  margin-bottom: 0.5rem;
+}
+
+.login-container h2 {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  color: #555;
+}
+
+/* ======== Campos ======== */
+.input-group {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.input-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.3rem;
+  color: #333;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.8rem;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 1rem;
+  transition: border 0.3s;
+}
+
+.input-group input:focus {
+  border-color: #00416a;
+  outline: none;
+}
+
+/* ======== Botón ======== */
+.btn {
+  width: 100%;
+  padding: 0.9rem;
+  background: #00416a;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.btn:hover {
+  background: #006fa1;
+}
+
+/* ======== Mensaje ======== */
+#message {
+  margin-top: 1rem;
+  font-weight: 500;
+  color: #d32f2f;
+}
+
+/* ======== Animación ======== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
