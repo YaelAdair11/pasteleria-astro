@@ -1,16 +1,9 @@
 ---
-import login from './login.astro';
----
+// src/pages/index.astro
+// Esta página ahora solo redirige al login de staff
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<longin />
-	</body>
-</html>
+// Astro.redirect solo funciona en modo 'server' o 'hybrid'
+// ¡Lo cual ya tienes configurado!
+return Astro.redirect('/staff-login'); 
+---
+{/* No necesitamos ningún HTML aquí porque la redirección ocurre antes de renderizar */}
