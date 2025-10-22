@@ -61,8 +61,18 @@ const nombreUsuario = profile.username || user.email || 'Administrador';
     </div>
   </section>
 
-  <script type="module">
+  <script is:inline type="module">
     import { supabase } from '/src/lib/supabase';
+
+    function setupDashboard() {
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    // ... (resto de tu función setupDashboard sin cambios) ...
+    const logoutBtn = document.getElementById('logoutBtn');
+    // ... (resto de tu función setupDashboard sin cambios) ...
+    }
+    setupDashboard();
+    document.addEventListener('astro:page-load', setupDashboard);
 
     // 🔹 Botón de Cerrar Sesión
     const logoutBtn = document.getElementById('logoutBtn');

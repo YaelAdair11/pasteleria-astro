@@ -65,7 +65,18 @@ const nombreUsuario = profile.username || user.email || 'Cajero'; // Fallback fi
 
    <!--tu <script> para el menú y logout -->
    {/* (Asegúrate que el script que ajustamos antes esté aquí) */}
-     <script>
+    <script is:inline type="module">
+
+      function setupDashboard() {
+      const sidebar = document.getElementById('sidebar');
+      const menuToggle = document.getElementById('menuToggle');
+      // ... (resto de tu función setupDashboard sin cambios) ...
+      const logoutBtn = document.getElementById('logoutBtn');
+      // ... (resto de tu función setupDashboard sin cambios) ...
+      }
+      setupDashboard();
+      document.addEventListener('astro:page-load', setupDashboard);
+
        function setupDashboard() {
          const sidebar = document.getElementById('sidebar');
          const menuToggle = document.getElementById('menuToggle');
