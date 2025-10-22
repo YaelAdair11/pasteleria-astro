@@ -1,87 +1,94 @@
 ---
-// PASO 1: IMPORTAR EL CSS
-// (Usa "admin.css" o el nuevo nombre que le hayas puesto, ej: "dashboard.css")
-import '../../styles/panel.css';
+import '../../styles/panel.css'; // Asegúrate que la ruta al CSS sea correcta
 
-// --- PASO 2: EL GUARDIÁN DE SEGURIDAD ---
-// Esto se ejecuta en el SERVIDOR antes de mostrar la página.
-// Revisa la cookie que creamos en la API de login.
+// --- NUEVO GUARDIÁN DE SUPABASE con USERNAME ---
+// 1. Obtener la sesión del usuario actual desde Supabase
+const { data: { user } } = await Astro.locals.supabase.auth.getUser();
 
-const sessionCookie = Astro.cookies.get("session"); // Busca la cookie
-
-if (!sessionCookie) {
-  // 1. Si NO hay cookie, no está autenticado.
-  return Astro.redirect("/login?error=Debes iniciar sesión");
+// 2. Si no hay usuario logueado, redirigir al login de staff
+if (!user) {
+  return Astro.redirect('/staff-login?error=Debes iniciar sesión'); // Redirige al login de staff
 }
 
-// Si hay cookie, la leemos
-const usuario = JSON.parse(sessionCookie.value);
+// 3. Si hay usuario, buscar su perfil (rol y username) en nuestra tabla 'profiles'
+const { data: profile, error: profileError } = await Astro.locals.supabase
+  .from('profiles')
+  .select('rol, username') // Pedimos rol y username
+  .eq('id', user.id)       // Buscando por el ID del usuario logueado
+  .single();               // Esperamos solo un resultado
 
-if (usuario.rol !== "admin") {
-  // 2. Si hay cookie, PERO no es 'admin', no tiene permiso.
-  return Astro.redirect("/login?error=No autorizado");
+// 4. Verificar si hubo error, si no se encontró perfil, o si el rol NO es 'admin'
+if (profileError || !profile || profile.rol !== 'admin') {
+  // Si algo falla o no tiene permiso, cerrar sesión (por seguridad) y redirigir
+  console.error("Error de autorización Admin:", profileError || 'Perfil no encontrado o rol incorrecto');
+  await Astro.locals.supabase.auth.signOut(); // Cierra la sesión
+  return Astro.redirect('/staff-login?error=No autorizado'); // Redirige al login de staff
 }
 
-// Si llegamos hasta aquí, el usuario es un admin válido.
-// La página se mostrará.
-// --- FIN DEL GUARDIÁN ---
+// 5. Si todo está bien, preparamos el nombre para el saludo
+// Usamos el 'username' del perfil, o el email si 'username' está vacío
+const nombreUsuario = profile.username || user.email || 'Admin'; // Fallback final
 ---
 
+{/* El resto de tu archivo HTML y <script> va aquí abajo */}
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Punto de Venta - Admin</title>
-  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  {/* ... tu <head> ... */}
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>Punto de Venta - Admin</title>
+   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 </head>
 <body>
-  <div class="sidebar" id="sidebar">
-    <div class="logo">
-      <i class='bx bx-store-alt'></i>
-      <span>Punto de Venta</span>
+   {/* ... tu <div class="sidebar"> ... */}
+    <div class="sidebar" id="sidebar">
+      {/* ... contenido del sidebar ... */}
+       <div class="logo">
+         <i class='bx bx-store-alt'></i>
+         <span>Punto de Venta</span>
+       </div>
+       <ul class="nav-list">
+         <li><a href="#"><i class='bx bx-home'></i><span>Inicio</span></a></li>
+         <li><a href="#"><i class='bx bx-user'></i><span>Empleados</span></a></li>
+         <li><a href="#"><i class='bx bx-package'></i><span>Inventario</span></a></li>
+         <li><a href="#"><i class='bx bx-cart'></i><span>Ventas</span></a></li>
+         <li><a href="#"><i class='bx bx-bar-chart-alt'></i><span>Reportes</span></a></li>
+       </ul>
+       <button id="logoutBtn" class="logout"><i class='bx bx-log-out'></i><span>Cerrar Sesión</span></button>
     </div>
-    <ul class="nav-list">
-      <li><a href="#"><i class='bx bx-home'></i><span>Inicio</span></a></li>
-      <li><a href="#"><i class='bx bx-user'></i><span>Empleados</span></a></li>
-      <li><a href="#"><i class='bx bx-package'></i><span>Inventario</span></a></li>
-      <li><a href="#"><i class='bx bx-cart'></i><span>Ventas</span></a></li>
-      <li><a href="#"><i class='bx bx-bar-chart-alt'></i><span>Reportes</span></a></li>
-    </ul>
-    <button id="logoutBtn" class="logout"><i class='bx bx-log-out'></i><span>Cerrar Sesión</span></button>
-  </div>
 
-  <section class="main-content">
-    <header>
-      <i class='bx bx-menu' id="menuToggle"></i>
-      <h2>Panel de Administración</h2>
-    </header>
+   <section class="main-content">
+      <header>
+         <i class='bx bx-menu' id="menuToggle"></i>
+         <h2>Panel de Administración</h2>
+      </header>
 
-    <div class="content">
-      <p>Bienvenido {usuario.usuario}. Selecciona una opción del menú.</p>
-    </div>
-  </section>
+      <div class="content">
+        {/* ACTUALIZA EL SALUDO AQUÍ */}
+        <p>Bienvenido {nombreUsuario}. Selecciona una opción del menú.</p>
+      </div>
+   </section>
 
-  <script>
-    // Botón del menú retráctil (exactamente tu código)
-    const sidebar = document.getElementById('sidebar');
-    const menuToggle = document.getElementById('menuToggle');
-
-    if (menuToggle && sidebar) {
-      menuToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-      });
-    }
-
-    // --- ¡CAMBIO IMPORTANTE! ---
-    // Cerrar sesión
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-      // ANTES: localStorage.removeItem('usuarioActivo');
-      // AHORA: Redirigimos a una API para que el SERVIDOR borre la cookie.
-      logoutBtn.addEventListener('click', () => {
-        window.location.href = '/api/auth/logout';
-      });
-    }
-  </script>
+   {/* ... tu <script> para el menú y logout ... */}
+   {/* (Asegúrate que el script que ajustamos antes esté aquí) */}
+    <script>
+      function setupDashboard() {
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.getElementById('menuToggle');
+        if (menuToggle && sidebar) {
+          menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+          });
+        }
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+          logoutBtn.addEventListener('click', () => {
+            window.location.href = '/api/auth/logout';
+          });
+        }
+      }
+      setupDashboard();
+      document.addEventListener('astro:page-load', setupDashboard);
+    </script>
 </body>
 </html>
