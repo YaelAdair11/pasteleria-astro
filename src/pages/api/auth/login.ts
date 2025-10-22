@@ -1,55 +1,44 @@
-// Ruta: src/pages/api/auth/login.ts (API para Clientes)
-import type { APIRoute } from 'astro';
+export const prerender = false;
 
-export const POST: APIRoute = async ({ request, redirect, locals }) => {
+import type { APIRoute } from 'astro';
+import { supabase } from '../../../lib/supabase';
+
+export const POST: APIRoute = async ({ request, redirect }) => {
   const formData = await request.formData();
-  const email = formData.get('email')?.toString(); // Cliente usa email
+  const username = formData.get('username')?.toString();
   const password = formData.get('password')?.toString();
 
-  if (!email || !password) {
-    return redirect('/login?error=Email y contraseña requeridos');
+  if (!username || !password) {
+    return redirect('/login?error=Faltan datos');
   }
 
-  // 1. Intentar iniciar sesión con Supabase Auth (usando email)
-  const { data: authData, error: signInError } = await locals.supabase.auth.signInWithPassword({ 
-    email: email, 
-    password: password 
+  // 1️⃣ Buscar usuario por username
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('email, rol')
+    .eq('username', username)
+    .maybeSingle();
+
+  if (profileError || !profile) {
+    console.error(profileError || 'No se encontró el usuario');
+    return redirect('/login?error=Usuario no encontrado');
+  }
+
+  // 2️⃣ Intentar iniciar sesión con email + contraseña
+  const { error: signInError } = await supabase.auth.signInWithPassword({
+    email: profile.email,
+    password,
   });
 
-  // Manejar error de inicio de sesión (email no existe, contraseña incorrecta)
-  if (signInError || !authData.user) {
-    return redirect(`/login?error=Email o contraseña incorrectos`);
+  if (signInError) {
+    console.error(signInError);
+    return redirect('/login?error=Credenciales incorrectas');
   }
 
-  // --- Verificación Opcional de Rol ---
-  // Para asegurar que solo clientes usen este login
-  try {
-    const { data: profile, error: profileError } = await locals.supabase
-      .from('profiles')
-      .select('rol')
-      .eq('id', authData.user.id)
-      .single();
-
-    if (profileError) throw profileError; // Lanzar error si la consulta falla
-
-    // Si el perfil existe y NO es 'cliente', cerrar sesión y mostrar error
-    if (profile && profile.rol !== 'cliente') {
-       await locals.supabase.auth.signOut(); // Desloguear inmediatamente
-       return redirect('/login?error=Acceso denegado. Rol no es de cliente.'); 
-       // O podrías redirigir a /staff-login si quieres ser más amigable
-    }
-    // Si no hay perfil O es cliente, continuamos...
-    // (Podrías manejar el caso sin perfil como un error si prefieres)
-
-  } catch (error) {
-    console.error("Error verificando rol de cliente:", error);
-    await locals.supabase.auth.signOut(); // Asegurar cierre de sesión si hubo error
-    return redirect('/login?error=Error al verificar el tipo de usuario.');
+  // 3️⃣ Redirigir según rol
+  if (profile.rol === 'admin') {
+    return redirect('/admin/dashboard');
+  } else {
+    return redirect('/ventas/dashboard');
   }
-  // --- Fin Verificación Opcional ---
-
-
-  // 2. Redirigir al cliente a la página principal (o a su dashboard si tuviera)
-  // La cookie de sesión es manejada automáticamente por `astro-supabase`
-  return redirect('/'); // Redirige a la tienda/página de inicio
 };

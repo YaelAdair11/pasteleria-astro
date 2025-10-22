@@ -1,8 +1,5 @@
 import { defineConfig } from 'astro/config';
-import supabase from 'astro-supabase'; // <-- AÑADE ESTA LÍNEA
 
-// https://astro.build/config
 export default defineConfig({
-  output: 'server',
-  integrations: [supabase()] // <-- AÑADE ESTA LÍNEA DENTRO DE []
+  output: 'server', // o export const prerender = false en cada endpoint
 });

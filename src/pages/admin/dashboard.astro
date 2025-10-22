@@ -1,94 +1,86 @@
 ---
-import '../../styles/panel.css'; // Asegúrate que la ruta al CSS sea correcta
+import '../../styles/panel.css';
 
-// --- NUEVO GUARDIÁN DE SUPABASE con USERNAME ---
-// 1. Obtener la sesión del usuario actual desde Supabase
+// ✅ 1. Verificar sesión del usuario DESDE EL SERVIDOR
 const { data: { user } } = await Astro.locals.supabase.auth.getUser();
 
-// 2. Si no hay usuario logueado, redirigir al login de staff
+// Si no hay sesión activa → redirigir
 if (!user) {
-  return Astro.redirect('/staff-login?error=Debes iniciar sesión'); // Redirige al login de staff
+  return Astro.redirect('/staff-login?error=Debes iniciar sesión');
 }
 
-// 3. Si hay usuario, buscar su perfil (rol y username) en nuestra tabla 'profiles'
+// ✅ 2. Buscar el perfil del usuario (rol + username)
 const { data: profile, error: profileError } = await Astro.locals.supabase
   .from('profiles')
-  .select('rol, username') // Pedimos rol y username
-  .eq('id', user.id)       // Buscando por el ID del usuario logueado
-  .single();               // Esperamos solo un resultado
+  .select('rol, username')
+  .eq('id', user.id)
+  .single();
 
-// 4. Verificar si hubo error, si no se encontró perfil, o si el rol NO es 'admin'
+// Si hay error o el usuario no es admin → expulsar
 if (profileError || !profile || profile.rol !== 'admin') {
-  // Si algo falla o no tiene permiso, cerrar sesión (por seguridad) y redirigir
   console.error("Error de autorización Admin:", profileError || 'Perfil no encontrado o rol incorrecto');
-  await Astro.locals.supabase.auth.signOut(); // Cierra la sesión
-  return Astro.redirect('/staff-login?error=No autorizado'); // Redirige al login de staff
+  await Astro.locals.supabase.auth.signOut();
+  return Astro.redirect('/staff-login?error=No autorizado');
 }
 
-// 5. Si todo está bien, preparamos el nombre para el saludo
-// Usamos el 'username' del perfil, o el email si 'username' está vacío
-const nombreUsuario = profile.username || user.email || 'Admin'; // Fallback final
+// ✅ 3. Si todo bien, definir nombre de saludo
+const nombreUsuario = profile.username || user.email || 'Administrador';
 ---
 
-{/* El resto de tu archivo HTML y <script> va aquí abajo */}
 <html lang="es">
 <head>
-  {/* ... tu <head> ... */}
-   <meta charset="UTF-8">
-   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <title>Punto de Venta - Admin</title>
-   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Punto de Venta - Admin</title>
+  <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
 </head>
 <body>
-   {/* ... tu <div class="sidebar"> ... */}
-    <div class="sidebar" id="sidebar">
-      {/* ... contenido del sidebar ... */}
-       <div class="logo">
-         <i class='bx bx-store-alt'></i>
-         <span>Punto de Venta</span>
-       </div>
-       <ul class="nav-list">
-         <li><a href="#"><i class='bx bx-home'></i><span>Inicio</span></a></li>
-         <li><a href="#"><i class='bx bx-user'></i><span>Empleados</span></a></li>
-         <li><a href="#"><i class='bx bx-package'></i><span>Inventario</span></a></li>
-         <li><a href="#"><i class='bx bx-cart'></i><span>Ventas</span></a></li>
-         <li><a href="#"><i class='bx bx-bar-chart-alt'></i><span>Reportes</span></a></li>
-       </ul>
-       <button id="logoutBtn" class="logout"><i class='bx bx-log-out'></i><span>Cerrar Sesión</span></button>
+  <div class="sidebar" id="sidebar">
+    <div class="logo">
+      <i class='bx bx-store-alt'></i>
+      <span>Punto de Venta</span>
     </div>
+    <ul class="nav-list">
+      <li><a href="#"><i class='bx bx-home'></i><span>Inicio</span></a></li>
+      <li><a href="#"><i class='bx bx-user'></i><span>Empleados</span></a></li>
+      <li><a href="#"><i class='bx bx-package'></i><span>Inventario</span></a></li>
+      <li><a href="#"><i class='bx bx-cart'></i><span>Ventas</span></a></li>
+      <li><a href="#"><i class='bx bx-bar-chart-alt'></i><span>Reportes</span></a></li>
+    </ul>
+    <button id="logoutBtn" class="logout"><i class='bx bx-log-out'></i><span>Cerrar Sesión</span></button>
+  </div>
 
-   <section class="main-content">
-      <header>
-         <i class='bx bx-menu' id="menuToggle"></i>
-         <h2>Panel de Administración</h2>
-      </header>
+  <section class="main-content">
+    <header>
+      <i class='bx bx-menu' id="menuToggle"></i>
+      <h2>Panel de Administración</h2>
+    </header>
 
-      <div class="content">
-        {/* ACTUALIZA EL SALUDO AQUÍ */}
-        <p>Bienvenido {nombreUsuario}. Selecciona una opción del menú.</p>
-      </div>
-   </section>
+    <div class="content">
+      <p>Bienvenido, <strong>{nombreUsuario}</strong>. Selecciona una opción del menú.</p>
+    </div>
+  </section>
 
-   {/* ... tu <script> para el menú y logout ... */}
-   {/* (Asegúrate que el script que ajustamos antes esté aquí) */}
-    <script>
-      function setupDashboard() {
-        const sidebar = document.getElementById('sidebar');
-        const menuToggle = document.getElementById('menuToggle');
-        if (menuToggle && sidebar) {
-          menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-          });
-        }
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-          logoutBtn.addEventListener('click', () => {
-            window.location.href = '/api/auth/logout';
-          });
-        }
-      }
-      setupDashboard();
-      document.addEventListener('astro:page-load', setupDashboard);
-    </script>
+  <script type="module">
+    import { supabase } from '/src/lib/supabase';
+
+    // 🔹 Botón de Cerrar Sesión
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        await supabase.auth.signOut();
+        window.location.href = '/staff-login';
+      });
+    }
+
+    // 🔹 Lógica del menú lateral
+    const sidebar = document.getElementById('sidebar');
+    const menuToggle = document.getElementById('menuToggle');
+    if (menuToggle && sidebar) {
+      menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+      });
+    }
+  </script>
 </body>
 </html>
