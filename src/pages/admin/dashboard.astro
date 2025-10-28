@@ -1,5 +1,6 @@
 ---
 import '../../styles/panel.css';
+import { supabase } from '../../lib/supabase';
 
 // ✅ 1. Verificar sesión del usuario DESDE EL SERVIDOR
 const { data: { user } } = await Astro.locals.supabase.auth.getUser();
@@ -33,6 +34,8 @@ const nombreUsuario = profile.username || user.email || 'Administrador';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Punto de Venta - Admin</title>
   <link href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+  <!-- icon -->
+  <link rel="icon" type="image/png" href="/logo.png">
 </head>
 <body>
   <div class="sidebar" id="sidebar">
@@ -62,8 +65,6 @@ const nombreUsuario = profile.username || user.email || 'Administrador';
   </section>
 
   <script is:inline type="module">
-    import { supabase } from '../../src/lib/supabase';
-
     function setupDashboard() {
     const sidebar = document.getElementById('sidebar');
     const menuToggle = document.getElementById('menuToggle');
