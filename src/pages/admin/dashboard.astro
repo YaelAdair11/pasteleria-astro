@@ -11,7 +11,7 @@ if (!user) {
 
 // ✅ 2. Buscar el perfil del usuario (rol + username)
 const { data: profile, error: profileError } = await Astro.locals.supabase
-  .from('profiles')
+  .from('perfiles')
   .select('rol, username')
   .eq('id', user.id)
   .single();

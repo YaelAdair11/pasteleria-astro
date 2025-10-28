@@ -9,7 +9,7 @@ if (!user) {
 }
 
 const { data: profile, error: profileError } = await Astro.locals.supabase
-  .from('profiles')
+  .from('perfiles')
   .select('rol, username')
   .eq('id', user.id)
   .single();

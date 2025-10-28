@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request, redirect, locals }) => {
 
   // 1️⃣ Buscar el usuario
   const { data: profile, error: profileError } = await locals.supabase
-    .from('profiles')
+    .from('perfiles')
     .select('email, rol')
     .eq('username', username)
     .maybeSingle();
