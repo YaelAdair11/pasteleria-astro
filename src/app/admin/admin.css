@@ -1,0 +1,11 @@
+/* Sidebar transición */
+#sidebar {
+  transition: all 0.3s ease;
+}
+
+/* En pantallas medianas y grandes siempre visible */
+@media (min-width: 768px) {
+  #sidebar {
+    display: flex !important;
+  }
+}

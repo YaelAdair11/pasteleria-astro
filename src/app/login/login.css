@@ -1,0 +1,15 @@
+.card {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  border: none;
+  border-radius: 1rem;
+}
+
+.card-title {
+  color: #333;
+  font-weight: 600;
+}
+
+.btn-primary {
+  padding: 0.8rem;
+  font-weight: 500;
+}

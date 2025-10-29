@@ -1,0 +1,52 @@
+<div class="w-100 vh-100 d-flex justify-content-center align-items-center" style="background: linear-gradient(135deg, #00416a, #e4e5e6);">
+  <div class="card shadow-sm p-4 w-100" style="max-width: 400px;">
+    <h3 class="card-title text-center mb-4">Iniciar Sesión</h3>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <!-- Correo o Usuario -->
+      <div class="mb-3">
+        <label for="login" class="form-label">Correo o Usuario</label>
+        <input
+          type="text"
+          id="login"
+          class="form-control"
+          formControlName="login"
+          placeholder="Ingresa tu correo o usuario"
+          [class.is-invalid]="form.get('login')?.invalid && form.get('login')?.touched"
+        />
+        <div class="invalid-feedback">
+          Este campo es obligatorio.
+        </div>
+      </div>
+
+      <!-- Contraseña -->
+      <div class="mb-3">
+        <label for="password" class="form-label">Contraseña</label>
+        <input
+          type="password"
+          id="password"
+          class="form-control"
+          formControlName="password"
+          placeholder="Ingresa tu contraseña"
+          [class.is-invalid]="form.get('password')?.invalid && form.get('password')?.touched"
+        />
+        <div class="invalid-feedback">
+          La contraseña es obligatoria.
+        </div>
+      </div>
+
+      <!-- Mensaje de error general -->
+      <div *ngIf="error" class="alert alert-danger">
+        {{ error }}
+      </div>
+
+      <!-- Botón -->
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary" [disabled]="loading">
+          {{ loading ? 'Ingresando...' : 'Iniciar Sesión' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
