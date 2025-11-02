@@ -21,7 +21,7 @@ export class Login {
     private router: Router
   ) {
     this.form = this.fb.group({
-      login: ['', [Validators.required]],
+      login: ['', Validators.required],
       password: ['', Validators.required]
     });
   }
@@ -34,32 +34,33 @@ export class Login {
 
     this.loading = true;
     this.error = null;
+
     const { login, password } = this.form.getRawValue();
 
     try {
-      const response = await this.supabase.signInWithEmailOrUsername(login, password);
-
-      if (response?.error) {
-        this.error = response.error.message;
+      // Iniciar sesión con email o username
+      const { data, error } = await this.supabase.signInWithEmailOrUsername(login, password);
+      if (error) {
+        this.error = error.message;
         return;
       }
 
-      const userId = response.data?.session?.user?.id;
-      if (!userId) {
-        this.error = 'No se pudo obtener el usuario';
-        return;
-      }
-
-      const { data: perfil, error: perfilError } = await this.supabase.getRolUsuario(userId);
-      if (perfilError || !perfil) {
-        this.error = 'No se encontró el perfil del usuario';
-        return;
-      }
+      // Obtener usuario completo del BehaviorSubject
+      const user = await this.supabase.getSession();
+      const currentUser = await (this.supabase as any).getUsuarioCompleto(user?.user?.id!);
 
       // Redirigir según rol
-      if (perfil.rol === 'admin') this.router.navigate(['/admin']);
-      else if (perfil.rol === 'empleado') this.router.navigate(['/empleado']);
-      else this.error = 'Rol desconocido';
+      switch (currentUser.rol) {
+        case 'admin':
+          this.router.navigate(['/admin']);
+          break;
+        case 'empleado':
+          this.router.navigate(['/empleado']);
+          break;
+        default:
+          this.error = 'Rol desconocido';
+      }
+
     } catch (err: any) {
       this.error = err?.message || 'Ocurrió un error inesperado.';
     } finally {

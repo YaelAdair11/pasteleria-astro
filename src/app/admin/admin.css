@@ -9,3 +9,10 @@
     display: flex !important;
   }
 }
+
+.nav-link {
+  transition: all .3s ease-in-out;
+}
+.nav-link.active, .nav-link:hover {
+  background-color: #dc3545;
+}

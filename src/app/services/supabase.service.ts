@@ -1,10 +1,23 @@
 import { Injectable } from '@angular/core';
-import { createClient, Session, SupabaseClient } from '@supabase/supabase-js';
+import { createClient, Session, SupabaseClient, User } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
+import { BehaviorSubject } from 'rxjs';
+import { Empleado } from '../models/empleado.model';
+
+export interface UsuarioCompleto extends User {
+  username?: string;
+  rol?: string;
+  avatar?: string;
+  email?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
   private supabase: SupabaseClient;
+
+  // BehaviorSubject que almacena los datos completos del usuario
+  private userSubject = new BehaviorSubject<UsuarioCompleto | null>(null);
+  public user$ = this.userSubject.asObservable();
 
   constructor() {
     this.supabase = createClient(
@@ -18,46 +31,90 @@ export class SupabaseService {
         },
       }
     );
+    this.initUser();
+  }
+
+  // Inicializa el BehaviorSubject al cargar la app
+  private async initUser() {
+    const { data: { session } } = await this.supabase.auth.getSession();
+    if (session?.user) {
+      const usuario = await this.getUsuarioCompleto(session.user.id);
+      this.userSubject.next(usuario);
+    }
+
+    // Escucha cambios de auth (login/logout)
+    this.supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const usuario = await this.getUsuarioCompleto(session.user.id);
+        this.userSubject.next(usuario);
+      } else {
+        this.userSubject.next(null);
+      }
+    });
+  }
+
+  // Obtener todos los datos completos del usuario
+  private async getUsuarioCompleto(userId: string): Promise<UsuarioCompleto> {
+    // Obtener perfil
+    const { data: perfil, error } = await this.supabase
+      .from('perfiles')
+      .select('username, rol, avatar, email')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.warn('No se encontró perfil, usando datos de Auth', error);
+    }
+
+    // Obtener datos de Auth
+    const { data: sessionData } = await this.supabase.auth.getUser();
+    const userAuth = sessionData?.user;
+
+    return {
+      ...(userAuth as User),
+      id: userAuth?.id ?? userId,
+      username: (perfil?.username || userAuth?.user_metadata?.['username'] || '').trim(),
+      rol: perfil?.rol,
+      avatar: perfil?.avatar || userAuth?.user_metadata?.['avatar'] || 'default-avatar.png',
+      email: userAuth?.email
+    } as UsuarioCompleto;
   }
 
   // =================== AUTH ===================
   async signInWithEmailOrUsername(login: string, password: string) {
-    // Buscar en perfiles por username o email
     const { data: perfil, error } = await this.supabase
       .from('perfiles')
       .select('email')
       .or(`username.eq.${login},email.eq.${login}`)
       .single();
 
-    if (error || !perfil) throw new Error('Usuario no encontrado');
+    if (error || !perfil?.email) {
+      throw new Error('Usuario o contraseña incorrectos');
+    }
 
-    // Autenticar con email de Auth
     return this.supabase.auth.signInWithPassword({
       email: perfil.email,
       password,
     });
   }
 
-  signUp(email: string, password: string) {
-    return this.supabase.auth.signUp({ email, password });
-  }
-
+  // Logout
   async signOut() {
     await this.supabase.auth.signOut();
+    this.userSubject.next(null);
   }
 
+  // Devuelve la sesión actual
   async getSession(): Promise<Session | null> {
     const { data: { session } } = await this.supabase.auth.getSession();
     return session;
   }
 
-  // Obtener nombre de usuario para mostrar
-  async getNombreUsuario(): Promise<string> {
-    const session = await this.getSession();
-    if (!session || !session.user) return '';
-    const user = session.user;
-    // Tomamos username de user_metadata o email como fallback
-    return user.user_metadata?.['username'] || user.email || 'Usuario';
+  // Obtener el nombre de usuario para mostrar
+  getNombreUsuario(): string {
+    const user = this.userSubject.value;
+    if (!user) return '';
+    return user.username || user.email || 'Usuario';
   }
 
   // =================== ROLES ===================
@@ -70,12 +127,52 @@ export class SupabaseService {
   }
 
   // =================== DB ===================
-  getProductos() {
-    return this.supabase.from('productos').select('*');
+  async getEmpleados(): Promise<Empleado[]> {
+    // Consulta la tabla perfiles (o la que tengas)
+    const { data, error } = await this.supabase
+      .from('perfiles')
+      .select('id, username, email, avatar, rol')
+      .eq('rol', 'empleado') // 🔹 solo empleados
+      .order('username', { ascending: true });
+
+    if (error) throw error;
+    return data ?? [];
   }
 
-  insertProducto(payload: any) {
-    return this.supabase.from('productos').insert(payload);
+  // =================== PRODUCTOS ===================
+  async getProductos(admin = false) {
+    let query = this.supabase
+      .from('productos')
+      .select('*')
+      .order('nombre', { ascending: true });
+
+    // Solo filtrar los activos si NO es admin
+    if (!admin) {
+      query = query.eq('activo', true);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+    return data;
   }
+
+  async addProducto(producto: any) {
+    const { data, error } = await this.supabase.from('productos').insert(producto).select().single();
+    if (error) throw error;
+    return data;
+  }
+
+  async updateProducto(id: string, cambios: any) {
+    const { data, error } = await this.supabase.from('productos').update(cambios).eq('id', id).select().single();
+    if (error) throw error;
+    return data;
+  }
+
+  async deleteProducto(id: string) {
+    const { error } = await this.supabase.from('productos').delete().eq('id', id);
+    if (error) throw error;
+  }
+
 
 }

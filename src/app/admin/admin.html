@@ -1,34 +1,44 @@
 <div class="container-fluid">
   <div class="row flex-nowrap">
     <!-- Sidebar -->
-    <nav
-      id="sidebar" style="background-color: #1e1e2f;"
-      class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 d-flex flex-column min-vh-100 border-end shadow-sm"
-      [ngClass]="{ 'd-none d-md-flex': !sidebarVisible }"
-    >
+    <nav id="sidebar" style="background-color: #1e1e2f;" [ngClass]="{ 'd-none d-md-flex': !sidebarVisible }"
+        class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 d-flex flex-column min-vh-100 border-end shadow-sm">
       <div class="d-flex align-items-center py-3 px-3 border-bottom text-light">
         <i class="fa-solid fa-pizza-slice fs-3 text-danger me-2"></i>
         <span class="fs-5 fw-bold">Punto de Venta</span>
       </div>
-
       <ul class="nav nav-pills flex-column mb-auto px-2 mt-3">
         <li class="nav-item mb-1">
-          <a href="#" class="nav-link text-light"><i class="fa-solid fa-house me-2"></i> Inicio</a>
+          <a routerLink="./" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+              class="nav-link text-light">
+            <i class="fa-solid fa-home me-2"></i> Inicio
+          </a>
         </li>
         <li class="nav-item mb-1">
-          <a href="#" class="nav-link text-light"><i class="fa-solid fa-users me-2"></i> Empleados</a>
+          <a routerLink="empleados" routerLinkActive="active"
+              class="nav-link text-light">
+            <i class="fa-solid fa-users me-2"></i> Empleados
+          </a>
         </li>
         <li class="nav-item mb-1">
-          <a href="#" class="nav-link text-light"><i class="fa-solid fa-boxes-stacked me-2"></i> Inventario</a>
+          <a routerLink="inventario" routerLinkActive="active"
+              class="nav-link text-light">
+            <i class="fa-solid fa-boxes-stacked me-2"></i> Inventario
+          </a>
         </li>
         <li class="nav-item mb-1">
-          <a href="#" class="nav-link text-light"><i class="fa-solid fa-cart-shopping me-2"></i> Ventas</a>
+          <a routerLink="ventas" routerLinkActive="active"
+              class="nav-link text-light">
+            <i class="fa-solid fa-cart-shopping me-2"></i> Ventas
+          </a>
         </li>
         <li class="nav-item mb-1">
-          <a href="#" class="nav-link text-light"><i class="fa-solid fa-chart-line me-2"></i> Reportes</a>
+          <a routerLink="reportes" routerLinkActive="active"
+              class="nav-link text-light">
+            <i class="fa-solid fa-chart-line me-2"></i> Reportes
+          </a>
         </li>
       </ul>
-
       <div class="mt-auto px-3 pb-3">
         <button (click)="logout()" class="btn btn-outline-danger w-100">
           <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar Sesión
@@ -46,15 +56,8 @@
         <h2 class="m-0">Panel de Administración</h2>
       </header>
 
-      <div class="content">
-        <div class="alert alert-light border d-flex align-items-center shadow-sm">
-          <i class="fa-solid fa-user-circle fs-3 text-primary me-3"></i>
-          <div>
-            <h5 class="mb-0">Bienvenido, <strong>{{ nombreUsuario }}</strong></h5>
-            <small class="text-muted">Selecciona una opción del menú para comenzar.</small>
-          </div>
-        </div>
-      </div>
+      <!-- Contenedor dinámico -->
+      <router-outlet></router-outlet>
     </main>
   </div>
 </div>

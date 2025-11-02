@@ -1,0 +1,36 @@
+<div class="container mt-3">
+  <h3 class="mb-3">Lista de Empleados</h3>
+
+  <div class="table-responsive">
+    <table class="table table-striped table-dark table-bordered align-middle text-center">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Precio</th>
+          <th>Categoria</th>
+          <th>Stock</th>
+          <th>Imagen</th>
+          <th>Activo</th>
+          <th>Creado</th>
+          <th>Actualizado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let pro of productos">
+          <td>{{ pro.id }}</td>
+          <td>{{ pro.nombre }}</td>
+          <td>{{ pro.descripcion }}</td>
+          <td>{{ pro.precio }}</td>
+          <td>{{ pro.categoria }}</td>
+          <td>{{ pro.stock }}</td>
+          <td>{{ pro.imagen }}</td>
+          <td>{{ pro.activo }}</td>
+          <td>{{ pro.creado_en }}</td>
+          <td>{{ pro.actualizado_en }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

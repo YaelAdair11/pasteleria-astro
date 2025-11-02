@@ -2,6 +2,19 @@
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
   border: none;
   border-radius: 1rem;
+  transition: all .4s ease-in-out;
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(-2rem);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .card-title {
