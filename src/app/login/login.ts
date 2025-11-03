@@ -26,6 +26,21 @@ export class Login {
     });
   }
 
+  togglePassword() {
+    const input = document.getElementById('password') as HTMLInputElement;
+    // cambiar icono
+    const icon = document.getElementById('password-icon') as HTMLElement;
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.add('fa-eye');
+      icon.classList.remove('fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.add('fa-eye-slash');
+      icon.classList.remove('fa-eye');
+    }
+  }
+
   async onSubmit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -37,11 +52,14 @@ export class Login {
 
     const { login, password } = this.form.getRawValue();
 
+    console.log('Intentando iniciar sesión con:', login);
+
     try {
       // Iniciar sesión con email o username
       const { data, error } = await this.supabase.signInWithEmailOrUsername(login, password);
       if (error) {
         this.error = error.message;
+        this.loading = false;
         return;
       }
 

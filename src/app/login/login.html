@@ -9,7 +9,8 @@
     <!-- Capa tenue sobre el video (opcional) -->
     <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-25"></div>
 
-    <div class="position-absolute top-50 start-50 translate-middle text-center text-white" style="filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));">
+    <div class="position-absolute top-50 start-50 translate-middle text-center text-white"
+      style="filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));">
       <img src="/images/logo.png" alt="Logo Pastelería" class="mb-3" style="width: 14rem;" />
       <h1 class="fw-bold">Pastelería Dulce Arte</h1>
       <p class="fs-5 fst-italic">El arte de endulzar cada momento</p>
@@ -17,42 +18,51 @@
   </div>
 
   <!-- Lado del formulario -->
-  <div class="d-flex justify-content-center align-items-center flex-fill bg-light col-6">
-    <div class="card shadow-sm p-4 w-100" style="max-width: 400px;">
-      <h3 class="card-title text-center mb-4">Iniciar Sesión</h3>
+  <div
+    class="col-12 col-md-6 col-lg-4 col-xl-3 container-fluid d-flex py-3 overflow-auto"
+    style="background-color: #1e1e2f;">
+    <div class="col-12 col-md-11 mt-0 mt-md-auto mb-md-auto mx-auto text-light">
+      <!-- Logo -->
+      <div class="text-center mb-4">
+        <img src="/images/logo.png" alt="Logo Pastelería" class="mb-2" style="width: 6rem;" />
+        <h3 class="card-title text-center text-light fw-light">Pastelería Dulce Arte</h3>
+      </div>
+      <h3 class="card-title text-center mb-4 text-light fw-bold">Iniciar Sesión</h3>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
         <!-- Correo o Usuario -->
         <div class="mb-3">
-          <label for="login" class="form-label">Correo o Usuario</label>
-          <input
-            type="text"
-            id="login"
-            class="form-control"
-            formControlName="login"
-            placeholder="Ingresa tu correo o usuario"
-            [class.is-invalid]="form.get('login')?.invalid && form.get('login')?.touched"
-          />
-          <div class="invalid-feedback">
+          <label for="login" class="form-label fw-semibold">Correo o Usuario</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="fa-solid fa-user"></i></span>
+            <input type="text" id="login" class="form-control" formControlName="login"
+              placeholder="Ingresa tu correo o usuario"
+              [ngClass]="{ 'is-invalid': form.get('login')?.invalid && form.get('login')?.touched }" />
+          </div>
+          <div *ngIf="form.get('login')?.invalid && form.get('login')?.touched" class="invalid-feedback d-block"
+            style="color: #fc5868;">
             Este campo es obligatorio.
           </div>
         </div>
 
         <!-- Contraseña -->
-        <div class="mb-3">
-          <label for="password" class="form-label">Contraseña</label>
-          <input
-            type="password"
-            id="password"
-            class="form-control"
-            formControlName="password"
-            placeholder="Ingresa tu contraseña"
-            [class.is-invalid]="form.get('password')?.invalid && form.get('password')?.touched"
-          />
-          <div class="invalid-feedback">
+        <div class="mb-4">
+          <label for="password" class="form-label fw-semibold">Contraseña</label>
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="fa-solid fa-lock"></i></span>
+            <input type="password" id="password" class="form-control" formControlName="password"
+              placeholder="Ingresa tu contraseña"
+              [ngClass]="{ 'is-invalid': form.get('password')?.invalid && form.get('password')?.touched }" />
+            <button class="btn btn-primary py-0" type="button" (click)="togglePassword()">
+              <i id="password-icon" class="fa-solid fa-eye-slash"></i>
+            </button>
+          </div>
+          <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched" class="invalid-feedback d-block"
+            style="color: #fc5868;">
             La contraseña es obligatoria.
           </div>
         </div>
+
 
         <!-- Error general -->
         <div *ngIf="error" class="alert alert-danger">
@@ -61,11 +71,19 @@
 
         <!-- Botón -->
         <div class="d-grid">
-          <button type="submit" class="btn btn-primary" [disabled]="loading">
+          <button id="btn-iniciar-sesion" type="submit" class="btn btn-primary" [disabled]="loading">
             {{ loading ? 'Ingresando...' : 'Iniciar Sesión' }}
           </button>
         </div>
+
+        <!-- Contrseña -->
+        <div class="mt-4 text-center">
+          <a href="/reset-password" class="btn btn-link fw-semibold">
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
       </form>
+      <br /><br /><br /><br /><br /><br /><br />
     </div>
   </div>
 </div>

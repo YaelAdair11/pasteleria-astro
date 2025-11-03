@@ -26,3 +26,22 @@
   padding: 0.8rem;
   font-weight: 500;
 }
+
+.btn-primary {
+  --bs-btn-bg: #c62b66 !important;
+  --bs-btn-border-color: #c62b52 !important;
+  --bs-btn-hover-bg: #da3775 !important;
+  --bs-btn-hover-border-color: #da3775 !important;
+  --bs-btn-active-bg: #c62b52 !important;
+  --bs-btn-active-border-color: #c62b52 !important;
+  --bs-btn-disabled-bg: #c62b52 !important;
+  --bs-btn-disabled-border-color: #c62b52 !important;
+}
+.btn-link {
+  --bs-btn-color: #f75a96 !important;
+  --bs-btn-hover-color: #fc6da4 !important;
+  text-decoration: none;
+}
+.btn-link:focus, .btn-link:hover {
+  text-decoration: underline;
+}
