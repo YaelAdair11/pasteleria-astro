@@ -1,1 +1,38 @@
-<p>empleado works!</p>
+<div class="container-fluid">
+    <div class="row flex-nowrap">
+      <!-- Sidebar -->
+      <nav id="sidebar" style="background-color: #1e1e2f;" [ngClass]="{ 'd-none d-md-flex': !sidebarVisible }"
+          class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 d-flex flex-column min-vh-100 border-end shadow-sm">
+        <div class="d-flex align-items-center py-3 px-3 border-bottom text-light">
+          <i class="fa-solid fa-pizza-slice fs-3 text-danger me-2"></i>
+          <span class="fs-5 fw-bold">Punto de Venta</span>
+        </div>
+        <ul class="nav nav-pills flex-column mb-auto px-2 mt-3">
+          <li class="nav-item mb-1">
+            <a routerLink="./" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+                class="nav-link text-light">
+              <i class="fa-solid fa-home me-2"></i> Inicio
+            </a>
+          </li>
+          <li class="nav-item mb-1">
+            <a routerLink="vender" routerLinkActive="active"
+                class="nav-link text-light">
+              <i class="fa-solid fa-users me-2"></i> Vender
+            </a>
+          </li>
+        </ul>
+        <div class="mt-auto px-3 pb-3">
+          <button (click)="logout()" class="btn btn-outline-danger w-100">
+            <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar Sesión
+          </button>
+        </div>
+      </nav>
+  
+      <!-- Main content -->
+      <main class="col">
+        <!-- Contenedor dinámico -->
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  </div>
+  

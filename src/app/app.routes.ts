@@ -2,12 +2,14 @@ import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { Admin } from './admin/admin';
 import { InicioComponent } from './admin/inicio/inicio';
+import { Inicio } from './empleado/inicio/inicio';
 import { Empleados } from './admin/empleados/empleados';
 import { Empleado } from './empleado/empleado';
 import { RoleGuard } from './guards/role.guard';
 import { Inventario } from './admin/inventario/inventario';
 import { Reportes } from './admin/reportes/reportes';
 import { Ventas } from './admin/ventas/ventas';
+import { Vender } from './empleado/vender/vender';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -26,7 +28,15 @@ export const routes: Routes = [
       { path: 'ventas', component: Ventas },
     ]
   },
-
-  { path: 'empleado', component: Empleado, canActivate: [RoleGuard], data: { role: 'empleado' } },
+  {
+    path: 'empleado',
+    component: Empleado,
+    canActivate: [RoleGuard],
+    data: { role: 'empleado' },
+    children: [
+      { path: '', component: Inicio },
+      { path: 'vender', component: Vender },
+    ]
+  },
   { path: '**', redirectTo: '/login' }
 ];
