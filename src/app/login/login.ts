@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ɵEmptyOutletComponent } from '@angular/router';
 import { SupabaseService } from '../services/supabase.service';
 
 @Component({
@@ -11,6 +11,7 @@ import { SupabaseService } from '../services/supabase.service';
   styleUrls: ['./login.css'] // Corrige styleUrl → styleUrls
 })
 export class Login {
+  
   form: FormGroup;
   loading = false;
   error: string | null = null;
@@ -25,6 +26,36 @@ export class Login {
       password: ['', Validators.required]
     });
   }
+  
+  mostrarLogin2() {
+    const test = document.getElementById('test') as HTMLElement;
+    if (test) {
+      test.classList.add('active');
+    }
+  }
+  mostrarLogin(event: MouseEvent) {
+    const mask = document.getElementById('mask');
+    const button = event.currentTarget as HTMLElement;
+
+    if (mask && button) {
+      // 📍 Calcula posición absoluta del botón en pantalla
+      const rect = button.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+
+      // 📊 Convierte a porcentajes respecto al viewport
+      const xPercent = (x / window.innerWidth) * 100;
+      const yPercent = (y / window.innerHeight) * 100;
+
+      // 🌀 Asigna el punto de origen del clip-path
+      mask.style.setProperty('--x', `${xPercent}%`);
+      mask.style.setProperty('--y', `${yPercent}%`);
+
+      // 🎬 Activa la animación
+      mask.classList.add('active');
+    }
+  }
+
 
   togglePassword() {
     const input = document.getElementById('password') as HTMLInputElement;

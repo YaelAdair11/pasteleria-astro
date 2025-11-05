@@ -127,8 +127,10 @@ export class SupabaseService {
   }
 
   // =================== DB ===================
-  async getEmpleados(): Promise<Empleado[]> {
-    // Consulta la tabla perfiles (o la que tengas)
+
+  // =================== EMPLEADOS ===================
+ async getEmpleados(): Promise<Empleado[]> {
+    // (Este es tu código, está perfecto)
     const { data, error } = await this.supabase
       .from('perfiles')
       .select('id, username, email, avatar, rol')
@@ -137,6 +139,41 @@ export class SupabaseService {
 
     if (error) throw error;
     return data ?? [];
+  }
+
+  // función para crear un nuevo empleado ---
+  async crearEmpleado(empleadoData: any) {
+    // Esta es la lógica que te faltaba.
+    // 1. Creamos el usuario en Supabase AUTH
+    const { data: authData, error: authError } = await this.supabase.auth.signUp({
+      email: empleadoData.email,
+      password: empleadoData.password,
+      options: {
+        // 2. Le pasamos los datos extra (username y rol)
+        // que Supabase copiará automáticamente a la tabla 'perfiles'
+        data: {
+          username: empleadoData.username,
+          rol: 'empleado' // Forzamos el rol a 'empleado'
+        }
+      }
+    });
+
+    if (authError) {
+      return { data: null, error: authError }; // Devolvemos el error
+    }
+
+    // 3. Si salió bien, leemos el perfil que se acaba de crear para devolverlo
+    if (authData.user) {
+      const { data: perfilData, error: perfilError } = await this.supabase
+        .from('perfiles')
+        .select('id, username, email, avatar, rol')
+        .eq('id', authData.user.id)
+        .single(); // .single() nos trae solo 1 objeto
+
+      return { data: [perfilData], error: perfilError }; // Devolvemos el nuevo empleado
+    }
+    
+    return { data: null, error: new Error('No se pudo crear el usuario') };
   }
 
   // =================== PRODUCTOS ===================

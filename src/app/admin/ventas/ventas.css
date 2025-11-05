@@ -1,0 +1,13 @@
+.card {
+  border-radius: 1rem;
+  background-color: #fff;
+}
+
+.table th {
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.table td {
+  vertical-align: middle;
+}
