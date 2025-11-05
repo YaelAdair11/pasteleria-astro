@@ -47,15 +47,7 @@
     </nav>
 
     <!-- Main content -->
-    <main class="col py-3">
-      <header class="d-flex align-items-center mb-4 border-bottom pb-2">
-        <!-- Botón toggle visible en móviles -->
-        <button class="btn btn-outline-secondary me-3 d-md-none" (click)="toggleSidebar()">
-          <i class="fa-solid fa-bars"></i>
-        </button>
-        <h2 class="m-0">Panel de Administración</h2>
-      </header>
-
+    <main class="d-flex flex-fill">
       <!-- Contenedor dinámico -->
       <router-outlet></router-outlet>
     </main>
