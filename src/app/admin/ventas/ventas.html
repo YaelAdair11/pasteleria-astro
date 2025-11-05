@@ -1,11 +1,10 @@
 <div class="container-fluid py-3">
   <h3 class="fw-bold mb-3">Historial de Ventas</h3>
 
-  <!-- Barra de búsqueda -->
   <div class="d-flex align-items-center gap-2 mb-3">
-    <input type="text" class="form-control" placeholder="Buscar producto o cliente"
-           [(ngModel)]="filtro" (input)="filtrarVentas()">
-    <button class="btn btn-outline-secondary">
+    <input type="text" class="form-control" placeholder="Buscar por nombre de producto..."
+           [(ngModel)]="filtro" 
+           (input)="loadVentas()"> <button class="btn btn-outline-secondary">
       <i class="bi bi-funnel"></i> Filtros
     </button>
     <button class="btn btn-outline-secondary">
@@ -13,15 +12,13 @@
     </button>
   </div>
 
-  <!-- Resumen -->
-  <div class="row text-center bg-light p-3 rounded mb-4">
+  <div class="row text-center bg-light p-3 rounded mb-4" *ngIf="!loading && !error">
     <div class="col">
       <strong>Hoy:</strong> {{ ventas.length }} venta(s)
       <div>$ {{ totalVentas() | number:'1.2-2' }}</div>
     </div>
   </div>
 
-  <!-- Tabla -->
   <div class="card shadow-sm border-0">
     <div class="card-body p-0">
       <table class="table table-hover mb-0">
@@ -35,18 +32,38 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let v of filtrarVentas()">
-            <td>{{ v.producto_nombre }}</td>
+          <tr *ngIf="loading">
+            <td colspan="5" class="text-center py-5">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+              </div>
+              <p class="text-muted mt-2 mb-0">Cargando ventas...</p>
+            </td>
+          </tr>
+
+          <tr *ngIf="!loading && error">
+            <td colspan="5" class="text-center py-5 text-danger">
+              <i class="bi bi-exclamation-triangle-fill fs-1 d-block mb-2"></i>
+              <strong>Error</strong>
+              <p>{{ error }}</p>
+            </td>
+          </tr>
+
+          <tr *ngIf="!loading && !error && ventas.length === 0">
+            <td colspan="5" class="text-center py-5 text-muted">
+              <i class="bi bi-search fs-1 d-block mb-2"></i>
+              <h5 class="mb-1">No se encontraron ventas</h5>
+              <p class="mb-0" *ngIf="!filtro">Aún no hay ventas registradas.</p>
+              <p class="mb-0" *ngIf="filtro">Intenta con un término de búsqueda diferente.</p>
+            </td>
+          </tr>
+
+          <tr *ngFor="let v of ventas">
+            <td>{{ v.productos[0]?.nombre || 'Producto no encontrado' }}</td>
             <td>{{ v.cantidad }}</td>
             <td>{{ v.metodo_pago }}</td>
-            <td>${{ v.total.toFixed(2) }}</td>
+            <td>${{ v.total | number:'1.2-2' }}</td>
             <td>{{ v.fecha | date:'short' }}</td>
-          </tr>
-          <tr *ngIf="ventas.length === 0">
-            <td colspan="5" class="text-center py-4 text-muted">
-              <i class="bi bi-search fs-1 d-block mb-2"></i>
-              No hay ventas aún<br>¿Deseas registrar una?
-            </td>
           </tr>
         </tbody>
       </table>
