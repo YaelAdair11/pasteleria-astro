@@ -6,8 +6,8 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './reportes.html',
-  styleUrls: ['./reportes.css']   // ← OJO: era "styleUrls" (en plural)
+  styleUrls: ['./reportes.css'] 
 })
 export class Reportes {
-  hoy = new Date();  // ← propiedad usada en el HTML
+  hoy = new Date(); 
 }

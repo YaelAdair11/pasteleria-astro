@@ -7,7 +7,7 @@ describe('Reportes', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Reportes]  // correcto, porque es standalone
+      imports: [Reportes] 
     }).compileComponents();
 
     fixture = TestBed.createComponent(Reportes);
