@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { Admin } from './admin/admin';
-import { Inicio } from './admin/inicio/inicio';
+import { InicioComponent } from './admin/inicio/inicio';
 import { Empleados } from './admin/empleados/empleados';
 import { Empleado } from './empleado/empleado';
 import { RoleGuard } from './guards/role.guard';
@@ -19,7 +19,7 @@ export const routes: Routes = [
     canActivate: [RoleGuard],
     data: { role: 'admin' },
     children: [
-      { path: '', component: Inicio },
+      { path: '', component: InicioComponent },
       { path: 'empleados', component: Empleados },
       { path: 'inventario', component: Inventario },
       { path: 'reportes', component: Reportes },

@@ -1,1 +1,165 @@
-<p>inicio works!</p>
+<div class="container-fluid">
+  <!-- Tarjetas de métricas principales -->
+  <div class="row">
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <h6 class="card-title text-muted mb-2">Ventas Hoy</h6>
+              <h3 class="fw-bold text-primary">$2,450</h3>
+              <span class="badge bg-success">+12% vs ayer</span>
+            </div>
+            <div class="flex-shrink-0">
+              <i class="fa-solid fa-cart-shopping fs-1 text-primary opacity-25"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <h6 class="card-title text-muted mb-2">Productos en Stock</h6>
+              <h3 class="fw-bold text-success">156</h3>
+              <span class="badge bg-warning text-dark">12 bajos en stock</span>
+            </div>
+            <div class="flex-shrink-0">
+              <i class="fa-solid fa-boxes-stacked fs-1 text-success opacity-25"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <h6 class="card-title text-muted mb-2">Empleados Activos</h6>
+              <h3 class="fw-bold text-info">8</h3>
+              <span class="badge bg-info">3 en turno</span>
+            </div>
+            <div class="flex-shrink-0">
+              <i class="fa-solid fa-users fs-1 text-info opacity-25"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <h6 class="card-title text-muted mb-2">Clientes Nuevos</h6>
+              <h3 class="fw-bold text-purple">15</h3>
+              <span class="badge bg-success">+5 esta semana</span>
+            </div>
+            <div class="flex-shrink-0">
+              <i class="fa-solid fa-user-plus fs-1 text-purple opacity-25"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráficos con Chart.js -->
+  <div class="row">
+    <!-- Gráfico de Ventas Semanales (MÁS PEQUEÑO) -->
+    <div class="col-lg-8 mb-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">Ventas de la Semana</h5>
+          <div class="btn-group btn-group-sm">
+            <button class="btn btn-outline-secondary active">Semana</button>
+            <button class="btn btn-outline-secondary">Mes</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="height: 220px;"> <!-- ← CONTENEDOR CON ALTURA CONTROLADA -->
+            <canvas id="ventasChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Lista de Productos Populares -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0">
+          <h5 class="mb-0">Productos Más Vendidos</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Categoría</th>
+                  <th>Ventas</th>
+                  <th>Stock</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <span>Pastel de Chocolate</span>
+                    </div>
+                  </td>
+                  <td>Pasteles</td>
+                  <td>45 unidades</td>
+                  <td>
+                    <span class="badge bg-success">En stock</span>
+                  </td>
+                  <td>
+                    <span class="badge bg-primary">Más vendido</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <span>Cupcakes de Vainilla</span>
+                    </div>
+                  </td>
+                  <td>Postres Individuales</td>
+                  <td>32 unidades</td>
+                  <td>
+                    <span class="badge bg-warning text-dark">Stock bajo</span>
+                  </td>
+                  <td>
+                    <span class="badge bg-info">Popular</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <span>Galletas Decoradas</span>
+                    </div>
+                  </td>
+                  <td>Galletas</td>
+                  <td>28 unidades</td>
+                  <td>
+                    <span class="badge bg-success">En stock</span>
+                  </td>
+                  <td>
+                    <span class="badge bg-info">Popular</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
