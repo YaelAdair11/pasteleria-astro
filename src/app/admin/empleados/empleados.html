@@ -2,7 +2,7 @@
   <h3 class="mb-3">Lista de Empleados</h3>
 
   <div class="table-responsive">
-    <table class="table table-striped table-dark table-bordered align-middle text-center">
+    <table class="table table-striped table-dark table-bordered align-middle">
       <thead>
         <tr>
           <th>ID</th>
@@ -13,10 +13,23 @@
       </thead>
       <tbody>
         <tr *ngFor="let emp of empleados">
-          <td>{{ emp.id }}</td>
-          <td>{{ emp.username }}</td>
-          <td>{{ emp.email }}</td>
-          <td>{{ emp.avatar }}</td>
+          <td class="text-muted small">{{ emp.id.slice(0, 8) }}...</td>
+          <td class="fw-semibold">{{ emp.username }}</td>
+          <td>
+            <a [href]="'mailto:' + emp.email" class="text-info text-decoration-none">
+              {{ emp.email }}
+            </a>
+          </td>
+          <td>
+            <div *ngIf="emp.avatar && emp.avatar !== 'default-avatar.png'; else sinAvatar" 
+                 class="avatar-placeholder bg-primary rounded-circle d-inline-flex align-items-center justify-content-center"
+                 style="width: 40px; height: 40px;">
+              <i class="fa-solid fa-user text-white small"></i>
+            </div>
+            <ng-template #sinAvatar>
+              <span class="text-muted">-</span>
+            </ng-template>
+          </td>
         </tr>
       </tbody>
     </table>
