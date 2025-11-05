@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common'; 
 import { SupabaseService } from '../../services/supabase.service';
 
 interface ReporteData {
@@ -11,12 +11,13 @@ interface ReporteData {
 @Component({
   selector: 'app-reportes',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule 
+  ],
   templateUrl: './reportes.html',
   styleUrls: ['./reportes.css']
 })
 export class Reportes implements OnInit {
-  // 'hoy' ahora se llama 'fechaSeleccionada' y es la fecha que controlamos
   fechaSeleccionada = new Date(); 
   
   reporte: ReporteData | null = null;
@@ -26,7 +27,7 @@ export class Reportes implements OnInit {
   constructor(private supabaseService: SupabaseService) {}
 
   ngOnInit(): void {
-    this.loadReporte(); // Carga el reporte para el día de hoy al iniciar
+    this.loadReporte(); 
   }
 
   /**
@@ -37,7 +38,6 @@ export class Reportes implements OnInit {
     this.error = null;
 
     try {
-      // Llamamos al nuevo método del servicio pasándole la fecha
       this.reporte = await this.supabaseService.getReportesPorDia(this.fechaSeleccionada);
     } catch (error: any) {
       console.error('Error al cargar reporte:', error);
@@ -49,7 +49,6 @@ export class Reportes implements OnInit {
 
   /**
    * Cambia la fecha seleccionada (suma o resta días) y recarga el reporte.
-   * @param dias - El número de días a cambiar (ej: -1 para ayer, 1 para mañana)
    */
   cambiarDia(dias: number): void {
     const nuevaFecha = new Date(this.fechaSeleccionada);
@@ -61,7 +60,7 @@ export class Reportes implements OnInit {
     }
 
     this.fechaSeleccionada = nuevaFecha;
-    this.loadReporte(); // ¡Volvemos a cargar los datos para la nueva fecha!
+    this.loadReporte(); 
   }
 
   /**
@@ -74,7 +73,6 @@ export class Reportes implements OnInit {
 
   /**
    * Helper para saber si la fecha seleccionada es el día de hoy.
-   * (Se usa para deshabilitar el botón de "siguiente")
    */
   esHoy(): boolean {
     const hoy = new Date();
