@@ -1,11 +1,13 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-reportes',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './reportes.html',
-  styleUrl: './reportes.css',
+  styleUrls: ['./reportes.css']   // ← OJO: era "styleUrls" (en plural)
 })
 export class Reportes {
-
+  hoy = new Date();  // ← propiedad usada en el HTML
 }

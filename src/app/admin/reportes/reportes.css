@@ -1,0 +1,12 @@
+.card {
+  border-radius: 1rem;
+  background-color: #fff;
+}
+
+.list-group-item {
+  padding: 0.6rem 0;
+}
+
+#sidebar {
+  transition: all 0.3s ease;
+}
