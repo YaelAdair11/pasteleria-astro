@@ -81,37 +81,35 @@ export class Login {
     this.loading = true;
     this.error = null;
 
-    const { login, password } = this.form.getRawValue();
-
-    console.log('Intentando iniciar sesión con:', login);
+    const { login, password } = this.form.value;
 
     try {
-      // Iniciar sesión con email o username
-      const { data, error } = await this.supabase.signInWithEmailOrUsername(login, password);
+      const { error } = await this.supabase.signInWithEmailOrUsername(login, password);
       if (error) {
         this.error = error.message;
-        this.loading = false;
         return;
       }
 
-      // Obtener usuario completo del BehaviorSubject
-      const user = await this.supabase.getSession();
-      const currentUser = await (this.supabase as any).getUsuarioCompleto(user?.user?.id!);
+      // 🔥 Escuchar el BehaviorSubject (solo 1 vez)
+      const sub = this.supabase.user$.subscribe((user) => {
+        if (!user) return;
 
-      // Redirigir según rol
-      switch (currentUser.rol) {
-        case 'admin':
-          this.router.navigate(['/admin']);
-          break;
-        case 'empleado':
-          this.router.navigate(['/empleado']);
-          break;
-        default:
-          this.error = 'Rol desconocido';
-      }
+        switch (user.rol) {
+          case 'admin':
+            this.router.navigate(['/admin']);
+            break;
+          case 'empleado':
+            this.router.navigate(['/empleado']);
+            break;
+          default:
+            this.error = 'Rol desconocido';
+        }
 
-    } catch (err: any) {
-      this.error = err?.message || 'Ocurrió un error inesperado.';
+        sub.unsubscribe();
+      });
+
+    } catch (e: any) {
+      this.error = e?.message ?? 'Error inesperado';
     } finally {
       this.loading = false;
     }

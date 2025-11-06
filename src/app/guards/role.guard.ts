@@ -1,26 +1,34 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';
 import { SupabaseService } from '../services/supabase.service';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class RoleGuard implements CanActivate {
-  constructor(private supabase: SupabaseService, private router: Router) {}
+  constructor(
+    private supabase: SupabaseService,
+    private router: Router
+  ) {}
 
   async canActivate(route: ActivatedRouteSnapshot): Promise<boolean> {
     const requiredRole = route.data['role'] as string;
 
-    const session = await this.supabase.getSession();
-    const userId = session?.user?.id;
+    // ✅ obtienes el usuario almacenado (no hace llamadas)
+    const user = await firstValueFrom(this.supabase.user$);
 
-    if (!userId) {
-      this.router.navigate(['/']);
+    // ✅ sin sesión
+    if (!user) {
+      this.router.navigate(['/login']);
       return false;
     }
 
-    const { data: perfil } = await this.supabase.getRolUsuario(userId);
-    if (perfil?.rol === requiredRole) return true;
+    // ✅ rol coincide → acceso inmediato
+    if (user.rol === requiredRole) {
+      return true;
+    }
 
-    this.router.navigate(['/']); // redirige si no coincide rol
+    // ✅ redirige si rol no coincide
+    this.router.navigate(['/login']);
     return false;
   }
 }
