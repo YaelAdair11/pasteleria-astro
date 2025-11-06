@@ -1,7 +1,7 @@
 <div class="container-fluid">
   <div class="row flex-nowrap">
     <!-- Sidebar -->
-    <nav id="sidebar" style="background-color: #1e1e2f;" [ngClass]="{ 'd-none d-md-flex': !sidebarVisible }"
+    <nav id="sidebar" class="overflow-auto" style="background-color: #1e1e2f;" [ngClass]="{ 'd-none d-md-flex': !sidebarVisible }"
         class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 d-flex flex-column min-vh-100 border-end shadow-sm">
       <div class="d-flex align-items-center py-3 px-3 border-bottom text-light">
         <i class="fa-solid fa-pizza-slice fs-3 text-danger me-2"></i>
@@ -47,7 +47,7 @@
     </nav>
 
     <!-- Main content -->
-    <main class="col">
+    <main class="col overflow-auto">
       <!-- Contenedor dinámico -->
       <router-outlet></router-outlet>
     </main>

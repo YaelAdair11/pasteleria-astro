@@ -1,6 +1,6 @@
 <div id="fondo" class="d-flex vw-100 vh-100 position-absolute z-1">
   <!-- Lado del video -->
-  <div class="flex-fill position-relative col-6 d-none d-md-flex overflow-hidden">
+  <div class="flex-fill position-relative overflow-hidden">
     <video autoplay muted loop playsinline class="w-100 h-100 object-fit-cover">
       <source src="/videos/fondo.mp4" type="video/mp4" />
       Tu navegador no soporta video HTML5.
@@ -9,21 +9,25 @@
     <!-- Capa tenue sobre el video (opcional) -->
     <div class="position-absolute top-0 start-0 w-100 h-100 bg-dark opacity-25"></div>
 
-    <div class="position-absolute top-50 start-50 translate-middle text-center text-white"
+    <div class="position-absolute top-0 start-0 w-100 h-100 overflow-auto d-flex"
       style="filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.6));">
-      <img src="/images/logo.png" alt="Logo Pastelería" class="mb-3" style="width: 14rem;" />
-      <h1 class="fw-bold">Pastelería Dulce Arte</h1>
-      <p class="fs-5 fst-italic">El arte de endulzar cada momento</p>
-      <button id="iniciar" class="btn btn-primary mt-1 mb-5 rounded-pill fs-5 fw-bold py-2" (click)="mostrarLogin($event)">INICIAR</button>
-      <br />
+      <div class="m-auto text-center text-white d-block">
+        <img src="/images/logo.png" alt="Logo Pastelería" class="mb-3" style="width: 14rem;" />
+        <h1 class="fw-bold">Pastelería Dulce Arte</h1>
+        <p class="fs-5 fst-italic">El arte de endulzar cada momento</p>
+        <button id="iniciar" class="btn btn-primary mt-1 mb-5 rounded-pill fs-5 fw-bold py-2" (click)="mostrarLogin($event)">INICIAR</button>
+        <br />
+      </div>
     </div>
   </div>
 </div>
 <!-- Máscara circular que revela -->
-<div id="mask" class="container-fluid d-flex">
- <div
-    class="col-12 col-md-6 col-lg-4 col-xl-3 container-fluid d-flex py-3 overflow-auto m-auto"
+<div id="mask" class="container-fluid d-flex overflow-auto">
+ <div class="col-12 col-md-6 col-lg-4 col-xl-3 container-fluid d-flex py-3 overflow-auto m-auto"
     style="background-color: #1e1e2f;">
+    <button id="btn-menu" class="btn btn-dark position-absolute rounded-circle shadow-sm d-flex top-0 start-0 m-3 p-0" style="width: 2rem; height: 2rem;" (click)="toggleLogin()">
+      <i class="fa-solid fa-angle-left m-auto"></i>
+    </button>
     <div class="col-12 col-md-11 mt-0 mt-md-auto mb-md-auto mx-auto text-light">
       <!-- Logo -->
       <div class="text-center mb-4">

@@ -37,25 +37,42 @@ export class Login {
     const mask = document.getElementById('mask');
     const button = event.currentTarget as HTMLElement;
 
-    if (mask && button) {
-      // 📍 Calcula posición absoluta del botón en pantalla
-      const rect = button.getBoundingClientRect();
-      const x = rect.left + rect.width / 2;
-      const y = rect.top + rect.height / 2;
+    if (!mask || !button) return;
 
-      // 📊 Convierte a porcentajes respecto al viewport
-      const xPercent = (x / window.innerWidth) * 100;
-      const yPercent = (y / window.innerHeight) * 100;
+    const rect = button.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
 
-      // 🌀 Asigna el punto de origen del clip-path
-      mask.style.setProperty('--x', `${xPercent}%`);
-      mask.style.setProperty('--y', `${yPercent}%`);
+    const xPercent = (x / window.innerWidth) * 100;
+    const yPercent = (y / window.innerHeight) * 100;
 
-      // 🎬 Activa la animación
+    // 1️⃣ Aplicar posición a la máscara ANTES de animar
+    mask.style.setProperty('--x', `${xPercent}%`);
+    mask.style.setProperty('--y', `${yPercent}%`);
+
+    // 2️⃣ Desactivar animación para establecer clip inicial
+    mask.style.transition = 'none';
+    mask.classList.remove('active');
+
+    // 3️⃣ Forzar un reflow REAL (no solo bounding box)
+    void mask.offsetWidth;
+
+    // 4️⃣ Reactivar la transición DESPUÉS del reflow
+    mask.style.transition = 'clip-path 0.6s ease-in-out';
+
+    // 5️⃣ Ahora sí activar animación en el siguiente frame real
+    requestAnimationFrame(() => {
       mask.classList.add('active');
-    }
+    });
   }
 
+
+  toggleLogin() {
+    const mask = document.getElementById('mask');
+    if (mask) {
+      mask.classList.remove('active');
+    }
+  }
 
   togglePassword() {
     const input = document.getElementById('password') as HTMLInputElement;

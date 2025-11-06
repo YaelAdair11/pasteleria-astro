@@ -78,12 +78,14 @@
   z-index: 3;
   background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(10px);
-  clip-path: circle(0% at 50% 50%);
-  transition: clip-path 1s ease-in-out;
+  --x: 50%;
+  --y: 50%;
+  clip-path: circle(0% at var(--x) var(--y));
+  transition: clip-path .6s ease-in-out;
   pointer-events: none;
 }
 
 #mask.active {
-  clip-path: circle(150% at var(--x, 50%) var(--y, 50%));
+  clip-path: circle(100% at var(--x, 50%) var(--y, 50%));
   pointer-events: all;
 }
