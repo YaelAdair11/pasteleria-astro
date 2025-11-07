@@ -1,1 +1,242 @@
-<p>vender works!</p>
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Sistema de Cobro - Papelería</title>
+  <style>
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f3f4f6;
+      margin: 0;
+      padding: 0;
+    }
+    .panel {
+      max-width: 960px;
+      margin: 30px auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #e5e7eb;
+      padding-bottom: 10px;
+    }
+    header h1 {
+      margin: 0;
+      color: #2563eb;
+    }
+    header span {
+      color: #6b7280;
+      font-size: 14px;
+    }
+    .scanner {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    .scanner input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .scanner button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .scanner button:hover {
+      background: #1e40af;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+    }
+    th {
+      background: #f9fafb;
+    }
+    td input {
+      width: 60px;
+      padding: 5px;
+      text-align: center;
+    }
+    .totales {
+      text-align: right;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+    .totales span {
+      font-weight: bold;
+      color: #2563eb;
+    }
+    .acciones {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .acciones .btn {
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 16px;
+      border: none;
+      cursor: pointer;
+    }
+    .acciones .btn.primario {
+      background: #10b981;
+      color: white;
+    }
+    .acciones .btn.secundario {
+      background: #f3f4f6;
+      color: #111827;
+      border: 1px solid #d1d5db;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <header>
+      <h1>📘 Papelería Escolar</h1>
+      <span>Cajero: Ana López | Caja #2</span>
+    </header>
+
+    <div class="scanner">
+      <input id="codigo" type="text" placeholder="Escanea o ingresa el código del producto...">
+      <button onclick="agregarPorCodigo()">Agregar</button>
+    </div>
+
+    <table id="tabla">
+      <thead>
+        <tr>
+          <th>Código</th>
+          <th>Producto</th>
+          <th>Precio</th>
+          <th>Cantidad</th>
+          <th>Subtotal</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="totales">
+      Total: $<span id="total">0.00</span>
+    </div>
+
+    <div class="acciones">
+      <button class="btn secundario" onclick="limpiar()">Cancelar venta</button>
+      <button class="btn primario" onclick="cobrar()">Cobrar</button>
+    </div>
+  </div>
+
+  <script>
+    // Catálogo básico de productos de papelería
+    const productos = [
+      { codigo: '1001', nombre: 'Cuaderno Profesional', precio: 65 },
+      { codigo: '1002', nombre: 'Bolígrafo Azul', precio: 12 },
+      { codigo: '1003', nombre: 'Lápiz del #2', precio: 8 },
+      { codigo: '1004', nombre: 'Borrador Blanco', precio: 6 },
+      { codigo: '1005', nombre: 'Tijeras Escolares', precio: 25 },
+      { codigo: '1006', nombre: 'Caja de Colores (12)', precio: 75 },
+      { codigo: '1007', nombre: 'Resistol 225g', precio: 38 }
+    ];
+
+    let carrito = [];
+
+    function agregarPorCodigo() {
+      const codigo = document.getElementById('codigo').value.trim();
+      const producto = productos.find(p => p.codigo === codigo);
+      if (!producto) {
+        alert('Código no encontrado');
+        return;
+      }
+      const existente = carrito.find(p => p.codigo === codigo);
+      if (existente) {
+        existente.cantidad++;
+      } else {
+        carrito.push({ ...producto, cantidad: 1 });
+      }
+      document.getElementById('codigo').value = '';
+      renderTabla();
+    }
+
+    function renderTabla() {
+      const tbody = document.querySelector('#tabla tbody');
+      tbody.innerHTML = '';
+      carrito.forEach((p, i) => {
+        const subtotal = (p.precio * p.cantidad).toFixed(2);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${p.codigo}</td>
+          <td>${p.nombre}</td>
+          <td>$${p.precio}</td>
+          <td><input type='number' min='1' value='${p.cantidad}' onchange='cambiarCantidad(${i}, this.value)'></td>
+          <td>$${subtotal}</td>
+          <td><button onclick='eliminar(${i})'>🗑️</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      actualizarTotal();
+    }
+
+    function cambiarCantidad(i, val) {
+      const cantidad = parseInt(val);
+      if (cantidad > 0) {
+        carrito[i].cantidad = cantidad;
+        renderTabla();
+      }
+    }
+
+    function eliminar(i) {
+      carrito.splice(i, 1);
+      renderTabla();
+    }
+
+    function actualizarTotal() {
+      const total = carrito.reduce((sum, p) => sum + p.precio * p.cantidad, 0);
+      document.getElementById('total').textContent = total.toFixed(2);
+    }
+
+    function cobrar() {
+      if (carrito.length === 0) {
+        alert('No hay productos en el carrito');
+        return;
+      }
+      const total = parseFloat(document.getElementById('total').textContent);
+      const pago = parseFloat(prompt(`Total a pagar: $${total.toFixed(2)}\nIngrese monto recibido:`));
+      if (isNaN(pago) || pago < total) {
+        alert('Monto insuficiente o inválido');
+        return;
+      }
+      const cambio = (pago - total).toFixed(2);
+      alert(`Cobro exitoso.\nCambio: $${cambio}`);
+      carrito = [];
+      renderTabla();
+    }
+
+    function limpiar() {
+      if (confirm('¿Cancelar venta actual?')) {
+        carrito = [];
+        renderTabla();
+      }
+    }
+  </script>
+</body>
+</html>
