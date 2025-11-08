@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { Login } from './login/login';
 import { Admin } from './admin/admin';
 import { InicioComponent } from './admin/inicio/inicio';
@@ -40,3 +41,5 @@ export const routes: Routes = [
   },
   { path: '**', redirectTo: '/login' }
 ];
+
+
