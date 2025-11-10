@@ -1,151 +1,94 @@
-<div class="container-fluid">
+<div class="dashboard-container">
+  <header class="header">
+    <h1>🎂 Pastelería Angular</h1>
+  </header>
 
-    <!-- Tarjetas de métricas principales -->
-    <div class="row">
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body">
-            <div class="d-flex align-items-center">
-              <div class="flex-grow-1">
-                <h6 class="card-title text-muted mb-2">Ventas Hoy</h6>
-                <h3 class="fw-bold text-primary">$2,450</h3>
-                <span class="badge bg-success">+12% vs ayer</span>
-              </div>
-              <div class="flex-shrink-0">
-                <i class="fa-solid fa-cart-shopping fs-1 text-primary opacity-25"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-  
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body">
-            <div class="d-flex align-items-center">
-              <div class="flex-grow-1">
-                <h6 class="card-title text-muted mb-2">Productos en Stock</h6>
-                <h3 class="fw-bold text-success">156</h3>
-                <span class="badge bg-warning text-dark">12 bajos en stock</span>
-              </div>
-              <div class="flex-shrink-0">
-                <i class="fa-solid fa-boxes-stacked fs-1 text-success opacity-25"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-  
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body">
-            <div class="d-flex align-items-center">
-              <div class="flex-grow-1">
-                <h6 class="card-title text-muted mb-2">Empleados Activos</h6>
-                <h3 class="fw-bold text-info">4</h3>
-                <span class="badge bg-info">1 en turno</span>
-              </div>
-              <div class="flex-shrink-0">
-                <i class="fa-solid fa-users fs-1 text-info opacity-25"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-  
-      <div class="col-xl-3 col-md-6 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-body">
-            <div class="d-flex align-items-center">
-              <div class="flex-grow-1">
-                <h6 class="card-title text-muted mb-2">Clientes Nuevos</h6>
-                <h3 class="fw-bold text-purple">15</h3>
-                <span class="badge bg-success">+5 esta semana</span>
-              </div>
-              <div class="flex-shrink-0">
-                <i class="fa-solid fa-user-plus fs-1 text-purple opacity-25"></i>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+  <section class="stats-section">
+    <div class="card">
+      <h2>Ventas Hoy</h2>
+      <p class="value">$2,450</p>
+      <span class="tag success">+12% vs ayer</span>
     </div>
-  
-    <!-- Gráfico de Ventas -->
-    <div class="row">
-      <div class="col-lg-8 mb-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Ventas de la Semana</h5>
-            <div class="btn-group btn-group-sm">
-              <button class="btn btn-outline-secondary active">Semana</button>
-              <button class="btn btn-outline-secondary">Mes</button>
-            </div>
-          </div>
-          <div class="card-body">
-            <div style="height: 220px;">
-              <canvas id="ventasChart"></canvas>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="card">
+      <h2>Ventas del Mes</h2>
+      <p class="value">$18,750</p>
+      <span class="tag neutral">Objetivo 75%</span>
     </div>
-  
-    <!-- Historial de Ventas -->
-    <div class="row mt-4">
-      <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-transparent border-0">
-            <h5 class="mb-0">Historial de Ventas Recientes</h5>
-          </div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-hover align-middle">
-                <thead class="table-light">
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Producto</th>
-                    <th>Cantidad</th>
-                    <th>Total</th>
-                    <th>Cliente</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>05/11/2025</td>
-                    <td>pastel de chocolate</td>
-                    <td>1</td>
-                    <td>$1600</td>
-                    <td>Juan Pérez</td>
-                  </tr>
-                  <tr>
-                    <td>05/11/2025</td>
-                    <td>pastel de philadelphia</td>
-                    <td>1</td>
-                    <td>$2800</td>
-                    <td>María López</td>
-                  </tr>
-                  <tr>
-                    <td>04/11/2025</td>
-                    <td>pastel de 3 leches</td>
-                    <td>1</td>
-                    <td>$1500</td>
-                    <td>Carlos Ruiz</td>
-                  </tr>
-                  <tr>
-                    <td>04/11/2025</td>
-                    <td>pastel de vainilla</td>
-                    <td>1</td>
-                    <td>$1800</td>
-                    <td>Ana Torres</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div class="card">
+      <h2>Ofertas</h2>
+      <p class="value">8</p>
+      <span class="tag warning">3 nuevas</span>
     </div>
-  
+    <div class="card">
+      <h2>Exclusivos</h2>
+      <p class="value">5 clientes</p>
+      <span class="tag info">Historial alto</span>
+    </div>
+  </section>
+
+  <section class="actions">
+    <button class="btn add" (click)="abrirModalAgregar()">➕ Agregar Pedido</button>
+    <button class="btn view" (click)="abrirModalPedidos()">📋 Ver Pedidos</button>
+  </section>
+
+  <!-- Modal Agregar Pedido -->
+  <div class="modal" *ngIf="mostrarAgregar">
+    <div class="modal-content">
+      <h2>Agregar Pedido</h2>
+      <form (ngSubmit)="guardarPedido()">
+        <label>Nombre:</label>
+        <input type="text" [(ngModel)]="nuevoPedido.nombre" name="nombre" required />
+
+        <label>Teléfono:</label>
+        <input type="tel" [(ngModel)]="nuevoPedido.telefono" name="telefono" required />
+
+        <label>Kilos de pastel:</label>
+        <input type="number" [(ngModel)]="nuevoPedido.kilos" name="kilos" min="1" required />
+
+        <label>Relleno:</label>
+        <input type="text" [(ngModel)]="nuevoPedido.relleno" name="relleno" required />
+
+        <label>Cubierta:</label>
+        <input type="text" [(ngModel)]="nuevoPedido.cubierta" name="cubierta" required />
+
+        <label>Temática o color:</label>
+        <input type="text" [(ngModel)]="nuevoPedido.tematica" name="tematica" />
+
+        <label>Fecha de entrega:</label>
+        <input type="date" [(ngModel)]="nuevoPedido.fecha" name="fecha" required />
+
+        <label>Lugar de entrega:</label>
+        <input type="text" [(ngModel)]="nuevoPedido.lugar" name="lugar" />
+
+        <div class="modal-actions">
+          <button type="submit" class="btn save">Guardar</button>
+          <button type="button" class="btn cancel" (click)="cerrarModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
   </div>
-  
+
+  <!-- Modal Pedidos -->
+  <div class="modal" *ngIf="mostrarPedidos">
+    <div class="modal-content">
+      <h2>Pedidos Registrados</h2>
+      <div *ngFor="let pedido of pedidos" class="pedido-item">
+        <p><strong>{{ pedido.nombre }}</strong> - {{ pedido.kilos }}kg - {{ pedido.tematica }}</p>
+        <p>📞 {{ pedido.telefono }} | Fecha: {{ pedido.fecha }}</p>
+        <p>
+          Estado:
+          <select [(ngModel)]="pedido.estado">
+            <option value="en proceso">En Proceso</option>
+            <option value="entregado">Entregado</option>
+          </select>
+        </p>
+        <button *ngIf="pedido.estado === 'entregado'" class="btn report" (click)="verReporte(pedido)">
+          📄 Reporte
+        </button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn cancel" (click)="cerrarModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

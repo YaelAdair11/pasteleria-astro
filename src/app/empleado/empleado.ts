@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { SupabaseService } from '../services/supabase.service';
+import { FormsModule } from '@angular/forms';
+
 
 @Component({
   selector: 'app-empleado',
