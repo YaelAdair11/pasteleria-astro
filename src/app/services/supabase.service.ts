@@ -120,51 +120,74 @@ export class SupabaseService {
   // =================== DB ===================
 
   // =================== EMPLEADOS ===================
+  
   async getEmpleados(): Promise<Empleado[]> {
-    // (Este es tu código, está perfecto)
     const { data, error } = await this.supabase
       .from('perfiles')
       .select('id, username, email, avatar, rol')
-      .eq('rol', 'empleado') // 🔹 solo empleados
+      .eq('rol', 'empleado') 
       .order('username', { ascending: true });
 
     if (error) throw error;
     return data ?? [];
   }
 
-  // función para crear un nuevo empleado ---
   async crearEmpleado(empleadoData: any) {
-    // Esta es la lógica que te faltaba.
-    // 1. Creamos el usuario en Supabase AUTH
-    const { data: authData, error: authError } = await this.supabase.auth.signUp({
-      email: empleadoData.email,
-      password: empleadoData.password,
-      options: {
-        // 2. Le pasamos los datos extra (username y rol)
-        // que Supabase copiará automáticamente a la tabla 'perfiles'
-        data: {
+    console.log("Servicio: Insertando en 'perfiles':", empleadoData);
+    const { data, error } = await this.supabase
+      .from('perfiles')
+      .insert([
+        { 
           username: empleadoData.username,
-          rol: 'empleado' // Forzamos el rol a 'empleado'
+          email: empleadoData.email,
+          rol: 'empleado' 
         }
-      }
-    });
+      ])
+      .select('id, username, email, avatar, rol') 
+      .single(); 
 
-    if (authError) {
-      return { data: null, error: authError }; // Devolvemos el error
+    if (error) {
+      console.error("Error en insert:", error.message);
+      return { data: null, error: error }; 
     }
+    return { data: [data], error: null };
+  }
 
-    // 3. Si salió bien, leemos el perfil que se acaba de crear para devolverlo
-    if (authData.user) {
-      const { data: perfilData, error: perfilError } = await this.supabase
-        .from('perfiles')
-        .select('id, username, email, avatar, rol')
-        .eq('id', authData.user.id)
-        .single(); // .single() nos trae solo 1 objeto
+  async borrarEmpleado(id: string) {
+    console.log("Servicio: Borrando empleado con ID:", id);
+    const { error } = await this.supabase
+      .from('perfiles')
+      .delete()
+      .eq('id', id); 
 
-      return { data: [perfilData], error: perfilError }; // Devolvemos el nuevo empleado
+    if (error) {
+      console.error("Error en delete:", error.message);
+      return { error: error };
     }
+    return { error: null }; 
+  }
 
-    return { data: null, error: new Error('No se pudo crear el usuario') };
+  async updateEmpleado(id: string, empleadoData: any) {
+    console.log("Servicio: Actualizando empleado con ID:", id);
+
+    // Hacemos un UPDATE en la tabla 'perfiles'
+    // Por ahora, solo dejamos que actualice el 'username' y 'rol'
+    const { data, error } = await this.supabase
+      .from('perfiles')
+      .update({ 
+        username: empleadoData.username,
+        rol: empleadoData.rol
+      })
+      .eq('id', id) // Donde el 'id' coincida
+      .select('id, username, email, avatar, rol') // Devuelve el perfil actualizado
+      .single();
+
+    if (error) {
+      console.error("Error en update:", error.message);
+      return { data: null, error: error };
+    }
+    
+    return { data: data, error: null }; // Devuelve el empleado actualizado
   }
 
   // =================== PRODUCTOS ===================
