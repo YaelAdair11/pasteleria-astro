@@ -1,9 +1,8 @@
 import { Routes } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { Login } from './login/login';
 import { Admin } from './admin/admin';
 import { InicioComponent } from './admin/inicio/inicio';
-import { Inicio } from './empleado/inicio/inicio';
+import { InicioEmpleado } from './empleado/inicio/inicio';
 import { Empleados } from './admin/empleados/empleados';
 import { Empleado } from './empleado/empleado';
 import { RoleGuard } from './guards/role.guard';
@@ -35,11 +34,9 @@ export const routes: Routes = [
     canMatch: [RoleGuard],
     data: { role: 'empleado' },
     children: [
-      { path: '', component: Inicio },
+      { path: '', component: InicioEmpleado },
       { path: 'vender', component: Vender },
     ]
   },
   { path: '**', redirectTo: '/login' }
 ];
-
-

@@ -1,60 +1,66 @@
-import { AfterViewInit, Component } from '@angular/core';
-import { Chart, registerables } from 'chart.js';
+import { Component } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-inicio',
-  imports: [],
+  standalone: true, 
+  imports: [CommonModule, FormsModule], 
   templateUrl: './inicio.html',
-  styleUrl: './inicio.css',
+  styleUrls: ['./inicio.css']
 })
-export class Inicio implements AfterViewInit {
-  
-  ngAfterViewInit() {
-    // Registrar todos los componentes de Chart.js
-    Chart.register(...registerables);
-    
-    this.crearGraficoVentas();
+export class InicioEmpleado {
+  mostrarAgregar = false;
+  mostrarPedidos = false;
+
+  pedidos: any[] = [];
+
+  nuevoPedido = {
+    nombre: '',
+    telefono: '',
+    kilos: 1,
+    relleno: '',
+    cubierta: '',
+    tematica: '',
+    fecha: '',
+    lugar: '',
+    estado: 'en proceso'
+  };
+
+  abrirModalAgregar() {
+    this.mostrarAgregar = true;
   }
 
-private crearGraficoVentas() {
-  const ctx = document.getElementById('ventasChart') as HTMLCanvasElement;
-  
-  new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-      datasets: [{
-        label: 'Ventas ($)',
-        data: [1200, 1900, 1500, 2200, 1800, 2500, 2100],
-        backgroundColor: 'rgba(198, 43, 102, 0.8)',
-        borderColor: 'rgba(198, 43, 102, 1)',
-        borderWidth: 1,
-        barPercentage: 0.6, // Barras más delgadas
-        categoryPercentage: 0.8
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false, // Permite controlar altura
-      plugins: {
-        legend: {
-          display: false
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: 'rgba(0, 0, 0, 0.1)'
-          }
-        },
-        x: {
-          grid: {
-            display: false
-          }
-        }
-      }
-    }
-  });
+  abrirModalPedidos() {
+    this.mostrarPedidos = true;
+  }
+
+  cerrarModal() {
+    this.mostrarAgregar = false;
+    this.mostrarPedidos = false;
+  }
+
+  guardarPedido() {
+    this.pedidos.push({ ...this.nuevoPedido });
+    this.nuevoPedido = {
+      nombre: '',
+      telefono: '',
+      kilos: 1,
+      relleno: '',
+      cubierta: '',
+      tematica: '',
+      fecha: '',
+      lugar: '',
+      estado: 'en proceso'
+    };
+    this.cerrarModal();
+  }
+
+  verReporte(pedido: any) {
+    alert(
+      `📋 Reporte del Pedido:\n\nCliente: ${pedido.nombre}\nTeléfono: ${pedido.telefono}\n` +
+      `Pastel: ${pedido.kilos}kg, Relleno ${pedido.relleno}, Cubierta ${pedido.cubierta}\n` +
+      `Temática: ${pedido.tematica}\nEntrega: ${pedido.fecha} en ${pedido.lugar || 'Recoger en tienda'}`
+    );
   }
 }
