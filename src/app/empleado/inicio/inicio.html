@@ -1,74 +1,160 @@
 <div class="dashboard-container">
   <header class="header">
-    <h1>🎂 Pastelería Angular</h1>
+    <h1>🎂 Pastelería Dulce Arte</h1>
+
+    <!-- 🔘 Botones accesibles en la esquina derecha -->
+    <div class="header-actions">
+      <button class="btn add" (click)="abrirModalAgregar()">➕ Agregar Pedido</button>
+      <button class="btn view" (click)="abrirModalPedidos()">📋 Ver Pedidos</button>
+    </div>
   </header>
 
+  <!-- 📰 Sección de Noticias -->
+  <section class="news-section">
+    <h2>🧁 Novedades y Lanzamientos</h2>
+    <div class="news-container">
+      <div class="news-card">
+        <img 
+          src="https://www.suqiee.com.mx/wp-content/uploads/2022/12/instagram-pastel-de-chocolate-1.jpg"
+          alt="Pastel de chocolate belga"
+          class="news-img-local"
+        />
+        <div class="news-info">
+          <h3>🍫 Nuevo Pastel de Chocolate Belga</h3>
+          <p>Hecho con cacao 100% natural y ganache artesanal. ¡Una experiencia irresistible disponible ya en todas las sucursales!</p>
+        </div>
+      </div>
+
+      <div class="news-card">
+        <img 
+          src="https://pasteleriacaty.com/wp-content/uploads/2019/12/San-Nicolas.jpg" 
+          alt="Nueva sucursal en Puebla" />
+        <div class="news-info">
+          <h3>🎉 Nueva Sucursal en Puebla</h3>
+          <p>Visítanos en Av. Reforma #321. Promociones de apertura durante todo el mes de noviembre.</p>
+        </div>
+      </div>
+
+      <div class="news-card">
+        <img 
+          src="https://aranzazu.com/wp-content/uploads/2025/08/pastel-Labubu.webp" 
+          alt="Pasteles personalizados" />
+        <div class="news-info">
+          <h3>🎨 Pasteles Temáticos Personalizados</h3>
+          <p>Elige tu diseño favorito o envíanos tu idea. ¡Perfecto para cumpleaños, bodas y eventos especiales!</p>
+        </div>
+      </div>
+
+      <div class="news-card">
+        <img 
+          src="https://static.promodescuentos.com/threads/raw/NrXHZ/795892_1/re/1024x1024/qt/60/795892_1.jpg" 
+          alt="Pasteles personalizados" />
+        <div class="news-info">
+          <h3>Ofertas en Tienda</h3>
+          <p>Descuentos en pasteles de existencia y por pedido a un precio más bajo.</p>
+        </div>
+      </div>
+
+      <div class="news-card">
+        <img 
+          src="https://i.ytimg.com/vi/Rxt-pxSZUk4/sddefault.jpg" 
+          alt="Pasteles personalizados" />
+        <div class="news-info">
+          <h3>Eventos exclusivos</h3>
+          <p>Concurso o evento donde se muestra a nuestros mejores pasteleros haciendo gala de su creatividad.</p>
+        </div>
+      </div>
+
+      <div class="news-card">
+        <img 
+          src="https://images.milenio.com/GwM4IUah3p1rrWmQT9Gz898H5vA=/345x194/uploads/media/2024/02/18/repostera-viral-pastel-forma-copa.jpg" 
+          alt="Pasteles personalizados" />
+        <div class="news-info">
+          <h3>Pasteles Exclusivos</h3>
+          <p>Pasteles hechos con la mejor creatividad de la industria y colaboraciones únicas.</p> 
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 📊 Sección de estadísticas -->
   <section class="stats-section">
     <div class="card">
       <h2>Ventas Hoy</h2>
-      <p class="value">$2,450</p>
+      <p class="value">$7,200</p>
       <span class="tag success">+12% vs ayer</span>
     </div>
     <div class="card">
       <h2>Ventas del Mes</h2>
-      <p class="value">$18,750</p>
+      <p class="value">$180,750</p>
       <span class="tag neutral">Objetivo 75%</span>
     </div>
     <div class="card">
       <h2>Ofertas</h2>
       <p class="value">8</p>
-      <span class="tag warning">3 nuevas</span>
+      <span class="tag warning">ver ofertas</span>
     </div>
     <div class="card">
       <h2>Exclusivos</h2>
-      <p class="value">5 clientes</p>
-      <span class="tag info">Historial alto</span>
+      <p class="value">4</p>
+      <span class="tag info">Ver pasteles</span>
     </div>
   </section>
 
-  <section class="actions">
-    <button class="btn add" (click)="abrirModalAgregar()">➕ Agregar Pedido</button>
-    <button class="btn view" (click)="abrirModalPedidos()">📋 Ver Pedidos</button>
-  </section>
-
-  <!-- Modal Agregar Pedido -->
+  <!-- 🌸 Modal Agregar Pedido -->
   <div class="modal" *ngIf="mostrarAgregar">
-    <div class="modal-content">
-      <h2>Agregar Pedido</h2>
-      <form (ngSubmit)="guardarPedido()">
-        <label>Nombre:</label>
-        <input type="text" [(ngModel)]="nuevoPedido.nombre" name="nombre" required />
+    <div class="modal-content pedido-card">
+      <h2>🍰 Agregar Pedido</h2>
+      <form (ngSubmit)="guardarPedido()" class="pedido-form">
+        <div class="form-step">
+          <label>Nombre:</label>
+          <input type="text" [(ngModel)]="nuevoPedido.nombre" name="nombre" placeholder="Ej. Ana López" required />
+        </div>
 
-        <label>Teléfono:</label>
-        <input type="tel" [(ngModel)]="nuevoPedido.telefono" name="telefono" required />
+        <div class="form-step" *ngIf="nuevoPedido.nombre">
+          <label>Teléfono:</label>
+          <input type="tel" [(ngModel)]="nuevoPedido.telefono" name="telefono" placeholder="Ej. 5512345678" required />
+        </div>
 
-        <label>Kilos de pastel:</label>
-        <input type="number" [(ngModel)]="nuevoPedido.kilos" name="kilos" min="1" required />
+        <div class="form-step" *ngIf="nuevoPedido.telefono">
+          <label>Kilos de pastel:</label>
+          <input type="number" [(ngModel)]="nuevoPedido.kilos" name="kilos" min="1" placeholder="Ej. 2" required />
+        </div>
 
-        <label>Relleno:</label>
-        <input type="text" [(ngModel)]="nuevoPedido.relleno" name="relleno" required />
+        <div class="form-step" *ngIf="nuevoPedido.kilos">
+          <label>Relleno:</label>
+          <input type="text" [(ngModel)]="nuevoPedido.relleno" name="relleno" placeholder="Ej. Chocolate, Fresa, Nuez" required />
+        </div>
 
-        <label>Cubierta:</label>
-        <input type="text" [(ngModel)]="nuevoPedido.cubierta" name="cubierta" required />
+        <div class="form-step" *ngIf="nuevoPedido.relleno">
+          <label>Cubierta:</label>
+          <input type="text" [(ngModel)]="nuevoPedido.cubierta" name="cubierta" placeholder="Ej. Chantilly, Fondant, Ganache" required />
+        </div>
 
-        <label>Temática o color:</label>
-        <input type="text" [(ngModel)]="nuevoPedido.tematica" name="tematica" />
+        <div class="form-step" *ngIf="nuevoPedido.cubierta">
+          <label>Temática o color:</label>
+          <input type="text" [(ngModel)]="nuevoPedido.tematica" name="tematica" placeholder="Ej. Princesas, Azul pastel" />
+        </div>
 
-        <label>Fecha de entrega:</label>
-        <input type="date" [(ngModel)]="nuevoPedido.fecha" name="fecha" required />
+        <div class="form-step" *ngIf="nuevoPedido.tematica">
+          <label>Fecha de entrega:</label>
+          <input type="date" [(ngModel)]="nuevoPedido.fecha" name="fecha" required />
+        </div>
 
-        <label>Lugar de entrega:</label>
-        <input type="text" [(ngModel)]="nuevoPedido.lugar" name="lugar" />
+        <div class="form-step" *ngIf="nuevoPedido.fecha">
+          <label>Lugar de entrega:</label>
+          <input type="text" [(ngModel)]="nuevoPedido.lugar" name="lugar" placeholder="Ej. Sucursal Reforma o domicilio" />
+        </div>
 
         <div class="modal-actions">
-          <button type="submit" class="btn save">Guardar</button>
-          <button type="button" class="btn cancel" (click)="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn save">💾 Guardar</button>
+          <button type="button" class="btn cancel" (click)="cerrarModal()">❌ Cancelar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Modal Pedidos -->
+  <!-- 📋 Modal Pedidos -->
   <div class="modal" *ngIf="mostrarPedidos">
     <div class="modal-content">
       <h2>Pedidos Registrados</h2>

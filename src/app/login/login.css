@@ -89,3 +89,22 @@
   clip-path: circle(100% at var(--x, 50%) var(--y, 50%));
   pointer-events: all;
 }
+#tienda-link {
+  border-width: .15rem;
+  border-color: #ffffff !important; /* Borde blanco */
+  background-color: transparent !important; /* Fondo transparente */
+  color: #ffffff !important; /* Texto blanco */
+  transform: scale(1.0);
+  letter-spacing: .15rem;
+  transition: all .2s ease-in-out;
+  /* Aseguramos que tenga el mismo ancho que el otro botón si es necesario */
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+#tienda-link:hover {
+  transform: scale(1.1);
+  letter-spacing: .25rem;
+  border-color: #ffffff !important;
+  background-color: rgba(255, 255, 255, 0.1) !important; /* Brillo blanco al pasar el mouse */
+}

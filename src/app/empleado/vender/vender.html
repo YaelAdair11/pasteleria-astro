@@ -1,204 +1,64 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Pastelería Angular - Sistema de Cobro</title>
-  <link rel="stylesheet" href="vender.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pastelería Dulce Encanto 🍰</title>
+  <link rel="stylesheet" href="vender.css" />
 </head>
 <body>
-  <div class="panel">
+  <div class="vender-container">
     <header>
-      <h1>🎂 Pastelería Angular</h1>
-      <span>Cajero: Jonathan Suárez | Caja #1</span>
+      <h1>🧁 Pastelería Dulce Encanto</h1>
     </header>
 
-    <div class="scanner">
-      <input id="codigo" type="text" placeholder="Escanea o ingresa el código del producto...">
-      <button id="btnAgregar">Agregar</button>
-    </div>
+    <main class="panel">
+      <!-- 🧷 Apartado de productos -->
+      <section class="productos-section">
+        <h2>Productos en Existencia</h2>
+        <div class="grid-productos">
+          <div class="producto">
+            <img src="https://i.imgur.com/X8tXjVV.png" alt="Pastel de Chocolate" />
+            <h3>Pastel de Chocolate</h3>
+            <p>$250</p>
+            <button>Agregar</button>
+          </div>
 
-    <table id="tabla">
-      <thead>
-        <tr>
-          <th>Código</th>
-          <th>Producto</th>
-          <th>Precio</th>
-          <th>Cantidad</th>
-          <th>Subtotal</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+          <div class="producto">
+            <img src="https://i.imgur.com/GDqXz9z.png" alt="Cupcake de Fresa" />
+            <h3>Cupcake de Fresa</h3>
+            <p>$50</p>
+            <button>Agregar</button>
+          </div>
 
-    <div class="totales">
-      Total: $<span id="total">0.00</span>
-    </div>
+          <div class="producto">
+            <img src="https://i.imgur.com/x8k9d0F.png" alt="Pay de Limón" />
+            <h3>Pay de Limón</h3>
+            <p>$180</p>
+            <button>Agregar</button>
+          </div>
 
-    <div class="acciones">
-      <button class="btn secundario" id="btnCancelar">Cancelar venta</button>
-      <button class="btn primario" id="btnCobrar">Cobrar</button>
-    </div>
+          <div class="producto">
+            <img src="https://i.imgur.com/fcpBxZf.png" alt="Pastel de Vainilla" />
+            <h3>Pastel de Vainilla</h3>
+            <p>$230</p>
+            <button>Agregar</button>
+          </div>
+        </div>
+      </section>
 
-    <!-- Ticket -->
-    <div id="ticket" class="ticket" style="display:none;">
-      <h3>🎂 Pastelería Angular</h3>
-      <p><strong>Gracias por su compra</strong></p>
-      <table id="ticketTabla"></table>
-      <p><strong>Total: $<span id="ticketTotal"></span></strong></p>
-      <div class="acciones-ticket">
-        <button class="btn primario" id="btnImprimir">🖨️ Imprimir / Guardar PDF</button>
-      </div>
-      <p><strong>¡Vuelva pronto!</strong></p>
-    </div>
+      <!-- 🛒 Apartado del carrito -->
+      <section class="carrito-section">
+        <h2>🛒 Carrito de Compras</h2>
+        <div class="carrito-lista">
+          <p>No hay productos en el carrito</p>
+        </div>
+        <div class="carrito-total">
+          <h3>Total: $0</h3>
+          <button class="btn-comprar">Finalizar Compra</button>
+        </div>
+      </section>
+    </main>
   </div>
-
-  <script>
-    const productos = [
-      { codigo: '1001', nombre: 'Pastel de tres leches', precio: 150.00 },
-      { codigo: '1002', nombre: 'Pastel de chocolate', precio: 180.00 },
-      { codigo: '1003', nombre: 'Pastel de avellana', precio: 120.00 },
-      { codigo: '1004', nombre: 'Pastel de queso Philadelphia', precio: 240.00 },
-      { codigo: '1005', nombre: 'Pastel de durazno', precio: 170.00 },
-    ];
-
-    // ✅ Carrito precargado con dos productos
-    let carrito = [
-      { codigo: '1001', nombre: 'Pastel de tres leches', precio: 150.00, cantidad: 1 },
-      { codigo: '1002', nombre: 'Pastel de chocolate', precio: 180.00, cantidad: 2 },
-    ];
-
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('btnAgregar').addEventListener('click', agregarPorCodigo);
-      document.getElementById('btnCobrar').addEventListener('click', cobrar);
-      document.getElementById('btnCancelar').addEventListener('click', limpiar);
-      document.getElementById('codigo').addEventListener('keypress', e => {
-        if (e.key === 'Enter') agregarPorCodigo();
-      });
-
-      document.getElementById('btnImprimir').addEventListener('click', imprimirTicket);
-
-      // 👇 Mostrar productos precargados al iniciar
-      renderTabla();
-    });
-
-    function agregarPorCodigo() {
-      const codigo = document.getElementById('codigo').value.trim();
-      const producto = productos.find(p => p.codigo === codigo);
-
-      if (!producto) {
-        alert('Código no encontrado');
-        document.getElementById('codigo').value = '';
-        return;
-      }
-
-      const existente = carrito.find(p => p.codigo === codigo);
-      if (existente) {
-        existente.cantidad++;
-      } else {
-        carrito.push({ ...producto, cantidad: 1 });
-      }
-
-      document.getElementById('codigo').value = '';
-      renderTabla();
-    }
-
-    function renderTabla() {
-      const tbody = document.querySelector('#tabla tbody');
-      tbody.innerHTML = '';
-
-      carrito.forEach((p, i) => {
-        const subtotal = (p.precio * p.cantidad).toFixed(2);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${p.codigo}</td>
-          <td>${p.nombre}</td>
-          <td>$${p.precio.toFixed(2)}</td>
-          <td><input type='number' min='1' value='${p.cantidad}' onchange='cambiarCantidad(${i}, this.value)'></td>
-          <td>$${subtotal}</td>
-          <td><button class="borrar" onclick='eliminar(${i})'>🗑️</button></td>
-        `;
-        tbody.appendChild(tr);
-      });
-
-      actualizarTotal();
-    }
-
-    function cambiarCantidad(i, val) {
-      const cantidad = parseInt(val);
-      if (cantidad > 0) {
-        carrito[i].cantidad = cantidad;
-        renderTabla();
-      }
-    }
-
-    function eliminar(i) {
-      carrito.splice(i, 1);
-      renderTabla();
-    }
-
-    function actualizarTotal() {
-      const total = carrito.reduce((sum, p) => sum + p.precio * p.cantidad, 0);
-      document.getElementById('total').textContent = total.toFixed(2);
-    }
-
-    function cobrar() {
-      if (carrito.length === 0) {
-        alert('No hay productos en el carrito');
-        return;
-      }
-
-      const total = parseFloat(document.getElementById('total').textContent);
-      alert(`Cobro exitoso. Total: $${total.toFixed(2)}`);
-
-      mostrarTicket(total);
-    }
-
-    function mostrarTicket(total) {
-      const ticket = document.getElementById('ticket');
-      const tabla = document.getElementById('ticketTabla');
-      tabla.innerHTML = '';
-
-      carrito.forEach(p => {
-        const fila = document.createElement('tr');
-        fila.innerHTML = `<td>${p.nombre}</td><td>x${p.cantidad}</td><td>$${(p.precio * p.cantidad).toFixed(2)}</td>`;
-        tabla.appendChild(fila);
-      });
-
-      document.getElementById('ticketTotal').textContent = total.toFixed(2);
-      ticket.style.display = 'block';
-    }
-
-    function imprimirTicket() {
-      const ticket = document.getElementById('ticket');
-      const ventana = window.open('', 'PRINT', 'height=600,width=400');
-      ventana.document.write(`
-        <html>
-          <head>
-            <title>Ticket - Pastelería Angular</title>
-            <style>
-              body { font-family: Arial; text-align:center; }
-              table { width:100%; border-collapse: collapse; margin-top: 10px;}
-              td, th { padding: 5px; border-bottom: 1px solid #ccc; }
-            </style>
-          </head>
-          <body>${ticket.innerHTML}</body>
-        </html>
-      `);
-      ventana.document.close();
-      ventana.focus();
-      ventana.print();
-      ventana.close();
-    }
-
-    function limpiar() {
-      if (confirm('¿Cancelar venta actual?')) {
-        carrito = [];
-        renderTabla();
-        document.getElementById('ticket').style.display = 'none';
-      }
-    }
-  </script>
 </body>
 </html>
