@@ -4,8 +4,8 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-inicio',
-  standalone: true, 
-  imports: [CommonModule, FormsModule], 
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './inicio.html',
   styleUrls: ['./inicio.css']
 })
@@ -15,10 +15,11 @@ export class InicioEmpleado {
 
   pedidos: any[] = [];
 
-  nuevoPedido = {
+  nuevoPedido: any = {
     nombre: '',
     telefono: '',
     kilos: 1,
+    kilosIngresado: false,
     relleno: '',
     cubierta: '',
     tematica: '',
@@ -46,6 +47,7 @@ export class InicioEmpleado {
       nombre: '',
       telefono: '',
       kilos: 1,
+      kilosIngresado: false,
       relleno: '',
       cubierta: '',
       tematica: '',
