@@ -1,7 +1,12 @@
 <div class="panel-container">
   
+  <div *ngIf="alertaExito" class="alert-success-toast">
+    <i class="fa-solid fa-check-circle me-2"></i>
+    {{ alertaExito }}
+  </div>
+
   <div class="panel-header">
-    <h3 class="mb-0">Gestión de Empleados (HU-34)</h3>
+    <h3 class="mb-0">Gestión de Empleados</h3>
     <button class="btn btn-primary" (click)="abrirFormularioNuevo()">
       <i class="fa-solid fa-plus me-2"></i>
       Agregar Nuevo Empleado
@@ -17,29 +22,27 @@
       {{ errorMensaje }}
     </div>
     <form (ngSubmit)="onFormularioSubmit()" autocomplete="off">
-
       <div class="form-row">
         <div class="form-col">
           <div class="form-group">
             <label for="username">Nombre (Username)</label>
-            <input type="text" name="username" class="form-control" 
+            <input type="text" name="username" class="form-control"
                    [(ngModel)]="formDatos.username" required>
           </div>
           <div class="form-group">
             <label for="email">Email (No se puede editar)</label>
-            <input type="email" name="email" class="form-control" 
-                   [(ngModel)]="formDatos.email" required 
+            <input type="email" name="email" class="form-control"
+                   [(ngModel)]="formDatos.email" required
                    [disabled]="modoEdicion">
           </div>
         </div>
         <div class="form-col">
           <div *ngIf="!modoEdicion" class="form-group">
             <label for="password">Contraseña Temporal</label>
-            <input type="password" name="password" class="form-control" 
-                   [(ngModel)]="formDatos.password" 
-                   [required]="!modoEdicion"> 
+            <input type="password" name="password" class="form-control"
+                   [(ngModel)]="formDatos.password"
+                   [required]="!modoEdicion">
           </div>
-          
           <div class="form-group">
             <label for="rol">Puesto (Rol)</label>
             <select name="rol" class="form-control" [(ngModel)]="formDatos.rol">
@@ -51,7 +54,6 @@
           </div>
         </div>
       </div>
-      
       <div class="form-actions">
         <button type="button" class="btn btn-cancelar" (click)="cancelarFormulario()">Cancelar</button>
         <button type="submit" class="btn btn-success">
@@ -89,18 +91,93 @@
                     (click)="abrirFormularioEditar(emp)">
               <i class="fa-solid fa-pencil"></i>
             </button>
-            
             <button class="btn-icon btn-borrar" title="Borrar"
                     (click)="onBorrarClick(emp.id, emp.username)">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </td>
         </tr>
-        
         <tr *ngIf="empleados.length === 0">
           <td colspan="5" class="text-center text-muted">No hay empleados registrados.</td>
         </tr>
       </tbody>
     </table>
   </div>
-</div>
+
+
+  <div class="agenda-container card-modern">
+    <h4>
+      <i class="fa-solid fa-calendar-days me-2 text-primary"></i>
+      Agenda Semanal de Turnos
+    </h4>
+    <p class="text-muted small">Haz clic en una celda para asignar o editar un turno. Los cambios se guardan automáticamente.</p>
+    
+    <div class="table-container">
+      <table class="table-modern agenda-table">
+        <thead>
+          <tr>
+            <th>Empleado</th>
+            <th *ngFor="let dia of diasSemana">{{ dia.nombre }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let emp of empleados">
+            
+            <td class="cell-nombre">
+              <i class="fa-solid fa-user avatar-icon"></i>
+              <span>{{ emp.username }}</span>
+            </td>
+            
+            <td *ngFor="let dia of diasSemana"
+                class="agenda-celda"
+                (click)="abrirModalAgenda(emp, dia)"> <span *ngIf="agenda[emp.id] && agenda[emp.id][dia.num]" class="agenda-item">
+                {{ agenda[emp.id][dia.num] }}
+                <button class="btn-remove-item"
+                        title="Borrar tarea"
+                        (click)="borrarAgendaItem(emp.id, dia.num, $event)">
+                  &times;
+                </button>
+              </span>
+              
+              <span *ngIf="!agenda[emp.id] || !agenda[emp.id][dia.num]" class="agenda-placeholder">
+                <i class="fa-solid fa-plus"></i> Asignar
+              </span>
+            </td>
+          </tr>
+          
+          <tr *ngIf="empleados.length === 0">
+            <td [attr.colspan]="diasSemana.length + 1" class="text-center text-muted">
+              No hay empleados para mostrar en la agenda.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div *ngIf="mostrarModalAgenda" class="modal-backdrop" (click)="cerrarModalAgenda()">
+    <div class="modal-content card-modern" (click)="$event.stopPropagation()">
+      
+      <h4>Asignar Tarea</h4>
+      <p class="modal-info" *ngIf="modalDatos.empleado && modalDatos.dia">
+        Empleado: <strong>{{ modalDatos.empleado.username }}</strong> <br>
+        Día: <strong>{{ modalDatos.dia.nombre }}</strong>
+      </p>
+      
+      <form (ngSubmit)="guardarAgendaItem()">
+        <div class="form-group">
+          <label for="tarea">Tarea o Turno (ej. "Apertura 9-5", "Cierre", "Descanso")</label>
+          <input type="text" name="tarea" class="form-control"
+                 [(ngModel)]="modalDatos.tarea"
+                 placeholder="Escribe la tarea... (deja vacío para borrar)"
+                 autocomplete="off"
+                 required>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-cancelar" (click)="cerrarModalAgenda()">Cancelar</button>
+          <button type="submit" class="btn btn-success">Guardar Tarea</button>
+        </div>
+      </form>
+      
+    </div>
+  </div>
+  </div>
