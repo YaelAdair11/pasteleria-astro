@@ -15,8 +15,17 @@
         <img src="/images/logo.png" alt="Logo Pastelería" class="mb-3" style="width: 14rem;" />
         <h1 class="fw-bold">Pastelería Dulce Arte</h1>
         <p class="fs-5 fst-italic">El arte de endulzar cada momento</p>
-        <button id="iniciar" class="btn btn-primary mt-1 mb-5 rounded-pill fs-5 fw-bold py-2" (click)="mostrarLogin($event)">INICIAR</button>
+
+        <button id="iniciar" class="btn btn-primary mt-1 mb-3 rounded-pill fs-5 fw-bold py-2" (click)="mostrarLogin($event)">
+          ACCESO PERSONAL
+        </button>
+        
         <br />
+
+        <a id="tienda-link" routerLink="/tienda" class="btn btn-outline-light mt-2 mb-5 rounded-pill fs-5 fw-bold py-2">
+          TIENDA EN LÍNEA
+        </a>
+
       </div>
     </div>
   </div>

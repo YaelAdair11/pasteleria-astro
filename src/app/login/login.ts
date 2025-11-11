@@ -1,12 +1,12 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
-import { Router, ɵEmptyOutletComponent } from '@angular/router';
+import { Router, RouterLink, ɵEmptyOutletComponent } from '@angular/router';
 import { SupabaseService } from '../services/supabase.service';
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './login.html',
   styleUrls: ['./login.css'] // Corrige styleUrl → styleUrls
 })
