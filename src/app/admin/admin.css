@@ -1,18 +1,28 @@
 /* Sidebar transición */
-#sidebar {
-  transition: all 0.3s ease;
-}
-
-/* En pantallas medianas y grandes siempre visible */
-@media (min-width: 768px) {
-  #sidebar {
-    display: flex !important;
-  }
-}
-
 .nav-link {
-  transition: all .3s ease-in-out;
+  transition: all .2s ease;
 }
 .nav-link.active, .nav-link:hover {
   background-color: #dc3545;
+}
+
+#btn-menu { background-color: #1E1E2F; }
+#btn-menu:hover { background-color: #35354d; }
+
+.logo-icon::before {
+  content: "\f818";
+}
+
+/* Ícono al hacer hover en el contenedor */
+#btn-menu:hover .logo-icon::before {
+  content: "\f0da";
+  border-radius: .5rem;
+}
+#btn-menu:hover, #btn-in-menu:hover {
+  padding: .2rem .1rem !important;
+  background-color: #393954 !important;
+}
+
+#btn-in-menu {
+  padding: .2rem .1rem !important;
 }

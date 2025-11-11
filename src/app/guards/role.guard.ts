@@ -1,34 +1,34 @@
-import { Injectable } from '@angular/core';
-import { CanActivate, Router, ActivatedRouteSnapshot } from '@angular/router';
+import { inject } from '@angular/core';
+import { CanMatchFn, Router, Route, UrlSegment } from '@angular/router';
 import { SupabaseService } from '../services/supabase.service';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, filter } from 'rxjs';
 
-@Injectable({ providedIn: 'root' })
-export class RoleGuard implements CanActivate {
-  constructor(
-    private supabase: SupabaseService,
-    private router: Router
-  ) {}
+export const RoleGuard: CanMatchFn = async (route: Route, segments: UrlSegment[]) => {
+  
+  const supabase = inject(SupabaseService);
+  const router = inject(Router);
 
-  async canActivate(route: ActivatedRouteSnapshot): Promise<boolean> {
-    const requiredRole = route.data['role'] as string;
+  await firstValueFrom(
+    supabase.ready$.pipe(filter(ready => ready === true))
+  );
 
-    // ✅ obtienes el usuario almacenado (no hace llamadas)
-    const user = await firstValueFrom(this.supabase.user$);
+  const requiredRole = route.data?.['role'] as string || '';
 
-    // ✅ sin sesión
-    if (!user) {
-      this.router.navigate(['/login']);
-      return false;
-    }
+  // Obtienes el usuario almacenado (no hace llamadas)
+  const user = await firstValueFrom(supabase.user$);
 
-    // ✅ rol coincide → acceso inmediato
-    if (user.rol === requiredRole) {
-      return true;
-    }
-
-    // ✅ redirige si rol no coincide
-    this.router.navigate(['/login']);
+  // Sin sesión
+  if (!user) {
+    router.navigate(['/login']);
     return false;
   }
+
+  // Col coincide → acceso inmediato
+  if (user.rol === requiredRole) {
+    return true;
+  }
+
+  // Redirige si rol no coincide
+  router.navigate(['/login']);
+  return false;
 }

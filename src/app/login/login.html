@@ -60,7 +60,7 @@
             <input type="password" id="password" class="form-control" formControlName="password"
               placeholder="Ingresa tu contraseña"
               [ngClass]="{ 'is-invalid': form.get('password')?.invalid && form.get('password')?.touched }" />
-            <button class="btn btn-primary py-0" type="button" (click)="togglePassword()">
+            <button class="btn btn-primary py-0" type="button" (click)="togglePassword()" data-bs-toggle="tooltip" title="Mostrar/Ocultar Contraseña">
               <i id="password-icon" class="fa-solid fa-eye-slash"></i>
             </button>
           </div>

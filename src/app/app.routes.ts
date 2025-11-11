@@ -19,20 +19,20 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: Admin,
-    canActivate: [RoleGuard],
+    canMatch: [RoleGuard],
     data: { role: 'admin' },
     children: [
-      { path: '', component: InicioComponent },
-      { path: 'empleados', component: Empleados },
-      { path: 'inventario', component: Inventario },
-      { path: 'reportes', component: Reportes },
-      { path: 'ventas', component: Ventas },
+      { path: '', component: InicioComponent, data: { title: 'Inicio', icon: 'fa-home' } },
+      { path: 'empleados', component: Empleados, data: { title: 'Empleados', icon: 'fa-users' } },
+      { path: 'inventario', component: Inventario, data: { title: 'Inventario', icon: 'fa-boxes-stacked' } },
+      { path: 'reportes', component: Reportes, data: { title: 'Reportes', icon: 'fa-cart-shopping' } },
+      { path: 'ventas', component: Ventas, data: { title: 'Ventas', icon: 'fa-chart-line' } },
     ]
   },
   {
     path: 'empleado',
     component: Empleado,
-    canActivate: [RoleGuard],
+    canMatch: [RoleGuard],
     data: { role: 'empleado' },
     children: [
       { path: '', component: Inicio },

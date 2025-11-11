@@ -1,55 +1,92 @@
-<div class="container-fluid">
-  <div class="row flex-nowrap">
-    <!-- Sidebar -->
-    <nav id="sidebar" class="overflow-auto" style="background-color: #1e1e2f;" [ngClass]="{ 'd-none d-md-flex': !sidebarVisible }"
-        class="col-auto col-md-3 col-xl-2 px-sm-2 px-0 d-flex flex-column min-vh-100 border-end shadow-sm">
-      <div class="d-flex align-items-center py-3 px-3 border-bottom text-light">
-        <i class="fa-solid fa-pizza-slice fs-3 text-danger me-2"></i>
-        <span class="fs-5 fw-bold">Punto de Venta</span>
-      </div>
-      <ul class="nav nav-pills flex-column mb-auto px-2 mt-3">
-        <li class="nav-item mb-1">
-          <a routerLink="./" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
-              class="nav-link text-light">
-            <i class="fa-solid fa-home me-2"></i> Inicio
-          </a>
-        </li>
-        <li class="nav-item mb-1">
-          <a routerLink="empleados" routerLinkActive="active"
-              class="nav-link text-light">
-            <i class="fa-solid fa-users me-2"></i> Empleados
-          </a>
-        </li>
-        <li class="nav-item mb-1">
-          <a routerLink="inventario" routerLinkActive="active"
-              class="nav-link text-light">
-            <i class="fa-solid fa-boxes-stacked me-2"></i> Inventario
-          </a>
-        </li>
-        <li class="nav-item mb-1">
-          <a routerLink="ventas" routerLinkActive="active"
-              class="nav-link text-light">
-            <i class="fa-solid fa-cart-shopping me-2"></i> Ventas
-          </a>
-        </li>
-        <li class="nav-item mb-1">
-          <a routerLink="reportes" routerLinkActive="active"
-              class="nav-link text-light">
-            <i class="fa-solid fa-chart-line me-2"></i> Reportes
-          </a>
-        </li>
-      </ul>
-      <div class="mt-auto px-3 pb-3">
-        <button (click)="logout()" class="btn btn-outline-danger w-100">
-          <i class="fa-solid fa-right-from-bracket me-2"></i> Cerrar Sesión
+<div class="d-flex h-100" style="transform: all .3s ease;">
+  <!-- Sidebar -->
+  <nav id="sidebar" style="background-color: #1e1e2f;" [class.active]="sidebarVisible"
+      class="d-flex flex-column border-end shadow-sm overflow-y-auto h-100"
+      [ngClass]="sidebarVisible ? 'px-2' : 'px-1'">
+    <div class="d-flex align-items-center text-light" style="min-height: 3rem;"
+      [ngClass]="sidebarVisible ? 'px-1 justify-content-start' : 'px-0 justify-content-center'">
+      <!-- <i class="fa-solid fa-pizza-slice fs-4 text-danger"></i> -->
+      @if (sidebarVisible) {
+        <!-- <span class="fs-4 fw-bold ms-2 mb-1">Punto de Venta</span> -->
+        <a routerLink="./" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+            class="btn btn-outline-danger bg-transparent text-danger d-flex border-0 p-0 m-0 ms-1 fs-4"
+            data-bs-toggle="tooltip" data-bs-placement="right" title="Inicio">
+          <i class="fa-solid logo-icon"></i>
+        </a>
+        <button id="btn-in-menu" class="btn btn-outline-danger bg-transparent text-danger d-flex border-0 m-0 fs-4 ms-auto" (click)="alternarMenu()"
+            data-bs-toggle="tooltip" data-bs-placement="right" title="Cerrar menú">
+          <i class="fa-solid fa-caret-left"></i>
         </button>
-      </div>
-    </nav>
+      }
+      @if (!sidebarVisible) {
+        <button id="btn-menu" class="btn btn-outline-danger bg-transparent text-danger d-flex border-0 p-0 m-0 fs-4" (click)="alternarMenu()"
+            data-bs-toggle="tooltip" data-bs-placement="right" title="Abrir menú">
+          <i class="fa-solid logo-icon"></i>
+        </button>
+      }
+    </div>
+    <hr class="border-white m-0">
+    <ul class="nav nav-pills flex-column mb-auto px-1 mt-2">
+      <li class="nav-item mb-1">
+        <a routerLink="./" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+            class="nav-link text-light" [ngClass]="{'px-2': !sidebarVisible}">
+          <i class="fa-solid fa-home"></i>
+          @if (sidebarVisible) {
+            <span class="ms-2">Inicio</span>
+          }
+        </a>
+      </li>
+      <li class="nav-item mb-1">
+        <a routerLink="empleados" routerLinkActive="active" class="nav-link text-light" [ngClass]="{'px-2': !sidebarVisible}">
+          <i class="fa-solid fa-users"></i>
+          @if (sidebarVisible) {
+            <span class="ms-2">Empleados</span>
+          }
+        </a>
+      </li>
+      <li class="nav-item mb-1">
+        <a routerLink="inventario" routerLinkActive="active" class="nav-link text-light" [ngClass]="{'px-2': !sidebarVisible}">
+          <i class="fa-solid fa-boxes-stacked"></i>
+          @if (sidebarVisible) {
+            <span class="ms-2">Inventario</span>
+          }
+        </a>
+      </li>
+      <li class="nav-item mb-1">
+        <a routerLink="ventas" routerLinkActive="active" class="nav-link text-light" [ngClass]="{'px-2': !sidebarVisible}">
+          <i class="fa-solid fa-cart-shopping"></i>
+          @if (sidebarVisible) {
+            <span class="ms-2">Ventas</span>
+          }
+        </a>
+      </li>
+      <li class="nav-item mb-1">
+        <a routerLink="reportes" routerLinkActive="active" class="nav-link text-light" [ngClass]="{'px-2': !sidebarVisible}">
+          <i class="fa-solid fa-chart-line"></i>
+          @if (sidebarVisible) {
+            <span class="ms-2">Reportes</span>
+          }
+        </a>
+      </li>
+    </ul>
+    <div class="mt-auto px-1 pb-3">
+      <button (click)="logout()" class="btn btn-outline-danger w-100" [ngClass]="{'px-2': !sidebarVisible}">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        @if (sidebarVisible) {
+          <span class="ms-2">Cerrar sesión</span>
+        }
+      </button>
+    </div>
+  </nav>
 
-    <!-- Main content -->
-    <main class="col overflow-auto">
-      <!-- Contenedor dinámico -->
-      <router-outlet></router-outlet>
-    </main>
-  </div>
+  <!-- Main content -->
+  <main class="col overflow-auto h-100">
+    <!-- Contenedor dinámico -->
+    <div class="container-fluid d-flex align-items-center" style="min-height: 3rem;">
+      <i class="fa-solid fs-4" [ngClass]="icono"></i>
+      <h1 class="fw-bold fs-4 ms-3 mb-1">{{ title }}</h1>
+    </div>
+    <hr class="m-0 mb-3">
+    <router-outlet></router-outlet>
+  </main>
 </div>

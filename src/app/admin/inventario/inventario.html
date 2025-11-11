@@ -1,61 +1,46 @@
-<div class="container-fluid my-4">
+<div class="container-fluid my-3">
+  <div class="d-flex gap-2 align-items-center flex-wrap">
 
-  <!-- Título -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="fw-bold m-0">
-      <i class="fa-solid fa-boxes-stacked me-2"></i> Inventario
-    </h3>
-
-    <button class="btn btn-primary d-flex align-items-center">
-      <i class="fa-solid fa-plus me-2"></i> Nuevo Producto
-    </button>
-  </div>
-
-  <!-- Barra de búsqueda y filtros -->
-  <div class="card shadow-sm mb-4 p-3">
-    <div class="row g-3 align-items-center">
-
-      <!-- Buscar -->
-      <div class="col-md-4">
-        <div class="input-group">
-          <span class="input-group-text bg-white">
-            <i class="fa-solid fa-magnifying-glass"></i>
-          </span>
-          <input 
-            type="text" 
-            class="form-control" 
-            placeholder="Buscar producto..."
-            (input)="buscar($event)"
-          >
-        </div>
+    <!-- Buscar -->
+    <div class="">
+      <div class="input-group">
+        <span class="input-group-text bg-white">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </span>
+        <input type="text" class="form-control" placeholder="Buscar producto..." (input)="buscar($event)">
       </div>
-
-      <!-- Filtro activo/inactivo -->
-      <div class="col-md-4">
-        <select class="form-select" (change)="filtrarActivo($event)">
-          <option value="">Todos los productos</option>
-          <option value="true">Activos</option>
-          <option value="false">Inactivos</option>
-        </select>
-      </div>
-
-      <!-- Categorías -->
-      <div class="col-md-4">
-        <select class="form-select" (change)="filtrarCategoria($event)">
-          <option value="">Todas las categorías</option>
-          <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
-        </select>
-      </div>
-
     </div>
+
+    <!-- Filtro activo/inactivo -->
+    <div class="">
+      <select class="form-select" (change)="filtrarActivo($event)">
+        <option value="">Todos los productos</option>
+        <option value="true">Activos</option>
+        <option value="false">Inactivos</option>
+      </select>
+    </div>
+
+    <!-- Categorías -->
+    <div class="">
+      <select class="form-select" (change)="filtrarCategoria($event)">
+        <option value="">Todas las categorías</option>
+        <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary align-items-center ms-auto" (click)="abrirModalCrear()">
+      <i class="fa-solid fa-plus me-0 me-md-2"></i>
+      <span class="d-none d-md-inline">Agregar producto</span>
+    </button>
+
   </div>
 
   <!-- Tabla de inventario -->
-  <div class="table-responsive shadow-sm">
+  <div class="table-responsive mt-3">
     <table class="table table-hover table-bordered align-middle">
       <thead class="table-dark">
         <tr class="text-center">
-          <th style="width: 12rem;">Producto</th>
+          <th>Producto</th>
           <th>Categoría</th>
           <th>Stock</th>
           <th>Precio</th>
@@ -63,46 +48,241 @@
           <th style="width: 8rem;">Acciones</th>
         </tr>
       </thead>
-
       <tbody>
-
         <tr *ngFor="let p of productos" class="text-center">
-
-          <!-- Imagen + Nombre -->
           <td class="d-flex align-items-center gap-3">
-            <img 
-              [src]="p.imagen" 
-              class="object-fit-cover rounded"
-              style="width: 70px; height: 60px;"
-            >
+            <img *ngIf="p.imagen" [src]="p.imagen" class="object-fit-cover"
+              style="width: 4rem; height: 4rem;" (error)="p.imagen = undefined">
+            <div *ngIf="!p.imagen" class="rounded-circle d-flex justify-content-center align-items-center text-white fw-bold"
+              [style.width]="'4rem'" [style.height]="'4rem'" [style.background]="colorAleatorio(p.nombre)"
+              style="font-size: 1.3rem; user-select: none;">
+              {{ p.nombre.charAt(0).toUpperCase() }}
+            </div>
             <span class="fw-semibold">{{ p.nombre }}</span>
           </td>
-
           <td>{{ p.categoria }}</td>
           <td>{{ p.stock }}</td>
           <td>${{ p.precio }}</td>
-
           <td>
-            <span class="badge" 
-              [ngClass]="p.activo ? 'bg-success' : 'bg-secondary'">
-              {{ p.activo ? 'Sí' : 'No' }}
-            </span>
+            <div class="form-check form-switch d-flex justify-content-center">
+              <input type="checkbox" class="form-check-input" style="cursor: pointer;"
+                [checked]="p.activo" (change)="solicitarConfirmacion(p, $event)">
+            </div>
           </td>
-
           <td>
-            <button class="btn btn-sm btn-warning me-1">
+            <button class="btn btn-sm btn-warning me-1" (click)="abrirModalEditar(p)">
               <i class="fa-solid fa-pen"></i>
             </button>
-
-            <button class="btn btn-sm btn-danger">
+            <button class="btn btn-sm btn-danger" (click)="solicitarEliminacion(p)">
               <i class="fa-solid fa-trash"></i>
             </button>
           </td>
-
         </tr>
-
       </tbody>
     </table>
   </div>
+</div>
 
+
+<!-- Modal Confirmación -->
+<div class="modal fade" id="modalConfirmar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Confirmar cambio</h5>
+        <button class="btn-close" data-bs-dismiss="modal" [disabled]="procesando"></button>
+      </div>
+
+      <div class="modal-body">
+        ¿Estas seguro que deseas {{productoSeleccionado?.activo === 'true' ? '"desactivar"' : '"activar"'}} <strong>{{ productoSeleccionado?.nombre }}</strong>?
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="procesando">Cancelar</button>
+        <button class="btn btn-primary" (click)="confirmarCambio()" [disabled]="procesando">
+          <span *ngIf="!procesando">Confirmar</span>
+          <span *ngIf="procesando">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Procesando...
+          </span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- Modal Crear Producto -->
+<div class="modal fade" id="modalCrearProducto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">
+          <i class="fa-solid me-2 text-primary" 
+            [class.fa-plus]="!isEditMode" 
+            [class.fa-pen]="isEditMode"></i>
+          {{ isEditMode ? 'Editar Producto' : 'Crear Producto' }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" [disabled]="procesando"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <form [formGroup]="formProducto" class="needs-validation" novalidate>
+          <div class="row g-3">
+            
+            <div class="col-md-6">
+              <div class="row g-3">
+                
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Nombre</label>
+                  <input type="text" class="form-control" formControlName="nombre" placeholder="Ej. Pastel de chocolate">
+                  <div class="invalid-feedback d-block"
+                      *ngIf="formProducto.get('nombre')?.touched && formProducto.get('nombre')?.invalid">
+                    El nombre es obligatorio.
+                  </div>
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-semibold">Categoría</label>
+                  <select class="form-select" formControlName="categoria">
+                    <option value="">Selecciona categoría</option>
+                    <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
+                  </select>
+                  <div class="invalid-feedback d-block"
+                      *ngIf="formProducto.get('categoria')?.touched && formProducto.get('categoria')?.invalid">
+                    Debes seleccionar una categoría.
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Precio</label>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    <input type="number" min="0" step="0.01" class="form-control" formControlName="precio">
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Stock</label>
+                  <input type="number" min="0" class="form-control" formControlName="stock">
+                </div>
+
+                <div class="col-12">
+                  <div class="form-check">
+                    <input type="checkbox" class="form-check-input" formControlName="activo" id="activoCheck">
+                    <label class="form-check-label fw-semibold" for="activoCheck">
+                      Producto activo
+                    </label>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Imagen (opcional)</label>
+              
+              <div class="border rounded-3 d-flex justify-content-center align-items-center bg-light mb-2"
+                  style="width: 12rem; height: 12rem; overflow: hidden;">
+                <img *ngIf="imagenPreview" [src]="imagenPreview"
+                    class="object-fit-cover w-100 h-100">
+                <i *ngIf="!imagenPreview" class="fa-solid fa-image fa-3x text-muted"></i>
+              </div>
+
+              <ul class="nav nav-tabs nav-fill" id="imageTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="url-tab" data-bs-toggle="tab" data-bs-target="#url-pane"
+                          type="button" role="tab">URL</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload-pane"
+                          type="button" role="tab">Subir</button>
+                </li>
+              </ul>
+
+              <div class="tab-content" id="imageTabContent">
+                <div class="tab-pane fade show active p-2" id="url-pane" role="tabpanel">
+                  <input type="text" class="form-control form-control-sm"
+                        formControlName="imagen"
+                        placeholder="https://..."
+                        (input)="onUrlChanged($event)">
+                </div>
+                <div class="tab-pane fade p-2" id="upload-pane" role="tabpanel">
+                  <input type="file" class="form-control form-control-sm"
+                        id="file-input"
+                        (change)="onFileSelected($event)"
+                        accept="image/png, image/jpeg, image/webp">
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="procesando">Cancelar</button>
+        <button class="btn btn-primary fw-semibold"
+                (click)="crearProducto()"
+                [disabled]="formProducto.invalid || procesando">
+          <span *ngIf="!procesando && estaAutenticado">
+            <i class="fa-solid me-1" 
+              [class.fa-check]="!isEditMode" 
+              [class.fa-save]="isEditMode"></i>
+            {{ isEditMode ? 'Guardar Cambios' : 'Crear' }}
+          </span>
+          <span *ngIf="procesando"><i class="fa-solid fa-spinner fa-spin me-2"></i> Procesando...</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="modalEliminarProducto" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title text-danger fw-bold">
+          <i class="fa-solid fa-triangle-exclamation me-2"></i>
+          Confirmar Eliminación
+        </h5>
+        <button class="btn-close" data-bs-dismiss="modal" [disabled]="procesando"></button>
+      </div>
+
+      <div class="modal-body">
+        <p>¿Estás seguro de que deseas eliminar <strong>{{ productoSeleccionado?.nombre }}</strong>?</p>
+        <p class="text-danger fw-semibold">Esta acción no se puede deshacer y borrará la imagen permanentemente.</p>
+        
+        <div *ngIf="errorMensaje" class="alert alert-danger mt-3">
+          <strong>Error:</strong> {{ errorMensaje }}
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="procesando">Cancelar</button>
+        <button class="btn btn-danger" (click)="confirmarEliminacion()" [disabled]="procesando">
+          
+          <span *ngIf="!procesando">
+            <i class="fa-solid fa-trash me-1"></i> Sí, eliminar
+          </span>
+          <span *ngIf="procesando">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Eliminando...
+          </span>
+
+        </button>
+      </div>
+
+    </div>
+  </div>
 </div>
