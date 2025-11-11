@@ -19,6 +19,8 @@ export class Admin implements OnInit {
 
   sidebarVisible: boolean = true; // controla si se muestra la sidebar
 
+  private storageKey = 'sidebarVisibleState';
+
   constructor(
     private supabase: SupabaseService,
     private router: Router,
@@ -26,11 +28,21 @@ export class Admin implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.cargarEstadoSidebar();
     this.obtenerData();
     this.supabase.user$.subscribe(user => {
       this.nombreUsuario = user?.username || user?.email || 'Usuario';
       this.rol = user?.rol || '';
     });
+  }
+
+  cargarEstadoSidebar(): void {
+    const savedState = localStorage.getItem(this.storageKey);
+    // Si hay un valor guardado (no es null), lo usamos.
+    // Si es null (primera visita), se queda el valor por defecto (true).
+    if (savedState !== null) {
+      this.sidebarVisible = (savedState === 'true'); // Convertimos el string "true" a boolean
+    }
   }
 
   obtenerData() {
@@ -59,13 +71,16 @@ export class Admin implements OnInit {
 
   alternarMenu() {
     this.sidebarVisible = !this.sidebarVisible;
+    localStorage.setItem(this.storageKey, this.sidebarVisible.toString());
   }
   cerrarMenu() {
     this.sidebarVisible = false;
+    localStorage.setItem(this.storageKey, 'false');
   }
 
   async logout() {
     await this.supabase.signOut();
+    localStorage.removeItem(this.storageKey);
     this.router.navigate(['/login']);
   }
 }

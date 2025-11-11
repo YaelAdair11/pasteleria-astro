@@ -3,20 +3,14 @@ import { createClient, Session, SupabaseClient, User } from '@supabase/supabase-
 import { environment } from '../../environments/environment';
 import { BehaviorSubject } from 'rxjs';
 import { Empleado } from '../models/empleado.model';
-
-export interface UsuarioCompleto extends User {
-  username?: string;
-  rol?: string;
-  avatar?: string;
-  email?: string;
-}
+import { Usuario } from '../models/usuario.model';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
   private supabase: SupabaseClient;
 
   // BehaviorSubject que almacena los datos completos del usuario
-  private userSubject = new BehaviorSubject<UsuarioCompleto | null>(null);
+  private userSubject = new BehaviorSubject<Usuario | null>(null);
   public user$ = this.userSubject.asObservable();
 
   private readySubject = new BehaviorSubject<boolean>(false);
@@ -53,7 +47,7 @@ export class SupabaseService {
   }
 
   // ✅ Cargar los datos del usuario (solo 1 consulta)
-  private async cargarPerfil(userAuth: User): Promise<UsuarioCompleto> {
+  private async cargarPerfil(userAuth: User): Promise<Usuario> {
     // Leer datos desde tabla perfiles
     const { data: perfil } = await this.supabase
       .from('perfiles')
@@ -67,7 +61,7 @@ export class SupabaseService {
       rol: perfil?.rol,
       avatar: perfil?.avatar || userAuth?.user_metadata?.['avatar'] || 'default-avatar.png',
       email: userAuth?.email
-    } as UsuarioCompleto;
+    } as Usuario;
   }
 
   // =================== AUTH ===================
@@ -98,13 +92,6 @@ export class SupabaseService {
   async getSession(): Promise<Session | null> {
     const { data: { session } } = await this.supabase.auth.getSession();
     return session;
-  }
-
-  // Obtener el nombre de usuario para mostrar
-  getNombreUsuario(): string {
-    const user = this.userSubject.value;
-    if (!user) return '';
-    return user.username || user.email || 'Usuario';
   }
 
   // =================== ROLES ===================
@@ -297,6 +284,33 @@ export class SupabaseService {
       // Opcional: No relanzamos el error para no detener otros procesos,
       // pero sí lo registramos.
     }
+  }
+
+  async getCategorias() {
+    const { data, error } = await this.supabase
+      .from('categorias')
+      .select('id, nombre')
+      .order('nombre', { ascending: true });
+
+    if (error) throw error;
+    return data;
+  }
+
+  async addCategoria(categoria: any) {
+    const { data, error } = await this.supabase.from('categorias').insert(categoria).select().single();
+    if (error) throw error;
+    return data;
+  }
+
+  async updateCategoria(id: string, cambios: any) {
+    const { data, error } = await this.supabase.from('categorias').update(cambios).eq('id', id).select().single();
+    if (error) throw error;
+    return data;
+  }
+
+  async deleteCategoria(id: string) {
+    const { error } = await this.supabase.from('categorias').delete().eq('id', id);
+    if (error) throw error;
   }
 
   // =================== VENTAS ===================

@@ -1,0 +1,12 @@
+.action {
+    color: #a0aec0;
+    background-color: transparent;
+    transition: all 0.2s;
+}
+.action:hover {
+    color: #2d3748;
+    background-color: #d8dde2;
+}
+tbody td {
+    color: #2d3748;
+}

@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { Producto } from '../../models/producto.model';
+import { Categoria } from '../../models/categoria.model';
 import { SupabaseService } from '../../services/supabase.service';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
 declare var bootstrap: any;
@@ -20,8 +21,13 @@ export class Inventario {
   modalEliminar!: any; // ✨ Añade esta variable para el nuevo modal
   errorMensaje: string | null = null; // ✨ Añade esta para los errores
   
-  categorias = ["Pasteles", "Galletas", "Pan", "Postres"];
+  categorias: Categoria[] = [];
   productos: Producto[] = [];
+  todosLosProductos: Producto[] = [];
+
+  filtroTexto: string = '';
+  filtroActivo: string = '';
+  filtroCategoria: string = '';
 
   isEditMode = false;
   productoEnFormulario: Producto | null = null;
@@ -36,9 +42,18 @@ export class Inventario {
   nuevoValor = false;
   procesando = false;
 
+  // --- ✅ NUEVAS PROPIEDADES PARA GESTIONAR CATEGORÍAS ---
+  modalCategorias!: any;
+  formCategorias!: FormGroup; // El FormGroup que contendrá el FormArray
+  categoriasOriginales: Categoria[] = []; // Para saber qué se cambió
+  procesandoCategoria = false;
+  errorCategoria: string | null = null;
+  // ---
+
   constructor(private supabase: SupabaseService, private fb: FormBuilder) {}
 
   ngOnInit() {
+    this.cargarCategorias();
     this.cargarProductos();
     this.cargarFormulario();
 
@@ -65,6 +80,9 @@ export class Inventario {
       activo: [true]
     });
 
+    this.formCategorias = this.fb.group({
+      categorias: this.fb.array([]) 
+    });
 
     // inicializar modal
     const el = document.getElementById('modalCrearProducto');
@@ -76,6 +94,10 @@ export class Inventario {
         event.stopImmediatePropagation();
       }
     });
+  }
+
+  get categoriasFormArray() {
+    return this.formCategorias.get('categorias') as FormArray;
   }
 
   abrirModalCrear() {
@@ -128,6 +150,99 @@ export class Inventario {
     // 5. Muestra el modal
     this.modalCrear.show();
   }
+
+  abrirModalCategorias() {
+    // 1. Limpiamos cualquier control anterior
+    this.categoriasFormArray.clear();
+    
+    // 2. Llenamos el FormArray con los datos MÁS RECIENTES
+    this.categoriasOriginales.forEach(c => {
+      this.categoriasFormArray.push(this.fb.control(c.nombre, Validators.required));
+    });
+    
+    // 3. Reseteamos estados de error/carga
+    this.errorCategoria = null;
+    this.procesandoCategoria = false;
+    
+    // 4. Mostramos el modal
+    this.modalCategorias.show();
+  }
+
+  // Se llama al hacer clic en "Agregar categoría"
+  agregarCategoriaForm() {
+    // Añade un nuevo input vacío al FormArray
+    this.categoriasFormArray.push(this.fb.control('', Validators.required));
+  }
+
+  // Se llama al hacer clic en el botón de basura de un item
+  eliminarCategoriaForm(index: number) {
+    this.categoriasFormArray.removeAt(index);
+  }
+
+  // Se llama al hacer clic en "Guardar Cambios" en el modal
+  async guardarCambiosCategorias() {
+    this.procesandoCategoria = true;
+    this.errorCategoria = null;
+
+    if (this.formCategorias.invalid) {
+      this.errorCategoria = 'No puede haber categorías vacías.';
+      this.procesandoCategoria = false;
+      return;
+    }
+
+    // 1. Obtenemos la lista de nombres del formulario (limpios y sin duplicados)
+    const nombresFormulario = this.categoriasFormArray.value
+      .map((nombre: string) => nombre.trim())
+      .filter((nombre: string) => nombre);
+    
+    const duplicados = nombresFormulario.some((item: string, index: number) => 
+      nombresFormulario.indexOf(item.toLowerCase()) !== index
+    );
+    
+    if (duplicados) {
+      this.errorCategoria = 'No puede haber categorías duplicadas (ignorando mayúsculas).';
+      this.procesandoCategoria = false;
+      return;
+    }
+
+    try {
+      // 2. Convertimos el array de strings en un array de {id, nombre}
+      const nuevasCategorias: Categoria[] = nombresFormulario.map((nombre: string) => {
+        // Buscamos si la categoría ya existía para mantener su ID
+        const original = this.categoriasOriginales.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
+        return {
+          id: original ? original.id : undefined, // ID es undefined si es nueva
+          nombre: nombre 
+        };
+      });
+
+      // 3. Obtenemos las categorías que se eliminaron
+      const paraEliminar = this.categoriasOriginales.filter(original => 
+        !nuevasCategorias.some(nueva => nueva.id === original.id)
+      );
+
+      // 4. Enviamos todo a Supabase (asumiendo un servicio que maneja esto)
+      // await this.supabase.sincronizarCategorias({
+      //   actualizar: nuevasCategorias,
+      //   eliminar: paraEliminar
+      // });
+
+      // 5. Si todo salió bien, recargamos todo y cerramos
+      await this.cargarCategorias(); // Recarga la lista de categorías
+      await this.cargarProductos(); // Recarga los productos (por si cambió el nombre)
+      this.modalCategorias.hide();
+
+    } catch (err: any) {
+      console.error('Error guardando categorías:', err);
+      if (err.message.includes('foreign key constraint')) {
+        this.errorCategoria = 'Error: No se puede eliminar una categoría que está siendo usada por productos.';
+      } else {
+        this.errorCategoria = err.message || 'Ocurrió un error inesperado.';
+      }
+    }
+    this.procesandoCategoria = false;
+  }
+  // --- FIN LÓGICA CRUD CATEGORÍAS ---
 
   private resetTabs() {
     // Resetear las pestañas a la de "URL"
@@ -334,6 +449,15 @@ export class Inventario {
         if (this.procesando) event.preventDefault();
       });
     }
+
+    // Modal de Gestionar Categorías
+    const elCategorias = document.getElementById('modalGestionarCategorias');
+    if (elCategorias) {
+      this.modalCategorias = new bootstrap.Modal(elCategorias);
+      elCategorias.addEventListener('hide.bs.modal', (event: any) => {
+        if (this.procesandoCategoria) event.preventDefault();
+      });
+    }
   }
 
   // ✨ --- AÑADE ESTA NUEVA FUNCIÓN ---
@@ -378,9 +502,71 @@ export class Inventario {
     instance?.hide();
   }
 
-  async cargarProductos() {
-    this.productos = await this.supabase.getProductos(true);
+  async cargarCategorias() {
+    const data = await this.supabase.getCategorias();
+    this.categorias = data;
   }
+
+  async cargarProductos() {
+    const data = await this.supabase.getProductos(true);
+    this.todosLosProductos = data;
+    this.aplicarFiltros();
+  }
+
+  // --- ✅ LÓGICA DE FILTRADO IMPLEMENTADA ---
+
+  buscar(event: any) {
+    this.filtroTexto = event.target.value.toLowerCase();
+    this.aplicarFiltros();
+  }
+
+  filtrarActivo(event: any) {
+    this.filtroActivo = event.target.value;
+    this.aplicarFiltros();
+  }
+
+  filtrarCategoria(event: any) {
+    const categoria = event.target.value;
+    
+    if (categoria === '__NUEVA__') {
+      // 1. Llama a la función de crear
+      //this.crearNuevaCategoria('filtro');
+      // 2. Resetea el dropdown de filtro
+      event.target.value = '';
+    } else {
+      // 3. Aplica el filtro normal
+      this.filtroCategoria = categoria;
+      this.aplicarFiltros();
+    }
+  }
+
+  aplicarFiltros() {
+    let productosFiltrados = [...this.todosLosProductos];
+
+    // 1. Filtrar por texto
+    if (this.filtroTexto) {
+      productosFiltrados = productosFiltrados.filter(p => 
+        p.nombre.toLowerCase().includes(this.filtroTexto)
+      );
+    }
+
+    // 2. Filtrar por categoría
+    if (this.filtroCategoria) {
+      productosFiltrados = productosFiltrados.filter(p => 
+        p.categoria === this.filtroCategoria
+      );
+    }
+
+    // 3. Filtrar por estado (activo/inactivo)
+    if (this.filtroActivo === 'true') {
+      productosFiltrados = productosFiltrados.filter(p => p.activo);
+    } else if (this.filtroActivo === 'false') {
+      productosFiltrados = productosFiltrados.filter(p => !p.activo);
+    }
+
+    this.productos = productosFiltrados;
+  }
+  // --- FIN DE LÓGICA DE FILTRADO ---
 
   /** ✅ Evita activar el checkbox hasta confirmar */
   solicitarConfirmacion(producto: any, event: any) {
@@ -414,22 +600,6 @@ export class Inventario {
     const el = document.getElementById('modalConfirmar');
     const instance = bootstrap.Modal.getInstance(el);
     instance?.hide();
-  }
-
-
-  buscar(event: any) {
-    const texto = event.target.value.toLowerCase();
-    // Aquí puedes filtrar productos
-  }
-
-  filtrarActivo(event: any) {
-    const valor = event.target.value;
-    // Filtrar por true, false o todos
-  }
-
-  filtrarCategoria(event: any) {
-    const categoria = event.target.value;
-    // Filtrar por categoría
   }
 
   toggleSidebar() {
