@@ -4,6 +4,7 @@
   background-color: #f7f9fc;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh;
+  position: relative; /* Para posicionar la alerta */
 }
 
 .panel-header {
@@ -62,7 +63,7 @@ h4 {
   padding: 12px 14px;
   border: 1px solid #cbd5e0;
   border-radius: 8px;
-  box-sizing: border-box; 
+  box-sizing: border-box;
   transition: border-color 0.2s, box-shadow 0.2s;
   font-size: 0.9rem;
 }
@@ -198,7 +199,6 @@ h4 {
   background-color: #2f855a;
 }
 
-/* --- ¡ESTILO AÑADIDO! --- */
 .btn-cancelar {
   background-color: #a0aec0;
   color: white;
@@ -208,14 +208,200 @@ h4 {
   background-color: #718096;
 }
 
-/* --- Estilo para mensajes de error --- */
+/* --- Estilo para mensajes de error (en formulario) --- */
 .alert-error {
-  background-color: #fbeaea; /* Fondo rojo suave */
-  color: #c53030; /* Texto rojo oscuro */
+  background-color: #fbeaea;
+  color: #c53030;
   border: 1px solid #f56565;
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 20px;
   font-weight: 500;
   font-size: 0.9rem;
+}
+
+/* --- Estilo para Alerta de Éxito (Toast) --- */
+.alert-success-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 2000;
+  background-color: #2d3748; /* Color oscuro */
+  color: #f0fff4; /* Texto verde muy suave */
+  padding: 14px 20px;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05);
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  /* Animación de entrada */
+  animation: toast-fade-in 0.3s ease-out;
+}
+.alert-success-toast .fa-check-circle {
+  color: #68d391; /* Verde brillante */
+}
+
+@keyframes toast-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+/* --- Estilos de la Agenda --- */
+.agenda-container {
+  margin-bottom: 24px;
+}
+.text-muted {
+  color: #718096;
+}
+.small {
+  font-size: 0.85rem;
+  margin-top: -12px;
+}
+.text-primary {
+  color: #3182ce;
+}
+
+.agenda-table th {
+  text-align: center !important;
+  background-color: #fdfdfe;
+}
+.agenda-table th:first-child {
+  text-align: left !important;
+  min-width: 180px;
+}
+
+.agenda-celda {
+  min-width: 140px;
+  height: 80px;
+  vertical-align: top;
+  padding: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  position: relative; /* Para la 'x' */
+}
+.agenda-celda:hover {
+  background-color: #fafdff;
+}
+
+/* Estilo para el placeholder (+ Asignar) */
+.agenda-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 0.8rem;
+  color: #a0aec0;
+  opacity: 0.6;
+  transition: opacity 0.2s, color 0.2s;
+  border: 2px dashed transparent;
+  border-radius: 6px;
+  height: calc(100% - 4px); /* Ajuste por el padding */
+  width: calc(100% - 4px);
+}
+.agenda-celda:hover .agenda-placeholder {
+  opacity: 1;
+  color: #3182ce;
+  border-color: #cceeff;
+}
+.agenda-placeholder .fa-solid {
+  font-size: 0.7rem;
+  margin-right: 6px;
+}
+
+/* Estilo para la tarea/turno asignado */
+.agenda-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Tarea arriba */
+  height: 100%;
+  background-color: #ebf8ff;
+  border: 1px solid #bee3f8;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #2c5282;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  transition: box-shadow 0.2s;
+}
+.agenda-celda:hover .agenda-item {
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+  border-color: #3182ce;
+}
+
+/* Botón 'x' para borrar la tarea */
+.btn-remove-item {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  color: #c53030;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0 4px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0; /* Oculto por defecto */
+  transition: opacity 0.2s;
+}
+.agenda-celda:hover .btn-remove-item {
+  opacity: 0.4; /* Visible al pasar el mouse por la CELDA */
+}
+.btn-remove-item:hover {
+  opacity: 1 !important;
+  color: #9b2c2c;
+}
+
+
+/* --- Estilos para el Modal Emergente --- */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(10, 10, 20, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  margin: 20px;
+  z-index: 1001;
+  animation: modal-fade-in 0.2s ease-out;
+}
+
+.modal-info {
+  background-color: #f7f9fc;
+  border: 1px solid #e2e8f0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+@keyframes modal-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

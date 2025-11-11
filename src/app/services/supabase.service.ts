@@ -176,6 +176,70 @@ export class SupabaseService {
     return { data: data, error: null }; // Devuelve el empleado actualizado
   }
 
+  // =================== AGENDA / TURNOS ===================
+
+  /**
+   * Obtiene TODOS los turnos guardados de la agenda.
+   */
+  async getAgendaSemanal() {
+    const { data, error } = await this.supabase
+      .from('agenda_turnos')
+      .select('empleado_id, dia_semana, tarea');
+
+    if (error) {
+      console.error('Error cargando agenda:', error);
+      throw error;
+    }
+    return data ?? [];
+  }
+
+  /**
+   * Inserta o actualiza (Upsert) un turno específico para un empleado.
+   * Si la 'tarea' está vacía, lo trata como un borrado.
+   */
+  async upsertTurno(empleado_id: string, dia_semana: number, tarea: string) {
+    
+    // Si la tarea viene vacía o nula, lo mejor es borrar el registro.
+    if (!tarea || tarea.trim() === '') {
+      return this.borrarTurno(empleado_id, dia_semana);
+    }
+
+    const { error } = await this.supabase
+      .from('agenda_turnos')
+      .upsert({
+        empleado_id: empleado_id,
+        dia_semana: dia_semana,
+        tarea: tarea.trim()
+      }, {
+        onConflict: 'empleado_id, dia_semana' // La llave primaria que definimos
+      });
+      
+    if (error) {
+      console.error('Error guardando turno:', error);
+      throw error;
+    }
+    return { success: true };
+  }
+
+  /**
+   * Borra un turno específico de la agenda.
+   */
+  async borrarTurno(empleado_id: string, dia_semana: number) {
+    const { error } = await this.supabase
+      .from('agenda_turnos')
+      .delete()
+      .match({
+        empleado_id: empleado_id,
+        dia_semana: dia_semana
+      });
+
+    if (error) {
+      console.error('Error borrando turno:', error);
+      throw error;
+    }
+    return { success: true };
+  }
+
   // =================== PRODUCTOS ===================
   async getProductos(admin = false) {
     let query = this.supabase
