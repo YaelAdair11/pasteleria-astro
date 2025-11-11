@@ -411,35 +411,70 @@ export class SupabaseService {
     return data;
   }
 
-  async getReportesPorDia(fecha: Date) { // 1. Ahora recibe una fecha
-    // 2. Usa la fecha recibida, en lugar de 'new Date()'
-    const dia = new Date(fecha);
-    const inicioDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 0, 0, 0).toISOString();
-    const finDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 23, 59, 59).toISOString();
+  async getReportesPorDia(fecha: Date) {
+  const dia = new Date(fecha);
+  const inicioDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 0, 0, 0).toISOString();
+  const finDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 23, 59, 59).toISOString();
 
-    // 3. La consulta ahora usa las fechas dinámicas
-    const { data, error } = await this.supabase
-      .from('ventas')
-      .select('total')
-      .gte('fecha', inicioDelDia)
-      .lte('fecha', finDelDia);
+  const { data, error } = await this.supabase
+    .from('ventas')
+    .select('total')
+    .gte('fecha', inicioDelDia)
+    .lte('fecha', finDelDia);
 
-    if (error) {
-      console.error('Error en getReportesPorDia:', error);
-      throw new Error(error.message);
-    }
-
-    // 4. La lógica de cálculo es la misma, lo cual es perfecto
-    const totalVentas = data.length;
-    const totalIngresos = data.reduce((acc, v) => acc + v.total, 0);
-    const ticketPromedio = totalVentas > 0 ? totalIngresos / totalVentas : 0;
-
-    return {
-      totalIngresos,
-      totalVentas,
-      ticketPromedio
-    };
+  if (error) {
+    console.error('Error en getReportesPorDia:', error);
+    throw new Error(error.message);
   }
+
+  const totalVentas = data.length;
+  const totalIngresos = data.reduce((acc, v) => acc + v.total, 0);
+  const ticketPromedio = totalVentas > 0 ? totalIngresos / totalVentas : 0;
+
+  return {
+    totalIngresos,
+    totalVentas,
+    ticketPromedio
+  };
+}
+
+// Suscribirse a cambios en VENTAS
+suscribirCambiosVentas(callback: (payload: any) => void) {
+  return this.supabase
+    .channel('cambios-ventas-directo')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'ventas'
+      },
+      (payload) => {
+        console.log(' NUEVA VENTA EN TIEMPO REAL:', payload);
+        callback(payload);
+      }
+    )
+    .subscribe();
+}
+
+// Suscribirse a cambios en PRODUCTOS (para stock)
+suscribirCambiosProductos(callback: (payload: any) => void) {
+  return this.supabase
+    .channel('cambios-productos-directo')
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'productos'
+      },
+      (payload) => {
+        console.log(' PRODUCTO ACTUALIZADO:', payload);
+        callback(payload);
+      }
+    )
+    .subscribe();
+}
 
 }
 

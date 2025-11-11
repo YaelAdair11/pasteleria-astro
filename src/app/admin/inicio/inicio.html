@@ -7,8 +7,8 @@
           <div class="d-flex align-items-center">
             <div class="flex-grow-1">
               <h6 class="card-title text-muted mb-2">Ventas Hoy</h6>
-              <h3 class="fw-bold text-primary">$2,450</h3>
-              <span class="badge bg-success">+12% vs ayer</span>
+              <h3 class="fw-bold text-primary">${{ metricas.ventasHoy.toFixed(2) }}</h3>
+              <span class="badge bg-success">En tiempo real</span>
             </div>
             <div class="flex-shrink-0">
               <i class="fa-solid fa-cart-shopping fs-1 text-primary opacity-25"></i>
@@ -24,8 +24,8 @@
           <div class="d-flex align-items-center">
             <div class="flex-grow-1">
               <h6 class="card-title text-muted mb-2">Productos en Stock</h6>
-              <h3 class="fw-bold text-success">156</h3>
-              <span class="badge bg-warning text-dark">12 bajos en stock</span>
+              <h3 class="fw-bold text-success">{{ metricas.productosStock }}</h3>
+              <span class="badge bg-success">En tiempo real</span>
             </div>
             <div class="flex-shrink-0">
               <i class="fa-solid fa-boxes-stacked fs-1 text-success opacity-25"></i>
@@ -41,8 +41,8 @@
           <div class="d-flex align-items-center">
             <div class="flex-grow-1">
               <h6 class="card-title text-muted mb-2">Empleados Activos</h6>
-              <h3 class="fw-bold text-info">4</h3>
-              <span class="badge bg-info">1 en turno</span>
+              <h3 class="fw-bold text-info">{{ metricas.empleadosActivos }}</h3>
+              <span class="badge bg-info">En tiempo real</span>
             </div>
             <div class="flex-shrink-0">
               <i class="fa-solid fa-users fs-1 text-info opacity-25"></i>
@@ -58,8 +58,8 @@
           <div class="d-flex align-items-center">
             <div class="flex-grow-1">
               <h6 class="card-title text-muted mb-2">Clientes Nuevos</h6>
-              <h3 class="fw-bold text-purple">15</h3>
-              <span class="badge bg-success">+5 esta semana</span>
+              <h3 class="fw-bold text-purple">{{ metricas.clientesNuevos }}</h3>
+              <span class="badge bg-success">En tiempo real</span>
             </div>
             <div class="flex-shrink-0">
               <i class="fa-solid fa-user-plus fs-1 text-purple opacity-25"></i>
@@ -70,9 +70,21 @@
     </div>
   </div>
 
+  <!-- Botón de actualización manual -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Dashboard en Tiempo Real</h4>
+        <button class="btn btn-outline-primary btn-sm" (click)="actualizarManual()">
+          <i class="fa-solid fa-refresh me-2"></i>Actualizar Manualmente
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Gráficos con Chart.js -->
   <div class="row">
-    <!-- Gráfico de Ventas Semanales (MÁS PEQUEÑO) -->
+    <!-- Gráfico de Ventas Semanales -->
     <div class="col-lg-8 mb-4">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
@@ -83,19 +95,35 @@
           </div>
         </div>
         <div class="card-body">
-          <div style="height: 220px;"> <!-- ← CONTENEDOR CON ALTURA CONTROLADA -->
+          <div style="height: 220px;">
             <canvas id="ventasChart"></canvas>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Gráfico de Categorías (NUEVO) -->
+    <div class="col-lg-4 mb-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-transparent border-0">
+          <h5 class="mb-0">Ventas por Categoría</h5>
+        </div>
+        <div class="card-body">
+          <div style="height: 220px;">
+            <canvas id="categoriasChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Lista de Productos Populares -->
   <div class="row">
     <div class="col-12">
       <div class="card border-0 shadow-sm">
-        <div class="card-header bg-transparent border-0">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
           <h5 class="mb-0">Productos Más Vendidos</h5>
+          <span class="badge bg-success">Actualizado en tiempo real</span>
         </div>
         <div class="card-body">
           <div class="table-responsive">
@@ -159,6 +187,19 @@
             </table>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Indicador de estado en tiempo real -->
+  <div class="row mt-3">
+    <div class="col-12">
+      <div class="alert alert-info d-flex align-items-center mb-0">
+        <i class="fa-solid fa-circle-info me-2"></i>
+        <small>
+          <strong>Dashboard en tiempo real:</strong> Los datos se actualizan automáticamente cuando se realizan ventas. 
+          Última actualización: {{ now | date:'medium' }}
+        </small>
       </div>
     </div>
   </div>
