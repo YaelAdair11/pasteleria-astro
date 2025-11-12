@@ -77,28 +77,30 @@ export class TiendaComponent implements OnInit, OnDestroy {
     }
   }
 
-  // ✅ Cargar productos activos
   async cargarProductos() {
-    this.loading = true;
-    try {
-      const productos = await this.supabase.getProductos(false);
-      console.log('✅ Productos cargados:', productos);
+  this.loading = true;
+  try {
+    const productos = await this.supabase.getProductos(false);
+    console.log('✅ Productos cargados:', productos);
 
-      this.productos = (productos || []).map(p => ({
-        ...p,
-        rating: this.generarRatingAleatorio(),
-        reseñas: this.generarReseñasAleatorias(),
-        destacado: Math.random() > 0.7
-      }));
+    // 🔧 Reparar el enlace con categorías (por si Supabase devuelve null)
+    this.productos = (productos || []).map(p => ({
+      ...p,
+      categorias: p.categorias || this.categorias.find(c => c.id === p.categoria_id) || null,
+      rating: this.generarRatingAleatorio(),
+      reseñas: this.generarReseñasAleatorias(),
+      destacado: Math.random() > 0.7
+    }));
 
-      this.filtrarProductos();
-    } catch (error: any) {
-      console.error('Error cargando productos:', error);
-      this.error = 'Error al cargar los productos.';
-    } finally {
-      this.loading = false;
-    }
+    this.filtrarProductos();
+  } catch (error: any) {
+    console.error('Error cargando productos:', error);
+    this.error = 'Error al cargar los productos.';
+  } finally {
+    this.loading = false;
   }
+}
+
 
   // ✅ Suscripción en tiempo real
   suscribirCambiosProductos() {
