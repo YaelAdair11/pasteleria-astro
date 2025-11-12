@@ -4,6 +4,7 @@ import { environment } from '../../environments/environment';
 import { BehaviorSubject } from 'rxjs';
 import { Empleado } from '../models/empleado.model';
 import { Usuario } from '../models/usuario.model';
+import { productosMasVendidos } from '../models/venta.model';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
@@ -171,6 +172,26 @@ export class SupabaseService {
     
     return { data: data, error: null };
   }
+
+  async contarEmpleadosActivos(): Promise<number> {
+  try {
+    const { data, error } = await this.supabase
+      .from('perfiles')
+      .select('id', { count: 'exact' })
+      .eq('rol', 'empleado'); // ✅ Contar solo empleados
+
+    if (error) {
+      console.error('❌ Error contando empleados:', error);
+      return 0;
+    }
+
+    console.log('✅ Empleados activos encontrados:', data?.length || 0);
+    return data?.length || 0;
+  } catch (error) {
+    console.error('❌ Error en contarEmpleadosActivos:', error);
+    return 0;
+  }
+}
 
   // =================== AGENDA / TURNOS ===================
 
@@ -421,48 +442,77 @@ export class SupabaseService {
    * ✨ NUEVA: Obtiene los productos más vendidos con datos REALES
    * Agrupa las ventas por producto y suma las cantidades
    */
-  async getProductosMasVendidos(limite: number = 5) {
-    try {
-      // 1. Obtener TODAS las ventas con el nombre del producto
-      const { data: ventas, error } = await this.supabase
-        .from('ventas')
-        .select('producto_id, cantidad, productos(nombre, categoria, stock, imagen)')
-        .order('fecha', { ascending: false });
+async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[]> {
+  try {
+    console.log('📊 Obteniendo productos más vendidos...');
+    
+    const { data: ventas, error } = await this.supabase
+      .from('ventas')
+      .select(`
+        producto_id, 
+        cantidad, 
+        productos:producto_id (
+          nombre, 
+          descripcion,
+          precio, 
+          stock, 
+          imagen,          
+          activo,
+          categoria_id,
+          categorias:categoria_id (
+            nombre
+          )
+        )
+      `)
+      .eq('productos.activo', true)
+      .order('fecha', { ascending: false });
 
-      if (error) throw error;
-      if (!ventas || ventas.length === 0) return [];
-
-      // 2. Agrupar por producto_id y sumar cantidades
-      const ventasPorProducto = ventas.reduce((acc: any, venta: any) => {
-        const id = venta.producto_id;
-        
-        if (!acc[id]) {
-          acc[id] = {
-            producto_id: id,
-            nombre: venta.productos?.nombre || 'Sin nombre',
-            categoria: venta.productos?.categoria || 'Sin categoría',
-            stock: venta.productos?.stock || 0,
-            imagen: venta.productos?.imagen || null,
-            totalVendido: 0
-          };
-        }
-        
-        acc[id].totalVendido += venta.cantidad;
-        return acc;
-      }, {});
-
-      // 3. Convertir a array y ordenar por totalVendido (descendente)
-      const productosOrdenados = Object.values(ventasPorProducto)
-        .sort((a: any, b: any) => b.totalVendido - a.totalVendido)
-        .slice(0, limite);
-
-      return productosOrdenados;
-
-    } catch (error) {
-      console.error('Error en getProductosMasVendidos:', error);
-      throw error;
+    if (error) {
+      console.error('❌ Error en query productos más vendidos:', error);
+      return [];
     }
+
+    if (!ventas || ventas.length === 0) {
+      console.log('ℹ️ No hay ventas registradas');
+      return [];
+    }
+
+    console.log('✅ Ventas encontradas:', ventas.length);
+
+    // Agrupar por producto_id y sumar cantidades
+    const ventasPorProducto = ventas.reduce((acc: any, venta: any) => {
+      const productoId = venta.producto_id;
+      
+      if (!acc[productoId]) {
+        acc[productoId] = {
+          producto_id: productoId,
+          nombre: venta.productos?.nombre || 'Producto no encontrado',
+          descripcion: venta.productos?.descripcion || '',
+          categoria: venta.productos?.categorias?.nombre || 'Sin categoría',
+          stock: venta.productos?.stock || 0,
+          precio: venta.productos?.precio || 0,
+          imagen: venta.productos?.imagen || undefined, // ✅ CAMBIADO: imagen_url → imagen
+          totalVendido: 0
+        };
+      }
+      
+      acc[productoId].totalVendido += venta.cantidad;
+      return acc;
+    }, {});
+
+    // Convertir a array, ordenar y limitar
+    const productosOrdenados = Object.values(ventasPorProducto)
+      .sort((a: any, b: any) => b.totalVendido - a.totalVendido)
+      .slice(0, limite);
+
+    console.log('🏆 Productos más vendidos procesados:', productosOrdenados.length);
+    return productosOrdenados as productosMasVendidos[];
+
+  } catch (error) {
+    console.error('❌ Error en getProductosMasVendidos:', error);
+    return [];
   }
+}
 
   /**
    * Obtiene reportes de ventas por día específico
