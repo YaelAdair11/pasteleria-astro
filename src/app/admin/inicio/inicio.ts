@@ -1,18 +1,18 @@
-import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
-import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
+import { Component, AfterViewInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { SupabaseService } from '../../services/supabase.service';
+import { productosMasVendidos } from '../../models/venta.model';
 
 @Component({
   selector: 'app-inicio',
   standalone: true,
-  imports: [CommonModule], // ← AGREGAR CommonModule AQUÍ
+  imports: [CommonModule],
   templateUrl: './inicio.html',
   styleUrls: ['./inicio.css']
 })
 export class InicioComponent implements AfterViewInit, OnDestroy {
   
-  // MÉTRICAS EN TIEMPO REAL
   metricas = {
     ventasHoy: 0,
     productosStock: 0,
@@ -20,9 +20,9 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
     clientesNuevos: 15
   };
 
-  // Variable para la fecha actual
-  now = new Date();
+  productosMasVendidos: productosMasVendidos[] = [];
 
+  now = new Date();
   private ventasChart: any;
   private categoriasChart: any;
   private subscriptions: any[] = [];
@@ -30,78 +30,70 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
   constructor(private supabaseService: SupabaseService) {}
 
   async ngAfterViewInit() {
-    // Registrar todos los componentes de Chart.js
     Chart.register(...registerables);
-    
-    // Cargar datos iniciales
     await this.cargarDatosReales();
-    
-    // Suscribirse a cambios en tiempo real
     this.suscribirCambiosTiempoReal();
-    
-    // Crear gráficos
     this.crearGraficoVentas();
     this.crearGraficoCategorias();
 
-    // Actualizar la hora cada minuto
     setInterval(() => {
       this.now = new Date();
     }, 60000);
   }
 
   ngOnDestroy() {
-    // Limpiar suscripciones
-    this.subscriptions.forEach(sub => sub.unsubscribe());
+    console.log('🧹 Limpiando suscripciones del dashboard...');
+    this.subscriptions.forEach(sub => {
+      if (sub && typeof sub.unsubscribe === 'function') {
+        sub.unsubscribe();
+      }
+    });
+    this.subscriptions = [];
     
-    // Destruir gráficos
-    if (this.ventasChart) {
-      this.ventasChart.destroy();
-    }
-    if (this.categoriasChart) {
-      this.categoriasChart.destroy();
-    }
+    if (this.ventasChart) this.ventasChart.destroy();
+    if (this.categoriasChart) this.categoriasChart.destroy();
   }
 
-  /**
-   * Carga los datos REALES desde Supabase
-   */
   async cargarDatosReales() {
     try {
       console.log('🔄 Cargando datos reales del dashboard...');
       
-      // Obtener reporte del día actual
-      const reporte = await this.supabaseService.getReportesPorDia(new Date());
+      const [reporte, productos, productosMasVendidos] = await Promise.all([
+        this.supabaseService.getReportesPorDia(new Date()),
+        this.supabaseService.getProductos(true),
+        this.supabaseService.getProductosMasVendidos(5)
+      ]);
       
-      // Obtener productos para calcular stock
-      const productos = await this.supabaseService.getProductos(true);
-      
-      // Actualizar métricas con datos REALES
       this.metricas.ventasHoy = reporte.totalIngresos;
       this.metricas.productosStock = productos.length;
       
-      console.log('📊 Datos actualizados:', this.metricas);
+      // ✅ SOLUCIÓN SIMPLE - Type assertion
+      this.productosMasVendidos = productosMasVendidos as productosMasVendidos[];
+      
+      console.log('📊 Datos actualizados correctamente');
       
     } catch (error) {
       console.error('❌ Error cargando datos del dashboard:', error);
+      this.mostrarError('Error al cargar datos del dashboard. Reintentando...');
+      setTimeout(() => this.cargarDatosReales(), 5000);
     }
   }
 
-  /**
-   * Suscribirse a cambios en tiempo real
-   */
+  private mostrarError(mensaje: string) {
+    console.warn('⚠️ Error para el usuario:', mensaje);
+  }
+
   private suscribirCambiosTiempoReal() {
     console.log('🔔 Suscribiéndose a cambios en tiempo real...');
     
-    // Suscribirse a NUEVAS VENTAS
-    const subVentas = this.supabaseService.suscribirCambiosVentas((payload) => {
+    const subVentas = this.supabaseService.suscribirCambiosVentas(() => {
       console.log('💰 Nueva venta detectada, actualizando dashboard...');
-      this.cargarDatosReales(); // Recargar todo el dashboard
+      this.cargarDatosReales();
     });
 
-    // Suscribirse a CAMBIOS EN PRODUCTOS (stock)
-    const subProductos = this.supabaseService.suscribirCambiosProductos((payload) => {
+    const subProductos = this.supabaseService.suscribirCambiosProductos(() => {
       console.log('📦 Stock actualizado, actualizando dashboard...');
-      this.cargarDatosReales(); // Recargar todo el dashboard
+      this.cargarDatosReales();
     });
 
     this.subscriptions.push(subVentas, subProductos);
@@ -109,6 +101,7 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
 
   private crearGraficoVentas() {
     const ctx = document.getElementById('ventasChart') as HTMLCanvasElement;
+    if (!ctx) return;
     
     this.ventasChart = new Chart(ctx, {
       type: 'bar',
@@ -194,5 +187,111 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
     console.log('🔄 Actualización manual del dashboard...');
     this.now = new Date(); // Actualizar la hora
     await this.cargarDatosReales();
+  }
+
+  /**
+   * ✨ NUEVO: Cargar datos reales para gráfico de ventas
+   */
+  async cargarDatosGraficoVentas() {
+    try {
+      // Obtener ventas de los últimos 7 días
+      const ventasUltimaSemana = await this.supabaseService.getVentasUltimosDias(7);
+      
+      // Formatear datos para el gráfico
+      const labels = this.generarLabelsUltimos7Dias();
+      const datosReales = this.formatearDatosVentasParaGrafico(ventasUltimaSemana);
+      
+      // Actualizar gráfico si existe
+      if (this.ventasChart) {
+        this.ventasChart.data.labels = labels;
+        this.ventasChart.data.datasets[0].data = datosReales;
+        this.ventasChart.update('none');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error cargando datos para gráfico de ventas:', error);
+    }
+  }
+
+  /**
+   * ✨ NUEVO: Cargar datos reales para gráfico de categorías
+   */
+  async cargarDatosGraficoCategorias() {
+    try {
+      const ventasPorCategoria = await this.supabaseService.getVentasPorCategoria();
+      
+      // Formatear datos para el gráfico de donut
+      const { labels, datos, colores } = this.formatearDatosCategoriasParaGrafico(ventasPorCategoria);
+      
+      // Actualizar gráfico si existe
+      if (this.categoriasChart) {
+        this.categoriasChart.data.labels = labels;
+        this.categoriasChart.data.datasets[0].data = datos;
+        this.categoriasChart.data.datasets[0].backgroundColor = colores;
+        this.categoriasChart.update('none');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error cargando datos para gráfico de categorías:', error);
+    }
+  }
+
+  /**
+   * ✨ NUEVO: Generar labels de los últimos 7 días
+   */
+  private generarLabelsUltimos7Dias(): string[] {
+    const labels = [];
+    const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    
+    for (let i = 6; i >= 0; i--) {
+      const fecha = new Date();
+      fecha.setDate(fecha.getDate() - i);
+      labels.push(dias[fecha.getDay()]);
+    }
+    
+    return labels;
+  }
+
+  /**
+   * ✨ NUEVO: Formatear datos de ventas para el gráfico
+   */
+  private formatearDatosVentasParaGrafico(ventasPorDia: any): number[] {
+    const datos = [];
+    const hoy = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const fecha = new Date(hoy);
+      fecha.setDate(fecha.getDate() - i);
+      const diaKey = fecha.toISOString().split('T')[0];
+      
+      datos.push(ventasPorDia[diaKey] || 0);
+    }
+    
+    return datos;
+  }
+
+  /**
+   * ✨ NUEVO: Formatear datos de categorías para el gráfico
+   */
+  private formatearDatosCategoriasParaGrafico(ventasPorCategoria: any) {
+    const coloresBase = [
+      'rgba(198, 43, 102, 0.8)',
+      'rgba(255, 159, 64, 0.8)',
+      'rgba(75, 192, 192, 0.8)',
+      'rgba(54, 162, 235, 0.8)',
+      'rgba(153, 102, 255, 0.8)',
+      'rgba(201, 203, 207, 0.8)',
+      'rgba(255, 205, 86, 0.8)'
+    ];
+    
+    const categorias = Object.keys(ventasPorCategoria);
+    const datos = Object.values(ventasPorCategoria) as number[];
+    const colores = categorias.map((_, index) => coloresBase[index % coloresBase.length]);
+    
+    return {
+      labels: categorias,
+      datos: datos,
+      colores: colores
+    };
   }
 }

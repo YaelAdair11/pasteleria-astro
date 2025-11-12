@@ -52,36 +52,6 @@
       </div>
     </div>
 
-    <div class="col-xl-3 col-md-6 mb-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-body">
-          <div class="d-flex align-items-center">
-            <div class="flex-grow-1">
-              <h6 class="card-title text-muted mb-2">Clientes Nuevos</h6>
-              <h3 class="fw-bold text-purple">{{ metricas.clientesNuevos }}</h3>
-              <span class="badge bg-success">En tiempo real</span>
-            </div>
-            <div class="flex-shrink-0">
-              <i class="fa-solid fa-user-plus fs-1 text-purple opacity-25"></i>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Botón de actualización manual -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="d-flex justify-content-between align-items-center">
-        <h4 class="mb-0">Dashboard en Tiempo Real</h4>
-        <button class="btn btn-outline-primary btn-sm" (click)="actualizarManual()">
-          <i class="fa-solid fa-refresh me-2"></i>Actualizar Manualmente
-        </button>
-      </div>
-    </div>
-  </div>
-
   <!-- Gráficos con Chart.js -->
   <div class="row">
     <!-- Gráfico de Ventas Semanales -->
@@ -91,7 +61,6 @@
           <h5 class="mb-0">Ventas de la Semana</h5>
           <div class="btn-group btn-group-sm">
             <button class="btn btn-outline-secondary active">Semana</button>
-            <button class="btn btn-outline-secondary">Mes</button>
           </div>
         </div>
         <div class="card-body">
@@ -102,94 +71,89 @@
       </div>
     </div>
 
-    <!-- Gráfico de Categorías (NUEVO) -->
-    <div class="col-lg-4 mb-4">
-      <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-transparent border-0">
-          <h5 class="mb-0">Ventas por Categoría</h5>
-        </div>
-        <div class="card-body">
-          <div style="height: 220px;">
-            <canvas id="categoriasChart"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <!-- Lista de Productos Populares -->
-  <div class="row">
-    <div class="col-12">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Productos Más Vendidos</h5>
-          <span class="badge bg-success">Actualizado</span>
+<div class="row">
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Productos Más Vendidos</h5>
+        <span class="badge bg-success">Actualizado</span>
+      </div>
+      <div class="card-body">
+        
+        <!-- ✅ MENSAJE SI NO HAY DATOS -->
+        <div *ngIf="productosMasVendidos.length === 0" class="alert alert-info text-center">
+          <i class="fa-solid fa-info-circle me-2"></i>
+          No hay ventas registradas aún
         </div>
-        <div class="card-body">
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-                <tr>
-                  <th>Producto</th>
-                  <th>Categoría</th>
-                  <th>Ventas</th>
-                  <th>Stock</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <span>Pastel de Chocolate</span>
+
+        <!-- ✅ TABLA CON DATOS REALES -->
+        <div *ngIf="productosMasVendidos.length > 0" class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Ventas</th>
+                <th>Stock</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of productosMasVendidos; let i = index">
+                <td>
+                  <div class="d-flex align-items-center gap-3">
+                    <!-- Imagen del producto -->
+                    <img *ngIf="p.imagen" [src]="p.imagen" 
+                    class="rounded object-fit-cover"
+                    style="width: 3rem; height: 3rem;"
+                    (error)="p.imagen = undefined">
+                    
+                    <!-- Avatar si no hay imagen -->
+                    <div *ngIf="!p.imagen" 
+                         class="rounded-circle bg-primary text-white fw-bold d-flex justify-content-center align-items-center"
+                         style="width: 3rem; height: 3rem; font-size: 1.2rem;">
+                      {{ p.nombre.charAt(0).toUpperCase() }}
                     </div>
-                  </td>
-                  <td>Pasteles</td>
-                  <td>45 unidades</td>
-                  <td>
-                    <span class="badge bg-success">En stock</span>
-                  </td>
-                  <td>
-                    <span class="badge bg-primary">Más vendido</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <span>Cupcakes de Vainilla</span>
-                    </div>
-                  </td>
-                  <td>Postres Individuales</td>
-                  <td>32 unidades</td>
-                  <td>
-                    <span class="badge bg-warning text-dark">Stock bajo</span>
-                  </td>
-                  <td>
-                    <span class="badge bg-info">Popular</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="d-flex align-items-center">
-                      <span>Pay de limon</span>
-                    </div>
-                  </td>
-                  <td>Postres</td>
-                  <td>28 unidades</td>
-                  <td>
-                    <span class="badge bg-success">En stock</span>
-                  </td>
-                  <td>
-                    <span class="badge bg-info">Popular</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                    
+                    <span class="fw-semibold">{{ p.nombre }}</span>
+                  </div>
+                </td>
+                <td>{{ p.categoria }}</td>
+                <td>
+                  <span class="badge bg-primary">
+                    {{ p.totalVendido }} unidades
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" 
+                        [class.bg-success]="p.stock > 10"
+                        [class.bg-warning]="p.stock > 0 && p.stock <= 10"
+                        [class.bg-danger]="p.stock === 0">
+                    {{ p.stock > 0 ? 'Stock: ' + p.stock : 'Sin stock' }}
+                  </span>
+                </td>
+                <td>
+                  <!-- Badge según posición -->
+                  <span *ngIf="i === 0" class="badge bg-warning">
+                    <i class="fa-solid fa-trophy me-1"></i> #1 Más vendido
+                  </span>
+                  <span *ngIf="i === 1" class="badge bg-info">
+                    <i class="fa-solid fa-medal me-1"></i> #2 Popular
+                  </span>
+                  <span *ngIf="i >= 2" class="badge bg-secondary">
+                    <i class="fa-solid fa-star me-1"></i> Top {{ i + 1 }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+
       </div>
     </div>
   </div>
+</div>
 
   <!-- Indicador de estado en tiempo real -->
   <div class="row mt-3">
