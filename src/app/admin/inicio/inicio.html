@@ -1,166 +1,193 @@
 <div class="container-fluid">
   <!-- Tarjetas de métricas principales -->
-  <div class="row">
-    <div class="col-xl-3 col-md-6 mb-4">
+  <div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex align-items-center">
             <div class="flex-grow-1">
               <h6 class="card-title text-muted mb-2">Ventas Hoy</h6>
-              <h3 class="fw-bold text-primary">${{ metricas.ventasHoy.toFixed(2) }}</h3>
-              <span class="badge bg-success">En tiempo real</span>
+              <h3 class="fw-bold text-primary mb-1">${{ metricas.ventasHoy.toFixed(2) }}</h3>
+              <span class="badge bg-success bg-opacity-10 text-success border-0">En tiempo real</span>
             </div>
             <div class="flex-shrink-0">
-              <i class="fa-solid fa-cart-shopping fs-1 text-primary opacity-25"></i>
+              <i class="fa-solid fa-cart-shopping fs-2 text-primary opacity-50"></i>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="col-xl-3 col-md-6 mb-4">
+    <div class="col-xl-3 col-md-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex align-items-center">
             <div class="flex-grow-1">
               <h6 class="card-title text-muted mb-2">Productos en Stock</h6>
-              <h3 class="fw-bold text-success">{{ metricas.productosStock }}</h3>
-              <span class="badge bg-success">En tiempo real</span>
+              <h3 class="fw-bold text-success mb-1">{{ metricas.productosStock }}</h3>
+              <span class="badge bg-success bg-opacity-10 text-success border-0">En tiempo real</span>
             </div>
             <div class="flex-shrink-0">
-              <i class="fa-solid fa-boxes-stacked fs-1 text-success opacity-25"></i>
+              <i class="fa-solid fa-boxes-stacked fs-2 text-success opacity-50"></i>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="col-xl-3 col-md-6 mb-4">
+    <div class="col-xl-3 col-md-6">
       <div class="card border-0 shadow-sm h-100">
         <div class="card-body">
           <div class="d-flex align-items-center">
             <div class="flex-grow-1">
               <h6 class="card-title text-muted mb-2">Empleados Activos</h6>
-              <h3 class="fw-bold text-info">{{ metricas.empleadosActivos }}</h3>
-              <span class="badge bg-info">En tiempo real</span>
+              <h3 class="fw-bold text-info mb-1">{{ metricas.empleadosActivos }}</h3>
+              <span class="badge bg-info bg-opacity-10 text-info border-0">En tiempo real</span>
             </div>
             <div class="flex-shrink-0">
-              <i class="fa-solid fa-users fs-1 text-info opacity-25"></i>
+              <i class="fa-solid fa-users fs-2 text-info opacity-50"></i>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-  <!-- Gráficos con Chart.js -->
-  <div class="row">
-    <!-- Gráfico de Ventas Semanales -->
-    <div class="col-lg-8 mb-4">
+    <div class="col-xl-3 col-md-6">
       <div class="card border-0 shadow-sm h-100">
-        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-          <h5 class="mb-0">Ventas de la Semana</h5>
-          <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-secondary active">Semana</button>
+        <div class="card-body">
+          <div class="d-flex align-items-center">
+            <div class="flex-grow-1">
+              <h6 class="card-title text-muted mb-2">Clientes Nuevos</h6>
+              <h3 class="fw-bold text-purple mb-1">{{ metricas.clientesNuevos }}</h3>
+              <span class="badge bg-purple bg-opacity-10 text-purple border-0">Hoy</span>
+            </div>
+            <div class="flex-shrink-0">
+              <i class="fa-solid fa-user-plus fs-2 text-purple opacity-50"></i>
+            </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico de Ventas -->
+  <div class="row g-3 mb-4">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-3">
+          <h5 class="mb-0 fw-semibold">Ventas de la Semana</h5>
+          <button class="btn btn-outline-primary btn-sm" (click)="actualizarManual()">
+            <i class="fa-solid fa-refresh me-1"></i>Actualizar
+          </button>
+        </div>
         <div class="card-body">
-          <div style="height: 220px;">
+          <div style="height: 300px;">
             <canvas id="ventasChart"></canvas>
           </div>
         </div>
       </div>
     </div>
+  </div>
 
-  <!-- Lista de Productos Populares -->
-<div class="row">
-  <div class="col-12">
-    <div class="card border-0 shadow-sm">
-      <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Productos Más Vendidos</h5>
-        <span class="badge bg-success">Actualizado</span>
-      </div>
-      <div class="card-body">
-        
-        <!-- ✅ MENSAJE SI NO HAY DATOS -->
-        <div *ngIf="productosMasVendidos.length === 0" class="alert alert-info text-center">
-          <i class="fa-solid fa-info-circle me-2"></i>
-          No hay ventas registradas aún
+  <!-- Productos Más Vendidos -->
+  <div class="row g-3">
+    <div class="col-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center py-3">
+          <h5 class="mb-0 fw-semibold">Productos Más Vendidos</h5>
+          <span class="badge bg-success">Actualizado en tiempo real</span>
         </div>
+        <div class="card-body">
+          
+          <!-- Mensaje si no hay datos -->
+          <div *ngIf="productosMasVendidos.length === 0" class="alert alert-info text-center py-4">
+            <i class="fa-solid fa-chart-bar fs-2 text-info mb-2 d-block"></i>
+            <h6 class="mb-1">No hay ventas registradas</h6>
+            <p class="text-muted mb-0 small">Los productos más vendidos aparecerán aquí</p>
+          </div>
 
-        <!-- ✅ TABLA CON DATOS REALES -->
-        <div *ngIf="productosMasVendidos.length > 0" class="table-responsive">
-          <table class="table table-hover">
-            <thead>
-              <tr>
-                <th>Producto</th>
-                <th>Categoría</th>
-                <th>Ventas</th>
-                <th>Stock</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let p of productosMasVendidos; let i = index">
-                <td>
-                  <div class="d-flex align-items-center gap-3">
-                    <!-- Imagen del producto -->
-                    <img *ngIf="p.imagen" [src]="p.imagen" 
-                    class="rounded object-fit-cover"
-                    style="width: 3rem; height: 3rem;"
-                    (error)="p.imagen = undefined">
-                    
-                    <!-- Avatar si no hay imagen -->
-                    <div *ngIf="!p.imagen" 
-                         class="rounded-circle bg-primary text-white fw-bold d-flex justify-content-center align-items-center"
-                         style="width: 3rem; height: 3rem; font-size: 1.2rem;">
-                      {{ p.nombre.charAt(0).toUpperCase() }}
+          <!-- Tabla con datos reales -->
+          <div *ngIf="productosMasVendidos.length > 0" class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Producto</th>
+                  <th>Categoría</th>
+                  <th class="text-center">Ventas</th>
+                  <th class="text-center">Stock</th>
+                  <th class="text-center">Posición</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let p of productosMasVendidos; let i = index">
+                  <td>
+                    <div class="d-flex align-items-center gap-3">
+                      <!-- Imagen del producto -->
+                      <img *ngIf="p.imagen" [src]="p.imagen" 
+                           class="rounded object-fit-cover"
+                           style="width: 2.5rem; height: 2.5rem;"
+                           (error)="p.imagen = undefined"
+                           [alt]="p.nombre">
+                      
+                      <!-- Avatar si no hay imagen -->
+                      <div *ngIf="!p.imagen" 
+                           class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex justify-content-center align-items-center"
+                           style="width: 2.5rem; height: 2.5rem; font-size: 1rem;">
+                        {{ p.nombre.charAt(0).toUpperCase() }}
+                      </div>
+                      
+                      <div>
+                        <span class="fw-semibold d-block">{{ p.nombre }}</span>
+                        <small class="text-muted">${{ p.precio || 0 | number:'1.2-2' }}</small>
+                      </div>
                     </div>
-                    
-                    <span class="fw-semibold">{{ p.nombre }}</span>
-                  </div>
-                </td>
-                <td>{{ p.categoria }}</td>
-                <td>
-                  <span class="badge bg-primary">
-                    {{ p.totalVendido }} unidades
-                  </span>
-                </td>
-                <td>
-                  <span class="badge" 
-                        [class.bg-success]="p.stock > 10"
-                        [class.bg-warning]="p.stock > 0 && p.stock <= 10"
-                        [class.bg-danger]="p.stock === 0">
-                    {{ p.stock > 0 ? 'Stock: ' + p.stock : 'Sin stock' }}
-                  </span>
-                </td>
-                <td>
-                  <!-- Badge según posición -->
-                  <span *ngIf="i === 0" class="badge bg-warning">
-                    <i class="fa-solid fa-trophy me-1"></i> #1 Más vendido
-                  </span>
-                  <span *ngIf="i === 1" class="badge bg-info">
-                    <i class="fa-solid fa-medal me-1"></i> #2 Popular
-                  </span>
-                  <span *ngIf="i >= 2" class="badge bg-secondary">
-                    <i class="fa-solid fa-star me-1"></i> Top {{ i + 1 }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  </td>
+                  <td>
+                    <span class="text-muted">{{ p.categoria }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge bg-primary bg-opacity-10 text-primary border-0 py-2 px-3">
+                      {{ p.totalVendido }} unidades
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <span class="badge py-2 px-3" 
+                          [class.bg-success]="p.stock > 10"
+                          [class.bg-warning]="p.stock > 0 && p.stock <= 10"
+                          [class.bg-danger]="p.stock === 0">
+                      {{ p.stock > 0 ? p.stock + ' unidades' : 'Sin stock' }}
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <!-- Badge según posición -->
+                    <span *ngIf="i === 0" class="badge bg-warning bg-opacity-20 text-warning border-0 py-2">
+                      <i class="fa-solid fa-trophy me-1"></i> #1 Más vendido
+                    </span>
+                    <span *ngIf="i === 1" class="badge bg-info bg-opacity-20 text-info border-0 py-2">
+                      <i class="fa-solid fa-medal me-1"></i> #2 Popular
+                    </span>
+                    <span *ngIf="i === 2" class="badge bg-secondary bg-opacity-20 text-secondary border-0 py-2">
+                      <i class="fa-solid fa-award me-1"></i> #3 Destacado
+                    </span>
+                    <span *ngIf="i >= 3" class="badge bg-light text-muted border py-2">
+                      Top {{ i + 1 }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-
       </div>
     </div>
   </div>
-</div>
 
   <!-- Indicador de estado en tiempo real -->
-  <div class="row mt-3">
+  <div class="row mt-4">
     <div class="col-12">
-      <div class="alert alert-info d-flex align-items-center mb-0">
+      <div class="alert alert-info d-flex align-items-center border-0">
         <i class="fa-solid fa-circle-info me-2"></i>
-        <small>
+        <small class="flex-grow-1">
           <strong>Dashboard en tiempo real:</strong> Los datos se actualizan automáticamente cuando se realizan ventas. 
           Última actualización: {{ now | date:'medium' }}
         </small>
