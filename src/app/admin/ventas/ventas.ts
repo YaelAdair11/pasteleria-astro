@@ -1,20 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-// Importamos el servicio centralizado
 import { SupabaseService } from '../../services/supabase.service'; 
-
-// Interfaz para definir la estructura de los datos de ventas
-interface Venta {
-  id: string;
-  cantidad: number;
-  metodo_pago: string;
-  total: number;
-  fecha: string;
-  productos: {
-    nombre: string;
-  }[]; // Espera un arreglo de productos
-}
+import { VentaConProducto } from '../../models/venta.model'; // ✅ NUEVO IMPORT
 
 @Component({
   selector: 'app-ventas',
@@ -25,31 +13,25 @@ interface Venta {
 })
 export class Ventas implements OnInit {
   filtro: string = '';
-  ventas: Venta[] = [];
+  ventas: VentaConProducto[] = []; // ✅ TIPO ESPECÍFICO
   loading: boolean = true;
   error: string | null = null;
 
-  // 1. Inyectamos el SupabaseService en el constructor
   constructor(private supabaseService: SupabaseService) {}
 
-  // 2. Al iniciar el componente, llamamos a loadVentas
   ngOnInit(): void {
     this.loadVentas();
   }
 
-  /**
-   * Carga las ventas llamando al método getVentas() del servicio.
-   */
   async loadVentas(): Promise<void> {
     this.loading = true;
     this.error = null;
 
     try {
-      // 3. Ya no usamos createClient, llamamos al método del servicio
       const data = await this.supabaseService.getVentas(this.filtro);
       
-      // Hacemos un 'cast' para que TypeScript sepa que 'data' es un arreglo de 'Venta'
-      this.ventas = data as Venta[];
+      // ✅ TYPECAST CORRECTO
+      this.ventas = data as VentaConProducto[];
       
     } catch (error: any) {
       console.error('Error al cargar ventas:', error);
@@ -57,15 +39,10 @@ export class Ventas implements OnInit {
       this.ventas = [];
     }
 
-    this.loading = false; // Terminamos la carga
+    this.loading = false;
   }
 
-  /**
-   * Calcula el total de las ventas mostradas.
-   * Esta lógica se queda en el componente, ya que solo afecta a la vista.
-   */
   totalVentas(): number {
-    // Usamos (this.ventas || []) por seguridad, si ventas fuera nulo
-    return (this.ventas || []).reduce((acc, v) => acc + v.total, 0);
+    return this.ventas.reduce((acc, v) => acc + v.total, 0);
   }
 }
