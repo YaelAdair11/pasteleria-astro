@@ -1,0 +1,247 @@
+<!-- tienda.component.html -->
+<div class="tienda-container">
+  <!-- Header de la tienda -->
+  <header class="tienda-header">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <h1 class="tienda-title">
+            <i class="fas fa-store me-2"></i>
+            Tienda en Línea
+          </h1>
+        </div>
+        <div class="col-md-6 text-end">
+          <div class="d-flex align-items-center justify-content-end gap-3">
+            
+            <!-- Loading indicator -->
+            <div *ngIf="loading" class="spinner-border spinner-border-sm text-light" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+
+            <!-- Barra de búsqueda -->
+            <div class="search-bar">
+              <input type="text" 
+                     [(ngModel)]="terminoBusqueda" 
+                     (input)="filtrarProductos()"
+                     placeholder="Buscar productos..."
+                     class="form-control">
+              <i class="fas fa-search search-icon"></i>
+            </div>
+            
+            <!-- Botón carrito -->
+            <button class="btn btn-outline-light position-relative" 
+                    (click)="carritoAbierto = !carritoAbierto">
+              <i class="fas fa-shopping-cart"></i>
+              <span *ngIf="getCantidadTotal() > 0" 
+                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{getCantidadTotal()}}
+              </span>
+            </button>
+            
+            <!-- Botón filtros móvil -->
+            <button class="btn btn-outline-light d-md-none" 
+                    (click)="mostrarFiltros = !mostrarFiltros">
+              <i class="fas fa-filter"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Error message -->
+  <div *ngIf="error" class="alert alert-danger m-3">
+    {{error}}
+    <button class="btn-close float-end" (click)="error = null"></button>
+  </div>
+
+  <div class="container-fluid mt-4">
+    <div class="row">
+      <!-- Sidebar de filtros -->
+      <aside class="col-md-3" [class.d-none]="!mostrarFiltros" [class.d-md-block]="true">
+        <div class="filters-card">
+          <h5>Filtros</h5>
+          
+          <!-- Categorías -->
+          <div class="filter-section">
+            <h6>Categorías</h6> <!-- Quitamos la clase 'product-category' de aquí -->
+            <div class="category-list">
+              <button class="category-btn" 
+                      [class.active]="categoriaSeleccionada === 'todos'"
+                      (click)="categoriaSeleccionada = 'todos'; filtrarProductos()">
+                Todos
+              </button>
+              <button *ngFor="let categoria of categorias" 
+                      class="category-btn" 
+                      [class.active]="categoriaSeleccionada === categoria.id"
+                      (click)="categoriaSeleccionada = categoria.id; filtrarProductos()">
+                {{categoria.nombre}}
+              </button>
+            </div>
+          </div>
+          
+          <!-- Rango de precios -->
+          <div class="filter-section">
+            <h6>Precio</h6>
+            <div class="price-range">
+              <label>Mín: ${{precioMin}}</label>
+              <input type="range" [(ngModel)]="precioMin" 
+                     min="0" max="1000" step="10"
+                     (change)="filtrarProductos()"
+                     class="form-range">
+              <label>Máx: ${{precioMax}}</label>
+              <input type="range" [(ngModel)]="precioMax" 
+                     min="0" max="1000" step="10"
+                     (change)="filtrarProductos()"
+                     class="form-range">
+            </div>
+          </div>
+          
+          <!-- Ordenamiento -->
+          <div class="filter-section">
+            <h6>Ordenar por</h6>
+            <select [(ngModel)]="ordenSeleccionado" 
+                    (change)="ordenarProductos()"
+                    class="form-select">
+              <option value="nombre">Nombre A-Z</option>
+              <option value="precio-asc">Precio: Menor a Mayor</option>
+              <option value="precio-desc">Precio: Mayor a Menor</option>
+              <option value="stock-desc">Mayor Stock</option>
+            </select>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Lista de productos -->
+      <main class="col-md-9">
+        <div class="products-header mb-4">
+          <h4>{{productosFiltrados.length}} productos encontrados</h4>
+        </div>
+
+        <!-- Loading state -->
+        <div *ngIf="loading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando productos...</span>
+          </div>
+          <p class="mt-3">Cargando productos...</p>
+        </div>
+
+        <div class="row" *ngIf="!loading">
+          <div *ngFor="let producto of productosFiltrados" class="col-xl-3 col-lg-4 col-md-6 mb-4">
+            <div class="product-card">
+              <!-- Badges -->
+              <div class="product-badges">
+                <span *ngIf="producto.destacado" class="badge bg-warning">Destacado</span>
+                <span *ngIf="producto.stock <= 5" class="badge bg-danger">
+                  ¡Últimas unidades!
+                </span>
+              </div>
+              
+              <!-- Imagen -->
+              <div class="product-image">
+                <img [src]="producto.imagen || '/images/placeholder-producto.jpg'" 
+                     [alt]="producto.nombre"
+                     (error)="producto.imagen = '/images/placeholder-producto.jpg'">
+                <div class="product-overlay">
+                  <button class="btn btn-primary btn-sm" 
+                          (click)="agregarAlCarrito(producto)"
+                          [disabled]="producto.stock <= 0">
+                    <i class="fas fa-cart-plus"></i> 
+                    {{producto.stock > 0 ? 'Agregar' : 'Sin Stock'}}
+                  </button>
+                </div>
+              </div>
+              
+              <!-- Información -->
+              <div class="product-info">
+                <h6 class="product-category">{{getNombreCategoria(producto)}}</h6> <!-- Cambiado a usar el método -->
+                <h5 class="product-title">{{producto.nombre}}</h5>
+                <p class="product-description">{{producto.descripcion}}</p>
+                
+                <!-- Rating -->
+                <div class="product-rating" *ngIf="producto.rating">
+                  <div class="stars" [innerHTML]="generarEstrellas(producto.rating)"></div>
+                  <span class="rating-text">({{producto.rating}})</span>
+                </div>
+                
+                <!-- Precio -->
+                <div class="product-price">
+                  <span class="current-price">${{producto.precio}}</span>
+                </div>
+                
+                <!-- Stock -->
+                <div class="product-stock">
+                  <span [class]="producto.stock > 10 ? 'text-success' : producto.stock > 0 ? 'text-warning' : 'text-danger'">
+                    {{producto.stock > 10 ? 'En stock' : producto.stock > 0 ? 'Últimas unidades' : 'Agotado'}}
+                    <small *ngIf="producto.stock > 0">({{producto.stock}} disponibles)</small>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mensaje sin resultados -->
+        <div *ngIf="productosFiltrados.length === 0 && !loading" class="text-center py-5">
+          <i class="fas fa-search fa-3x text-muted mb-3"></i>
+          <h4>No se encontraron productos</h4>
+          <p>Intenta con otros filtros o términos de búsqueda</p>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Carrito lateral -->
+  <div class="cart-sidebar" [class.active]="carritoAbierto">
+    <div class="cart-header">
+      <h4>Tu Carrito</h4>
+      <button class="btn-close" (click)="carritoAbierto = false"></button>
+    </div>
+    
+    <div class="cart-content">
+      <div *ngIf="carrito.length === 0" class="empty-cart text-center">
+        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+        <p>Tu carrito está vacío</p>
+      </div>
+      
+      <div *ngFor="let item of carrito; let i = index" class="cart-item">
+        <img [src]="item.producto.imagen || '/images/placeholder-producto.jpg'" 
+             [alt]="item.producto.nombre"
+             (error)="item.producto.imagen = '/images/placeholder-producto.jpg'">
+        <div class="item-details">
+          <h6>{{item.producto.nombre}}</h6>
+          <p>${{item.producto.precio}} c/u</p>
+          <div class="quantity-controls">
+            <button class="btn btn-sm" 
+                    (click)="actualizarCantidad(i, item.cantidad - 1)"
+                    [disabled]="item.cantidad <= 1">-</button>
+            <span>{{item.cantidad}}</span>
+            <button class="btn btn-sm" 
+                    (click)="actualizarCantidad(i, item.cantidad + 1)"
+                    [disabled]="item.cantidad >= item.producto.stock">+</button>
+          </div>
+        </div>
+        <div class="item-total">
+          <strong>${{item.producto.precio * item.cantidad}}</strong>
+          <button class="btn btn-link text-danger" (click)="eliminarDelCarrito(i)">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <div class="cart-footer" *ngIf="carrito.length > 0">
+      <div class="cart-total">
+        <strong>Total: ${{getTotalCarrito()}}</strong>
+      </div>
+      <button class="btn btn-primary w-100" 
+              (click)="realizarCompra()"
+              [disabled]="loading">
+        {{loading ? 'Procesando...' : 'Proceder al Pago'}}
+      </button>
+    </div>
+  </div>
+
+  <!-- Overlay para carrito -->
+  <div class="cart-overlay" [class.active]="carritoAbierto" (click)="carritoAbierto = false"></div>
+</div>

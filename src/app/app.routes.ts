@@ -10,11 +10,13 @@ import { Inventario } from './admin/inventario/inventario';
 import { Reportes } from './admin/reportes/reportes';
 import { Ventas } from './admin/ventas/ventas';
 import { Vender } from './empleado/vender/vender';
+import { TiendaComponent } from './tienda/tienda.component';
+
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: Login },
-
+  { path: 'tienda', component: TiendaComponent },
   {
     path: 'admin',
     component: Admin,

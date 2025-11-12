@@ -242,13 +242,19 @@ export class SupabaseService {
 
   // =================== PRODUCTOS ===================
   async getProductos(admin = false) {
-    let query = this.supabase
-      .from('productos')
-      .select('*')
-      .order('nombre', { ascending: true });
+  let query = this.supabase
+    .from('productos')
+    .select(`
+      *,
+      categorias (
+        id,
+        nombre
+      )
+    `)
+    .order('nombre', { ascending: true });
 
     // Solo filtrar los activos si NO es admin
-    if (!admin) {
+     if (!admin) {
       query = query.eq('activo', true);
     }
 
@@ -475,6 +481,5 @@ suscribirCambiosProductos(callback: (payload: any) => void) {
     )
     .subscribe();
 }
-
 }
 
