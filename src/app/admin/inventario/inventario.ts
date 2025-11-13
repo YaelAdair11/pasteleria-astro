@@ -18,8 +18,8 @@ export class Inventario {
   userSubscription!: Subscription;
   estaAutenticado = false;
 
-  modalEliminar!: any; // ✨ Añade esta variable para el nuevo modal
-  errorMensaje: string | null = null; // ✨ Añade esta para los errores
+  modalEliminar!: any;
+  errorMensaje: string | null = null;
   
   categorias: Categoria[] = [];
   productos: Producto[] = [];
@@ -42,13 +42,11 @@ export class Inventario {
   nuevoValor = false;
   procesando = false;
 
-  // --- ✅ NUEVAS PROPIEDADES PARA GESTIONAR CATEGORÍAS ---
   modalCategorias!: any;
-  formCategorias!: FormGroup; // El FormGroup que contendrá el FormArray
-  categoriasOriginales: Categoria[] = []; // Para saber qué se cambió
+  formCategorias!: FormGroup;
+  categoriasOriginales: Categoria[] = [];
   procesandoCategoria = false;
   errorCategoria: string | null = null;
-  // ---
 
   constructor(private supabase: SupabaseService, private fb: FormBuilder) {}
 
@@ -58,22 +56,20 @@ export class Inventario {
     this.cargarFormulario();
 
     this.userSubscription = this.supabase.user$.subscribe(user => {
-      this.estaAutenticado = !!user; // true si hay usuario, false si es null
+      this.estaAutenticado = !!user;
     });
   }
 
   ngOnDestroy() {
-    // Importante limpiar la suscripción
     if (this.userSubscription) {
       this.userSubscription.unsubscribe();
     }
   }
 
   cargarFormulario() {
-    // crear formulario
     this.formProducto = this.fb.group({
       nombre: ['', Validators.required],
-      categoria: ['', Validators.required],
+      categoria_id: ['', Validators.required], // ✅ usar id
       precio: [0, [Validators.required, Validators.min(0)]],
       stock: [0, [Validators.required, Validators.min(0)]],
       imagen: [''],
@@ -84,13 +80,12 @@ export class Inventario {
       categorias: this.fb.array([]) 
     });
 
-    // inicializar modal
     const el = document.getElementById('modalCrearProducto');
     if (!el) return;
     this.modalCrear = new bootstrap.Modal(el);
     el.addEventListener('hide.bs.modal', (event: any) => {
       if (this.procesando) {
-        event.preventDefault(); // ⛔ Evita que se cierre
+        event.preventDefault();
         event.stopImmediatePropagation();
       }
     });
@@ -106,183 +101,56 @@ export class Inventario {
 
     this.formProducto.reset({
       nombre: '',
-      categoria: '',
+      categoria_id: '',
       precio: 0,
       stock: 0,
       imagen: '',
       activo: true
     });
 
-    // ✨ RESETEAR LA VISTA PREVIA
     this.imagenPreview = null;
     this.selectedFile = null;
     
-    // Limpiar el campo de archivo (si existe)
     const fileInput = document.getElementById('file-input') as HTMLInputElement;
     if (fileInput) { fileInput.value = ''; }
     
     this.resetTabs();
-
     this.modalCrear.show();
   }
 
-  // ✨ --- AÑADE ESTA NUEVA FUNCIÓN ---
   abrirModalEditar(producto: Producto) {
-    // 1. Establece el modo
     this.isEditMode = true;
     this.productoEnFormulario = producto;
 
-    // 2. Resetea el formulario (limpia validaciones)
     this.formProducto.reset();
-    
-    // 3. Rellena el formulario con los datos del producto
-    //    Usamos patchValue porque es más seguro si el modelo
-    //    no coincide exactamente con el formulario.
     this.formProducto.patchValue(producto);
 
-    // 4. Establece la vista previa y resetea archivos
     this.imagenPreview = producto.imagen ?? null;
     this.selectedFile = null;
     const fileInput = document.getElementById('file-input') as HTMLInputElement;
     if (fileInput) fileInput.value = '';
-    this.resetTabs(); // Llama a la función para resetear tabs
-
-    // 5. Muestra el modal
+    this.resetTabs();
     this.modalCrear.show();
   }
 
-  abrirModalCategorias() {
-    // 1. Limpiamos cualquier control anterior
-    this.categoriasFormArray.clear();
-    
-    // 2. Llenamos el FormArray con los datos MÁS RECIENTES
-    this.categoriasOriginales.forEach(c => {
-      this.categoriasFormArray.push(this.fb.control(c.nombre, Validators.required));
-    });
-    
-    // 3. Reseteamos estados de error/carga
-    this.errorCategoria = null;
-    this.procesandoCategoria = false;
-    
-    // 4. Mostramos el modal
-    this.modalCategorias.show();
-  }
-
-  // Se llama al hacer clic en "Agregar categoría"
-  agregarCategoriaForm() {
-    // Añade un nuevo input vacío al FormArray
-    this.categoriasFormArray.push(this.fb.control('', Validators.required));
-  }
-
-  // Se llama al hacer clic en el botón de basura de un item
-  eliminarCategoriaForm(index: number) {
-    this.categoriasFormArray.removeAt(index);
-  }
-
-  // Se llama al hacer clic en "Guardar Cambios" en el modal
-  async guardarCambiosCategorias() {
-    this.procesandoCategoria = true;
-    this.errorCategoria = null;
-
-    if (this.formCategorias.invalid) {
-      this.errorCategoria = 'No puede haber categorías vacías.';
-      this.procesandoCategoria = false;
-      return;
-    }
-
-    // 1. Obtenemos la lista de nombres del formulario (limpios y sin duplicados)
-    const nombresFormulario = this.categoriasFormArray.value
-      .map((nombre: string) => nombre.trim())
-      .filter((nombre: string) => nombre);
-    
-    const duplicados = nombresFormulario.some((item: string, index: number) => 
-      nombresFormulario.indexOf(item.toLowerCase()) !== index
-    );
-    
-    if (duplicados) {
-      this.errorCategoria = 'No puede haber categorías duplicadas (ignorando mayúsculas).';
-      this.procesandoCategoria = false;
-      return;
-    }
-
-    try {
-      // 2. Convertimos el array de strings en un array de {id, nombre}
-      const nuevasCategorias: Categoria[] = nombresFormulario.map((nombre: string) => {
-        // Buscamos si la categoría ya existía para mantener su ID
-        const original = this.categoriasOriginales.find(c => c.nombre.toLowerCase() === nombre.toLowerCase());
-        return {
-          id: original ? original.id : undefined, // ID es undefined si es nueva
-          nombre: nombre 
-        };
-      });
-
-      // 3. Obtenemos las categorías que se eliminaron
-      const paraEliminar = this.categoriasOriginales.filter(original => 
-        !nuevasCategorias.some(nueva => nueva.id === original.id)
-      );
-
-      // 4. Enviamos todo a Supabase (asumiendo un servicio que maneja esto)
-      // await this.supabase.sincronizarCategorias({
-      //   actualizar: nuevasCategorias,
-      //   eliminar: paraEliminar
-      // });
-
-      // 5. Si todo salió bien, recargamos todo y cerramos
-      await this.cargarCategorias(); // Recarga la lista de categorías
-      await this.cargarProductos(); // Recarga los productos (por si cambió el nombre)
-      this.modalCategorias.hide();
-
-    } catch (err: any) {
-      console.error('Error guardando categorías:', err);
-      if (err.message.includes('foreign key constraint')) {
-        this.errorCategoria = 'Error: No se puede eliminar una categoría que está siendo usada por productos.';
-      } else {
-        this.errorCategoria = err.message || 'Ocurrió un error inesperado.';
-      }
-    }
-    this.procesandoCategoria = false;
-  }
-  // --- FIN LÓGICA CRUD CATEGORÍAS ---
-
-  private resetTabs() {
-    // Resetear las pestañas a la de "URL"
-    const urlTab = document.getElementById('url-tab');
-    if (urlTab) {
-      // Usamos un try/catch por si el modal aún no está en el DOM
-      try {
-        const tab = new bootstrap.Tab(urlTab);
-        tab.show();
-      } catch (e) {
-        // Ignora el error si el tab no puede mostrarse
-      }
-    }
-  }
-
-  // ✨ --- ESTA ES TU NUEVA FUNCIÓN DE ENVÍO ---
   async onSubmitForm() {
-
-    // 2. Verificación de formulario
     if (this.formProducto.invalid) {
       this.formProducto.markAllAsTouched();
       return;
     }
 
-    // 3. Bifurcación: ¿Editar o Crear?
     if (this.isEditMode) {
-      await this.ejecutarActualizacion(); // Llama a la lógica de actualizar
+      await this.ejecutarActualizacion();
     } else {
-      await this.ejecutarCreacion(); // Llama a la lógica de crear
+      await this.ejecutarCreacion();
     }
   }
 
-
-  // ✨ --- LÓGICA DE CREAR (extraída de tu función anterior) ---
   private async ejecutarCreacion() {
     this.procesando = true;
     try {
       const nuevo = { ...this.formProducto.value };
 
-      // Lógica de imagen (subida)
       if (this.selectedFile) {
         const imageUrl = await this.supabase.uploadImagenProducto(this.selectedFile);
         nuevo.imagen = imageUrl; 
@@ -290,9 +158,7 @@ export class Inventario {
         nuevo.imagen = null;
       }
       
-      console.log('Creando producto en DB', nuevo);
       await this.supabase.addProducto(nuevo);
-
       await this.cargarProductos();
       this.modalCrear.hide();
     } catch (err) {
@@ -301,37 +167,22 @@ export class Inventario {
     this.procesando = false;
   }
 
-
-  // ✨ --- NUEVA LÓGICA DE ACTUALIZAR ---
   private async ejecutarActualizacion() {
-    if (!this.productoEnFormulario) {
-      console.error('No hay producto seleccionado para editar');
-      return;
-    }
+    if (!this.productoEnFormulario) return;
 
     this.procesando = true;
     try {
-      // Obtiene el ID del producto guardado
       const id = this.productoEnFormulario.id; 
-      // Obtiene todos los valores nuevos del formulario
       const cambios = { ...this.formProducto.value }; 
 
-      // TODO: Lógica de imagen para Actualizar
-      // (Esto es más complejo: si sube archivo nuevo,
-      // hay que subirlo y BORRAR el anterior de Storage)
-      
-      // Por ahora, solo actualiza la URL si cambió o se subió una nueva
       if (this.selectedFile) {
         const imageUrl = await this.supabase.uploadImagenProducto(this.selectedFile);
         cambios.imagen = imageUrl;
-        // Aquí faltaría borrar la imagen antigua: this.productoEnFormulario.imagen
       } else if (cambios.imagen === '') {
         cambios.imagen = null;
       }
       
-      console.log('Actualizando producto', id, cambios);
       await this.supabase.updateProducto(id, cambios);
-
       await this.cargarProductos();
       this.modalCrear.hide();
     } catch (err) {
@@ -340,35 +191,25 @@ export class Inventario {
     this.procesando = false;
   }
 
-  // ✨ NUEVA FUNCIÓN: Se activa al pegar una URL
   onUrlChanged(event: any) {
     const url = event.target.value;
     if (url) {
       this.imagenPreview = url;
-      this.selectedFile = null; // Limpiamos el archivo si se pega URL
-      
-      // Limpiar el input de archivo
+      this.selectedFile = null;
       const fileInput = document.getElementById('file-input') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
-
     } else {
       this.imagenPreview = null;
     }
   }
 
-  // ✨ NUEVA FUNCIÓN: Se activa al seleccionar un archivo
   onFileSelected(event: any) {
     const file = event.target.files?.[0];
-    if (!file) {
-      // Si el usuario cancela, no hagas nada
-      return;
-    }
+    if (!file) return;
 
     this.selectedFile = file;
-    // Limpiamos la URL si se selecciona un archivo
     this.formProducto.controls['imagen'].setValue(''); 
 
-    // Leer el archivo para mostrar la vista previa
     const reader = new FileReader();
     reader.onload = () => {
       this.imagenPreview = reader.result;
@@ -376,135 +217,10 @@ export class Inventario {
     reader.readAsDataURL(file);
   }
 
-  async crearProducto() {
-    if (this.formProducto.invalid) {
-      this.formProducto.markAllAsTouched();
-      return;
-    }
-
-    this.procesando = true;
-
-    try {
-      const nuevo = { ...this.formProducto.value };
-      
-      // 1. ¿Hay un archivo seleccionado para subir?
-      if (this.selectedFile) {
-        // Si hay un archivo, lo subimos primero
-        console.log('Subiendo imagen...');
-        const imageUrl = await this.supabase.uploadImagenProducto(this.selectedFile);
-        
-        // Asignamos la URL de Supabase Storage al campo 'imagen'
-        nuevo.imagen = imageUrl; 
-      
-      } else {
-        // 2. Si no hay archivo, usamos la URL (o la volvemos null)
-        if (nuevo.imagen === '') {
-          nuevo.imagen = null;
-        }
-      }
-      
-      console.log('Creando producto', nuevo);
-      await this.supabase.addProducto(nuevo);
-
-      await this.cargarProductos();
-
-    } catch (err) {
-      console.error('Error creando producto', err);
-    }
-
-    this.procesando = false;
-
-    // Cerrar modal de forma segura
-    const el = document.getElementById('modalCrearProducto');
-    const instance = bootstrap.Modal.getInstance(el);
-    instance?.hide();
-  }
-
-  /** ✅ Modal se inicializa SOLO cuando el DOM ya está cargado */
-  ngAfterViewInit() {
-    // const el = document.getElementById('modalConfirmar');
-    // if (!el) return;
-    // this.modal = bootstrap.Modal.getOrCreateInstance(el);
-    // el.addEventListener('hide.bs.modal', (event: any) => {
-    //   if (this.procesando) {
-    //     event.preventDefault(); // ⛔ Evita que se cierre
-    //     event.stopImmediatePropagation();
-    //   }
-    // });
-
-    // Tu modal de confirmar (toggle)
-    const elConfirmar = document.getElementById('modalConfirmar');
-    if (elConfirmar) {
-      this.modal = bootstrap.Modal.getOrCreateInstance(elConfirmar);
-      elConfirmar.addEventListener('hide.bs.modal', (event: any) => {
-        if (this.procesando) event.preventDefault();
-      });
-    }
-
-    // ✨ --- AÑADE LA INICIALIZACIÓN DEL NUEVO MODAL ---
-    const elEliminar = document.getElementById('modalEliminarProducto');
-    if (elEliminar) {
-      this.modalEliminar = bootstrap.Modal.getOrCreateInstance(elEliminar);
-      elEliminar.addEventListener('hide.bs.modal', (event: any) => {
-        if (this.procesando) event.preventDefault();
-      });
-    }
-
-    // Modal de Gestionar Categorías
-    const elCategorias = document.getElementById('modalGestionarCategorias');
-    if (elCategorias) {
-      this.modalCategorias = new bootstrap.Modal(elCategorias);
-      elCategorias.addEventListener('hide.bs.modal', (event: any) => {
-        if (this.procesandoCategoria) event.preventDefault();
-      });
-    }
-  }
-
-  // ✨ --- AÑADE ESTA NUEVA FUNCIÓN ---
-  solicitarEliminacion(producto: Producto) {
-    this.productoSeleccionado = producto; // Reutilizamos esta variable
-    this.errorMensaje = null; // Limpiamos errores
-    this.modalEliminar.show();
-  }
-
-  // ✨ --- AÑADE ESTA NUEVA FUNCIÓN ---
-  async confirmarEliminacion() {
-    if (!this.productoSeleccionado) return;
-
-    this.procesando = true;
-    this.errorMensaje = null;
-    const productoAEliminar = this.productoSeleccionado; // Guarda la referencia
-
-    try {
-      // 1. Eliminar de la base de datos (tabla 'productos')
-      await this.supabase.deleteProducto(productoAEliminar.id);
-
-      // 2. Eliminar la imagen de Supabase Storage
-      //    (Usando la función que creamos en la optimización)
-      await this.supabase.deleteImagenProducto(productoAEliminar.imagen);
-
-      // 3. Actualizar la UI (quitando el producto del array local)
-      this.productos = this.productos.filter(p => p.id !== productoAEliminar.id);
-
-      // 4. Cerrar el modal y limpiar
-      this.productoSeleccionado = null;
-
-    } catch (err: any) {
-      console.error('Error eliminando producto:', err);
-      this.errorMensaje = err.message || 'Ocurrió un error inesperado al eliminar.';
-    }
-
-    this.procesando = false;
-
-    // Cerrar modal de forma segura
-    const el = document.getElementById('modalEliminarProducto');
-    const instance = bootstrap.Modal.getInstance(el);
-    instance?.hide();
-  }
-
   async cargarCategorias() {
     const data = await this.supabase.getCategorias();
     this.categorias = data;
+    this.categoriasOriginales = data;
   }
 
   async cargarProductos() {
@@ -512,8 +228,6 @@ export class Inventario {
     this.todosLosProductos = data;
     this.aplicarFiltros();
   }
-
-  // --- ✅ LÓGICA DE FILTRADO IMPLEMENTADA ---
 
   buscar(event: any) {
     this.filtroTexto = event.target.value.toLowerCase();
@@ -527,14 +241,10 @@ export class Inventario {
 
   filtrarCategoria(event: any) {
     const categoria = event.target.value;
-    
     if (categoria === '__NUEVA__') {
-      // 1. Llama a la función de crear
-      //this.crearNuevaCategoria('filtro');
-      // 2. Resetea el dropdown de filtro
+      this.modalCategorias.show(); // ✅ así se abre el modal correctamente
       event.target.value = '';
-    } else {
-      // 3. Aplica el filtro normal
+    }else {
       this.filtroCategoria = categoria;
       this.aplicarFiltros();
     }
@@ -543,21 +253,18 @@ export class Inventario {
   aplicarFiltros() {
     let productosFiltrados = [...this.todosLosProductos];
 
-    // 1. Filtrar por texto
     if (this.filtroTexto) {
       productosFiltrados = productosFiltrados.filter(p => 
         p.nombre.toLowerCase().includes(this.filtroTexto)
       );
     }
 
-    // 2. Filtrar por categoría
     if (this.filtroCategoria) {
       productosFiltrados = productosFiltrados.filter(p => 
-        p.categoria === this.filtroCategoria
+        p.categoria_id === this.filtroCategoria
       );
     }
 
-    // 3. Filtrar por estado (activo/inactivo)
     if (this.filtroActivo === 'true') {
       productosFiltrados = productosFiltrados.filter(p => p.activo);
     } else if (this.filtroActivo === 'false') {
@@ -566,70 +273,26 @@ export class Inventario {
 
     this.productos = productosFiltrados;
   }
-  // --- FIN DE LÓGICA DE FILTRADO ---
-
-  /** ✅ Evita activar el checkbox hasta confirmar */
-  solicitarConfirmacion(producto: any, event: any) {
-    this.productoSeleccionado = producto;
-    this.nuevoValor = event.target.checked;
-
-    // Revertimos temporalmente el switch
-    event.target.checked = producto.activo;
-
-    this.modal.show();
-  }
-
-  /** ✅ Lógica correcta para confirmar */
-  async confirmarCambio() {
-    this.procesando = true;
-    try {
-      await this.supabase.updateProducto(this.productoSeleccionado.id, {
-        activo: this.nuevoValor,
-      });
-
-      // Actualizar en UI
-      this.productoSeleccionado.activo = this.nuevoValor;
-
-    } catch (err) {
-      console.error('Error al actualizar estado:', err);
-    }
-
-    this.procesando = false;
-
-    // Cerrar modal de forma segura
-    const el = document.getElementById('modalConfirmar');
-    const instance = bootstrap.Modal.getInstance(el);
-    instance?.hide();
-  }
-
-  toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar) {
-      sidebar.classList.toggle('active');
-    }
-  }
-
-  private colorCache: { [key: string]: string } = {};
 
   colorAleatorio(nombre: string): string {
-    if (this.colorCache[nombre]) {
-      return this.colorCache[nombre];
+    const colores = ['#FF6B6B', '#4D96FF', '#6BCB77', '#FFD93D', '#845EC2', '#FF9671', '#00C9A7', '#FF6F91'];
+    const hash = Array.from(nombre).reduce((acc, c) => acc + c.charCodeAt(0), 0);
+    return colores[hash % colores.length];
+  }
+
+  private resetTabs() {
+    const urlTab = document.getElementById('url-tab');
+    if (urlTab) {
+      try {
+        const tab = new bootstrap.Tab(urlTab);
+        tab.show();
+      } catch {}
     }
-
-    // Paleta bonita para productos
-    const colores = [
-      '#FF6B6B', '#4D96FF', '#6BCB77',
-      '#FFD93D', '#845EC2', '#FF9671',
-      '#00C9A7', '#FF6F91'
-    ];
-
-    // Generar índice basado en el nombre
-    const hash = Array.from(nombre)
-      .reduce((acc, c) => acc + c.charCodeAt(0), 0);
-
-    const color = colores[hash % colores.length];
-    this.colorCache[nombre] = color;
-    return color;
+  }
+  // ✅ Añade esto dentro de la clase Inventario
+  getNombreCategoria(id: number | string): string {
+    const categoria = this.categorias.find(c => c.id === id);
+    return categoria ? categoria.nombre : 'Sin categoría';
   }
 
 }

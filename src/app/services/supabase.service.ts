@@ -258,13 +258,19 @@ export class SupabaseService {
 
   // =================== PRODUCTOS ===================
   async getProductos(admin = false) {
-    let query = this.supabase
-      .from('productos')
-      .select('*')
-      .order('nombre', { ascending: true });
+  let query = this.supabase
+    .from('productos')
+    .select(`
+      *,
+      categorias (
+        id,
+        nombre
+      )
+    `)
+    .order('nombre', { ascending: true });
 
     // Solo filtrar los activos si NO es admin
-    if (!admin) {
+     if (!admin) {
       query = query.eq('activo', true);
     }
 
@@ -692,25 +698,22 @@ async registrarVentaConStock(ventaData: any) {
       .subscribe();
   }
 
-  /**
-   * Suscribirse a cambios en PRODUCTOS (para stock)
-   */
-  suscribirCambiosProductos(callback: (payload: any) => void) {
-    return this.supabase
-      .channel('cambios-productos-directo')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'productos'
-        },
-        (payload) => {
-          console.log('📦 PRODUCTO ACTUALIZADO:', payload);
-          callback(payload);
-        }
-      )
-      .subscribe();
-  }
-
+// Suscribirse a cambios en PRODUCTOS (para stock)
+suscribirCambiosProductos(callback: (payload: any) => void) {
+  return this.supabase
+    .channel('cambios-productos-directo')
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'productos'
+      },
+      (payload) => {
+        console.log(' PRODUCTO ACTUALIZADO:', payload);
+        callback(payload);
+      }
+    )
+    .subscribe();
+}
 }

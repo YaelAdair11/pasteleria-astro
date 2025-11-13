@@ -1,64 +1,46 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pastelería Dulce Encanto 🍰</title>
-  <link rel="stylesheet" href="vender.css" />
-</head>
-<body>
-  <div class="vender-container">
-    <header>
-      <h1>🧁 Pastelería Dulce Encanto</h1>
-    </header>
+<div class="vender-container">
+  <header>
+    <h1>🧁 Pastelería Dulce Encanto</h1>
+  </header>
 
-    <main class="panel">
-      <!-- 🧷 Apartado de productos -->
-      <section class="productos-section">
-        <h2>Productos en Existencia</h2>
-        <div class="grid-productos">
-          <div class="producto">
-            <img src="https://i.imgur.com/X8tXjVV.png" alt="Pastel de Chocolate" />
-            <h3>Pastel de Chocolate</h3>
-            <p>$250</p>
-            <button>Agregar</button>
-          </div>
-
-          <div class="producto">
-            <img src="https://i.imgur.com/GDqXz9z.png" alt="Cupcake de Fresa" />
-            <h3>Cupcake de Fresa</h3>
-            <p>$50</p>
-            <button>Agregar</button>
-          </div>
-
-          <div class="producto">
-            <img src="https://i.imgur.com/x8k9d0F.png" alt="Pay de Limón" />
-            <h3>Pay de Limón</h3>
-            <p>$180</p>
-            <button>Agregar</button>
-          </div>
-
-          <div class="producto">
-            <img src="https://i.imgur.com/fcpBxZf.png" alt="Pastel de Vainilla" />
-            <h3>Pastel de Vainilla</h3>
-            <p>$230</p>
-            <button>Agregar</button>
-          </div>
+  <main class="panel">
+    <!-- 🧷 Apartado de productos -->
+    <section class="productos-section">
+      <h2>Productos en Existencia</h2>
+      <div class="grid-productos">
+        <!-- 🔁 Cargar productos desde Supabase -->
+        <div class="producto" *ngFor="let producto of productos">
+          <img [src]="producto.imagen || 'https://via.placeholder.com/150'" />
+          <h3>{{ producto.nombre }}</h3>
+          <p>${{ producto.precio }}</p>
+          <button (click)="agregarAlCarrito(producto)">Agregar</button>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- 🛒 Apartado del carrito -->
-      <section class="carrito-section">
-        <h2>🛒 Carrito de Compras</h2>
-        <div class="carrito-lista">
+    <!-- 🛒 Apartado del carrito -->
+    <section class="carrito-section">
+      <h2>🛒 Carrito de Compras</h2>
+
+      <div class="carrito-lista">
+        <ng-container *ngIf="carrito.length > 0; else carritoVacio">
+          <div class="item-carrito" *ngFor="let item of carrito">
+            <p>{{ item.nombre }} (x{{ item.cantidad }})</p>
+            <span>${{ item.precio * item.cantidad }}</span>
+          </div>
+        </ng-container>
+
+        <ng-template #carritoVacio>
           <p>No hay productos en el carrito</p>
-        </div>
-        <div class="carrito-total">
-          <h3>Total: $0</h3>
-          <button class="btn-comprar">Finalizar Compra</button>
-        </div>
-      </section>
-    </main>
-  </div>
-</body>
-</html>
+        </ng-template>
+      </div>
+
+      <div class="carrito-total">
+        <h3>Total: ${{ total }}</h3>
+        <button class="btn-comprar" (click)="finalizarCompra()" [disabled]="carrito.length === 0">
+          Finalizar Compra
+        </button>
+      </div>
+    </section>
+  </main>
+</div>

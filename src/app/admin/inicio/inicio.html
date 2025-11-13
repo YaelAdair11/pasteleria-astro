@@ -138,6 +138,7 @@
                       
                       <div>
                         <span class="fw-semibold d-block">{{ p.nombre }}</span>
+                        
                         <!-- ✅ SOLUCIÓN: Quitar el precio o usar verificación segura -->
                         <small *ngIf="p.precio" class="text-muted">${{ p.precio | number:'1.2-2' }}</small>
                       </div>

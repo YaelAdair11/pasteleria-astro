@@ -13,7 +13,7 @@ body {
 }
 
 header {
-  background-color: #ffe4ec; /* Rosa pastel */
+  background-color: #ffe4ec;
   padding: 15px 0;
   text-align: center;
   color: #ff4d94;
@@ -28,10 +28,10 @@ header {
   padding: 20px;
 }
 
-/* ===== Productos (lado izquierdo) ===== */
+/* ===== Productos ===== */
 .productos-section {
   flex: 3;
-  background-color: #e6f7ff; /* Azul pastel */
+  background-color: #e6f7ff;
   border-radius: 20px;
   padding: 20px;
   box-shadow: 0 4px 10px rgba(173, 216, 230, 0.5);
@@ -74,7 +74,7 @@ header {
 }
 
 .producto p {
-  color: #66bb6a; /* Verde pastel */
+  color: #66bb6a;
   font-weight: bold;
 }
 
@@ -93,10 +93,10 @@ header {
   background-color: #ff80aa;
 }
 
-/* ===== Carrito (lado derecho) ===== */
+/* ===== Carrito ===== */
 .carrito-section {
   flex: 1.2;
-  background-color: #f1fff2; /* Verde pastel */
+  background-color: #f1fff2;
   border-radius: 20px;
   padding: 20px;
   box-shadow: 0 4px 10px rgba(144, 238, 144, 0.5);
@@ -115,9 +115,14 @@ header {
   border-radius: 15px;
   padding: 15px;
   min-height: 200px;
-  color: #999;
-  font-style: italic;
-  text-align: center;
+  color: #333;
+}
+
+.item-carrito {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 14px;
 }
 
 .carrito-total {
