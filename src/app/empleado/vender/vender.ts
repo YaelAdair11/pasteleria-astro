@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';   // ← IMPORTANTE
 import { SupabaseService } from '../../services/supabase.service';
 
 @Component({
   selector: 'app-vender',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './vender.html',
   styleUrls: ['./vender.css']
 })
@@ -17,6 +18,14 @@ export class Vender implements OnInit {
 
   mostrarModalConfirmacion = false;
   mostrarModalPago = false;
+  mostrarModalTarjeta = false;
+  mostrarModalTicket = false;
+  fechaVenta = new Date().toLocaleString();
+  cliente = 'Cliente General';
+  nombreTitularTarjeta = '';
+  tipoPago = '';
+  mostrarModalCarritoVacio = false;
+
 
   constructor(private supabaseService: SupabaseService) {}
 
@@ -27,6 +36,10 @@ export class Vender implements OnInit {
       await this.cargarProductos();
     });
   }
+  cerrarModalCarritoVacio() {
+    this.mostrarModalCarritoVacio = false;
+  }
+  
 
   async cargarProductos() {
     try {
@@ -69,7 +82,7 @@ export class Vender implements OnInit {
   }
 
   eliminarDelCarrito(item: any) {
-    this.carrito = this.carrito.filter((p) => p.id !== item.id);
+    this.carrito = this.carrito.filter(p => p.id !== item.id);
     this.actualizarTotal();
   }
 
@@ -80,41 +93,113 @@ export class Vender implements OnInit {
     );
   }
 
-  finalizarCompra() {
-    if (this.carrito.length === 0) {
-      alert("El carrito está vacío.");
-      return;
-    }
-    this.mostrarModalConfirmacion = true;
+  mensajeCarritoVacio: boolean = false;
+
+finalizarCompra() {
+  if (this.carrito.length === 0) {
+    this.mensajeCarritoVacio = true;
+
+    // El mensaje desaparecerá después de 2.5 segundos
+    setTimeout(() => {
+      this.mensajeCarritoVacio = false;
+    }, 2500);
+
+    return;
   }
+
+  this.mostrarModalConfirmacion = true;
+}
 
   cerrarModal() {
     this.mostrarModalConfirmacion = false;
   }
 
-  // ✅ Abre el modal de método de pago
   abrirModalPago() {
     this.mostrarModalConfirmacion = false;
     this.mostrarModalPago = true;
   }
 
-  // ❌ Cierra solo el modal de pago
   cerrarPago() {
     this.mostrarModalPago = false;
   }
 
-  pagar(metodo: string) {
-    if (metodo === 'efectivo') {
-      alert("Pago en efectivo realizado.");
-    } else if (metodo === 'tarjeta') {
-      alert("Pago con tarjeta realizado.");
-    }
+  cerrarTarjeta() {
+    this.mostrarModalTarjeta = false;
+    this.mostrarModalPago = true; 
+  }
 
-    // Limpia carrito
+  confirmarTarjeta() {
+    // Guardar como cliente el nombre del titular
+    this.cliente = this.nombreTitularTarjeta || 'Cliente Tarjeta';
+  
+    this.mostrarModalTarjeta = false;
+    this.mostrarModalTicket = true;
+    this.fechaVenta = new Date().toLocaleString();
+  }
+  
+  
+
+  pagar(metodo: string) {
+    this.tipoPago = metodo; // Guardar si fue tarjeta o efectivo
+  
+    if (metodo === 'efectivo') {
+      this.cliente = 'Cliente General';
+      this.mostrarModalPago = false;
+      this.mostrarModalTicket = true;
+      this.fechaVenta = new Date().toLocaleString();
+      return;
+    }
+  
+    if (metodo === 'tarjeta') {
+      this.mostrarModalPago = false;
+      this.mostrarModalTarjeta = true;
+    }
+  }
+  cerrarModalTicket() {
+    // Cerrar ticket
+    this.mostrarModalTicket = false;
+  
+    // Limpiar carrito y total
     this.carrito = [];
     this.total = 0;
-
-    // Cierra modal de pago
-    this.cerrarPago();
+  
+    // También aseguramos que se cierre cualquier modal abierto
+    this.mostrarModalPago = false;
+    this.mostrarModalTarjeta = false;
+    this.mostrarModalConfirmacion = false;
+  
+    // Con esto ya tienes la pantalla limpia (panel de ventas)
   }
+  
+
+guardarTicket() {
+  let ticketTexto = '--- Ticket de Venta ---\n';
+  ticketTexto += `Fecha: ${this.fechaVenta}\n`;
+  ticketTexto += `Cliente: ${this.cliente}\n\n`;
+  ticketTexto += 'Productos:\n';
+
+  this.carrito.forEach(item => {
+    ticketTexto += `${item.nombre} x${item.cantidad}  $${(item.precio * item.cantidad).toFixed(2)}\n`;
+  });
+
+  ticketTexto += `\nTotal: $${this.total.toFixed(2)}\n`;
+  ticketTexto += '\n¡Gracias por su compra!\n';
+
+  const blob = new Blob([ticketTexto], { type: 'text/plain' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ticket_${Date.now()}.txt`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+
+  // Después de guardar, limpia carrito y cierra modal
+  this.carrito = [];
+  this.total = 0;
+  this.mostrarModalTicket = false;
+}
+imprimirTicket() {
+  window.print();
+}
+
 }

@@ -26,7 +26,10 @@
     <!-- 🟩 Carrito -->
     <section class="carrito">
       <h2>Carrito</h2>
-
+      <div *ngIf="mensajeCarritoVacio" class="msg-carrito-vacio">
+        🛒 Carrito sin productos  
+      </div>
+      
       <div class="lista-carrito">
         <div class="item-carrito" *ngFor="let item of carrito">
 
@@ -125,6 +128,128 @@
     </div>
 
     <button class="btn-cerrar-metodo" (click)="cerrarPago()">Cancelar</button>
+
+  </div>
+</div>
+
+<!-- 🟪 MODAL 3 — FORMULARIO DE TARJETA -->
+<div class="modal" *ngIf="mostrarModalTarjeta">
+  <div class="modal-tarjeta">
+
+    <h2 class="titulo-tarjeta">💳 Pago con Tarjeta</h2>
+
+    <form class="form-tarjeta">
+
+      <label>Número de tarjeta</label>
+      <input type="text" maxlength="16" placeholder="1234 5678 9012 3456">
+
+      <label>Nombre del titular</label>
+      <input type="text" placeholder="Juan Pérez" [(ngModel)]="nombreTitularTarjeta">
+
+      <div class="fila-doble">
+        <div>
+          <label>Vencimiento</label>
+          <input type="text" maxlength="5" placeholder="MM/AA">
+        </div>
+
+        <div>
+          <label>CVV</label>
+          <input type="password" maxlength="3" placeholder="•••">
+        </div>
+      </div>
+
+      <button type="button" class="btn-pagar-final" (click)="confirmarTarjeta()">
+        Pagar
+      </button>
+      
+            <button type="button" class="btn-cancelar-tarjeta" (click)="cerrarTarjeta()">
+        Cancelar
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ✅ MODAL 3.1 — TICKET FINAL (PÉGALO AQUÍ DEBAJO) -->
+<div class="modal" *ngIf="mostrarModalTicket">
+  <div class="ticket-real">
+
+    <h2 class="titulo-ticket">PASTELERÍA DULCE ENCANTO</h2>
+    <p class="sub-ticket">🧾 Ticket de Venta</p>
+
+    <div class="linea"></div>
+
+    <p><strong>Fecha:</strong> {{ fechaVenta }}</p>
+    <p><strong>Cliente:</strong> {{ cliente }}</p>
+    
+
+    <div class="linea"></div>
+
+    <p><strong>Productos:</strong></p>
+
+    <div class="lista-ticket">
+      <div class="item-ticket" *ngFor="let item of carrito">
+        <span>{{ item.nombre }} x{{ item.cantidad }}</span>
+        <strong>${{ (item.precio * item.cantidad).toFixed(2) }}</strong>
+      </div>
+    </div>
+
+    <div class="linea"></div>
+
+    <h3 class="total-final">TOTAL: ${{ total.toFixed(2) }}</h3>
+
+    <div class="linea"></div>
+
+    <p class="gracias">¡Gracias por su compra! 😊</p>
+
+    <div class="botones-ticket">
+      <button class="btn-ticket aceptar" (click)="cerrarModalTicket()">
+        Aceptar
+      </button>
+
+      <button class="btn-ticket guardar" (click)="imprimirTicket()">
+        Imprimir / Guardar PDF
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ✅ MODAL 4: TICKET (YA NO ESTÁ ANIDADO) -->
+<div class="modal" *ngIf="mostrarModalTicket">
+  <div class="ticket-real">
+
+    <h2 class="titulo-ticket">PASTELERÍA DULCE ENCANTO</h2>
+    <p class="sub-ticket">🧾 Ticket de Venta</p>
+
+    <div class="linea"></div>
+
+    <p><strong>Fecha:</strong> {{ fechaVenta }}</p>
+    <p><strong>Cliente:</strong> {{ cliente }}</p>
+
+    <div class="linea"></div>
+
+    <p><strong>Productos:</strong></p>
+
+    <div class="lista-ticket">
+      <div class="item-ticket" *ngFor="let item of carrito">
+        <span>{{ item.nombre }} x{{ item.cantidad }}</span>
+        <strong>${{ (item.precio * item.cantidad).toFixed(2) }}</strong>
+      </div>
+    </div>
+
+    <div class="linea"></div>
+
+    <h3 class="total-final">TOTAL: ${{ total.toFixed(2) }}</h3>
+
+    <div class="linea"></div>
+
+    <p class="gracias">¡Gracias por su compra! </p>
+
+    <div class="botones-ticket">
+      <button class="btn-ticket aceptar" (click)="cerrarModalTicket()">Aceptar</button>
+      <button class="btn-ticket guardar" (click)="guardarTicket()">Guardar</button>
+    </div>
 
   </div>
 </div>

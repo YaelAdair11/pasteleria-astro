@@ -396,3 +396,262 @@ header h1 {
   background: #ffbfdc;
 }
 
+/* ============================
+      TICKET REAL diseño de tiket de efectivo
+============================ */
+.ticket-real {
+  background: #ffffff !important;          /* Fondo blanco sólido */
+  width: 420px;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.22);
+  animation: pop .27s ease;
+  font-family: "Poppins", sans-serif;
+  color: #444;
+  border: 1px dashed #f3b7d4;              /* Borde estilo ticket */
+}
+
+/* Título principal */
+.titulo-ticket {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: #c1247c;
+  margin-bottom: 3px;
+}
+
+/* Subtítulo */
+.sub-ticket {
+  text-align: center;
+  font-size: 15px;
+  color: #777;
+  margin-bottom: 15px;
+}
+
+/* Línea separadora estilo recibo */
+.linea {
+  border-bottom: 2px dashed #f7c6dd;
+  margin: 12px 0;
+}
+
+/* Listado de productos */
+.lista-ticket {
+  background: #fff6fb;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #ffe0ef;
+  margin-bottom: 12px;
+  box-shadow: inset 0 0 6px rgba(255, 187, 219, 0.25);
+}
+
+.item-ticket {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 15px;
+  border-bottom: 1px dashed #ffddeb;
+}
+
+.item-ticket:last-child {
+  border-bottom: none;
+}
+
+/* Total final */
+.total-final {
+  text-align: center;
+  color: #c1247c;
+  font-size: 19px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* Mensaje final */
+.gracias {
+  text-align: center;
+  font-style: italic;
+  color: #333;
+  margin: 10px 0;
+}
+
+/* ============================
+        BOTONES
+============================ */
+.botones-ticket {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 18px;
+}
+
+.btn-ticket {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.15s ease;
+  font-size: 15px;
+}
+
+/* Botón Aceptar */
+.btn-ticket.aceptar {
+  background: #ff9acb;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 154, 203, 0.4);
+}
+
+.btn-ticket.aceptar:hover {
+  background: #ff7abb;
+}
+
+/* Botón Guardar */
+.btn-ticket.guardar {
+  background: #ffd6ea;
+  color: #8a4d6a;
+  box-shadow: 0 4px 12px rgba(255, 214, 234, 0.4);
+}
+
+.btn-ticket.guardar:hover {
+  background: #ffc8e1;
+}
+
+/* Animación suave */
+@keyframes pop {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* ======================================
+      MODAL — FORMULARIO DE TARJETA diseño de pago con tarjeta.
+   ====================================== */
+   .modal-tarjeta {
+    background: #ffe6f2;  /* Rosa pastel suave */
+    width: 425px;
+    padding: 28px;
+    border-radius: 22px;
+    box-shadow: 0 12px 32px rgba(255, 150, 200, 0.35);
+    animation: abrir .25s ease-out;
+    font-family: "Poppins", sans-serif;
+    border: 1px solid #ffcde6;   /* borde delicado */
+  }
+  
+  /* Animación */
+  @keyframes abrir {
+    0% { transform: scale(0.85); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  
+  /* Título del modal */
+  .titulo-tarjeta {
+    text-align: center;
+    color: #d13887;
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+  
+  /* Formulario */
+  .form-tarjeta {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .form-tarjeta label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #903a66;
+  }
+  
+  /* Inputs */
+  .form-tarjeta input {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid #ffc3dc;
+    background: #fff8fd;
+    outline: none;
+    font-size: 15px;
+    transition: .2s ease;
+  }
+  
+  .form-tarjeta input:focus {
+    border-color: #ff8fc6;
+    box-shadow: 0 0 8px rgba(255, 159, 212, 0.5);
+    background: #ffffff;
+  }
+  
+  /* Inputs dobles */
+  .fila-doble {
+    display: flex;
+    gap: 15px;
+  }
+  
+  /* Botón pagar */
+  .btn-pagar-final {
+    margin-top: 10px;
+    background: #ff8ccf;
+    color: white;
+    padding: 12px;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 5px 12px rgba(255, 140, 207, 0.4);
+    transition: 0.15s ease;
+  }
+  
+  .btn-pagar-final:hover {
+    background: #ff75c4;
+  }
+  
+  .btn-pagar-final:active {
+    transform: scale(0.95);
+  }
+  
+  /* Botón cancelar */
+  .btn-cancelar-tarjeta {
+    margin-top: 5px;
+    background: #ffd6eb;
+    color: #8a4d6a;
+    padding: 10px;
+    border: none;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.15s ease;
+  }
+  
+  .btn-cancelar-tarjeta:hover {
+    background: #ffcbe3;
+  }
+  
+  .btn-cancelar-tarjeta:active {
+    transform: scale(0.95);
+  }
+  
+  .msg-carrito-vacio {
+    background: #ffe8f0;
+    color: #c9184a;
+    padding: 15px 20px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    width: 100%;
+    margin: 10px 0;
+    border: 2px solid #ffb3c6;
+    animation: aparecer 0.4s ease-out;
+  }
+  
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
