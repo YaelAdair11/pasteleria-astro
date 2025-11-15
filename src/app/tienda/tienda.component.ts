@@ -15,7 +15,7 @@ interface Producto {
   creado_en: string;
   actualizado_en: string;
   categoria_id: string;
-  categorias?: { id: string; nombre: string };
+  categoria?: Categoria;
   rating?: number;
   reseñas?: number;
   destacado?: boolean;
@@ -78,28 +78,32 @@ export class TiendaComponent implements OnInit, OnDestroy {
   }
 
   async cargarProductos() {
-  this.loading = true;
-  try {
-    const productos = await this.supabase.getProductos(false);
-    console.log('✅ Productos cargados:', productos);
+    this.loading = true;
+    try {
+      const productos = await this.supabase.getProductos(false);
+      console.log('✅ Productos cargados:', productos);
 
-    // 🔧 Reparar el enlace con categorías (por si Supabase devuelve null)
-    this.productos = (productos || []).map(p => ({
-      ...p,
-      categorias: p.categorias || this.categorias.find(c => c.id === p.categoria_id) || null,
-      rating: this.generarRatingAleatorio(),
-      reseñas: this.generarReseñasAleatorias(),
-      destacado: Math.random() > 0.7
-    }));
+      // 🔧 Reparar el enlace con categorías (por si Supabase devuelve null)
+      this.productos = (productos || []).map(p => ({
+        ...p,
+        descripcion: p.descripcion ?? null,
+        imagen: p.imagen ?? null,
+        creado_en: p.creado_en ?? '',
+        actualizado_en: p.actualizado_en ?? '',
+        categoria: p.categoria || this.categorias.find(c => c.id === p.categoria_id) || null,
+        rating: this.generarRatingAleatorio(),
+        reseñas: this.generarReseñasAleatorias(),
+        destacado: Math.random() > 0.7
+      }));
 
-    this.filtrarProductos();
-  } catch (error: any) {
-    console.error('Error cargando productos:', error);
-    this.error = 'Error al cargar los productos.';
-  } finally {
-    this.loading = false;
+      this.filtrarProductos();
+    } catch (error: any) {
+      console.error('Error cargando productos:', error);
+      this.error = 'Error al cargar los productos.';
+    } finally {
+      this.loading = false;
+    }
   }
-}
 
 
   // ✅ Suscripción en tiempo real
@@ -148,7 +152,7 @@ export class TiendaComponent implements OnInit, OnDestroy {
   }
 
   getNombreCategoria(producto: Producto): string {
-    if (producto.categorias?.nombre) return producto.categorias.nombre;
+    if (producto.categoria?.nombre) return producto.categoria.nombre;
     const categoria = this.categorias.find(c => c.id === producto.categoria_id);
     return categoria ? categoria.nombre : 'Sin categoría';
   }

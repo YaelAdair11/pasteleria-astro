@@ -42,6 +42,8 @@ export class Inventario {
   procesandoCategoria = false;
   errorCategoria: string | null = null;
 
+  private colorCache: { [key: string]: string } = {};
+  
   constructor(private supabase: SupabaseService, private fb: FormBuilder) {}
 
   ngOnInit() {
@@ -519,6 +521,27 @@ export class Inventario {
   getNombreCategoria(id: number | string): string {
     const categoria = this.categorias.find(c => c.id === id);
     return categoria ? categoria.nombre : 'Sin categoría';
+  }
+
+  colorAleatorio(nombre: string): string {
+    if (this.colorCache[nombre]) {
+      return this.colorCache[nombre];
+    }
+
+    // Paleta bonita para productos
+    const colores = [
+      '#FF6B6B', '#4D96FF', '#6BCB77',
+      '#FFD93D', '#845EC2', '#FF9671',
+      '#00C9A7', '#FF6F91'
+    ];
+
+    // Generar índice basado en el nombre
+    const hash = Array.from(nombre)
+      .reduce((acc, c) => acc + c.charCodeAt(0), 0);
+
+    const color = colores[hash % colores.length];
+    this.colorCache[nombre] = color;
+    return color;
   }
 
 }
