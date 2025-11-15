@@ -248,11 +248,10 @@ export class Inventario {
       await this.actualizarProducto();
     } else {
       await this.ejecutarCreacion();
+      await this.ejecutarCreacion();
     }
   }
 
-
-  // ✨ --- LÓGICA DE CREAR (extraída de tu función anterior) ---
   private async ejecutarCreacion() {
     this.procesando = true;
     try {
@@ -266,9 +265,7 @@ export class Inventario {
         nuevo.imagen = null;
       }
       
-      console.log('Creando producto en DB', nuevo);
       await this.supabase.addProducto(nuevo);
-
       await this.cargarProductos();
       this.modalCrearEditar.hide();
     } catch (err) {
@@ -305,9 +302,7 @@ export class Inventario {
         cambios.imagen = null;
       }
       
-      console.log('Actualizando producto', id, cambios);
       await this.supabase.updateProducto(id, cambios);
-
       await this.cargarProductos();
       this.modalCrearEditar.hide();
     } catch (err) {
@@ -316,7 +311,6 @@ export class Inventario {
     this.procesando = false;
   }
 
-  // ✨ NUEVA FUNCIÓN: Se activa al pegar una URL
   onUrlChanged(event: any) {
     const url = event.target.value;
     if (url) {
@@ -326,25 +320,19 @@ export class Inventario {
       // Limpiar el input de archivo
       const fileInput = document.getElementById('file-input') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
-
     } else {
       this.imagenProducto = null;
     }
   }
 
-  // ✨ NUEVA FUNCIÓN: Se activa al seleccionar un archivo
   onFileSelected(event: any) {
     const file = event.target.files?.[0];
-    if (!file) {
-      // Si el usuario cancela, no hagas nada
-      return;
-    }
+    if (!file) return;
 
     this.archivoImagen = file;
     // Limpiamos la URL si se selecciona un archivo
     this.formProducto.controls['imagen'].setValue(''); 
 
-    // Leer el archivo para mostrar la vista previa
     const reader = new FileReader();
     reader.onload = () => {
       this.imagenProducto = reader.result;
@@ -435,8 +423,6 @@ export class Inventario {
     this.aplicarFiltros();
   }
 
-  // --- ✅ LÓGICA DE FILTRADO IMPLEMENTADA ---
-
   buscar(event: any) {
     this.filtroTexto = event.target.value.toLowerCase();
     this.aplicarFiltros();
@@ -452,12 +438,9 @@ export class Inventario {
     console.log('Categoría seleccionada para filtrar:', categoria);
     
     if (categoria === '__NUEVA__') {
-      // 1. Llama a la función de crear
-      //this.crearNuevaCategoria('filtro');
-      // 2. Resetea el dropdown de filtro
+      this.modalCategorias.show(); // ✅ así se abre el modal correctamente
       event.target.value = '';
-    } else {
-      // 3. Aplica el filtro normal
+    }else {
       this.filtroCategoria = categoria;
       this.aplicarFiltros();
     }
@@ -466,14 +449,12 @@ export class Inventario {
   aplicarFiltros() {
     let productosFiltrados = [...this.todosLosProductos];
 
-    // 1. Filtrar por texto
     if (this.filtroTexto) {
       productosFiltrados = productosFiltrados.filter(p => 
         p.nombre.toLowerCase().includes(this.filtroTexto)
       );
     }
 
-    // 2. Filtrar por categoría
     if (this.filtroCategoria) {
       console.log('Filtrando por categoría:', this.filtroCategoria);
       productosFiltrados = productosFiltrados.filter(p => 
@@ -481,7 +462,6 @@ export class Inventario {
       );
     }
 
-    // 3. Filtrar por estado (activo/inactivo)
     if (this.filtroActivo === 'true') {
       productosFiltrados = productosFiltrados.filter(p => p.activo);
     } else if (this.filtroActivo === 'false') {
@@ -535,28 +515,10 @@ export class Inventario {
       sidebar.classList.toggle('active');
     }
   }
-
-  private colorCache: { [key: string]: string } = {};
-
-  colorAleatorio(nombre: string): string {
-    if (this.colorCache[nombre]) {
-      return this.colorCache[nombre];
-    }
-
-    // Paleta bonita para productos
-    const colores = [
-      '#FF6B6B', '#4D96FF', '#6BCB77',
-      '#FFD93D', '#845EC2', '#FF9671',
-      '#00C9A7', '#FF6F91'
-    ];
-
-    // Generar índice basado en el nombre
-    const hash = Array.from(nombre)
-      .reduce((acc, c) => acc + c.charCodeAt(0), 0);
-
-    const color = colores[hash % colores.length];
-    this.colorCache[nombre] = color;
-    return color;
+  // ✅ Añade esto dentro de la clase Inventario
+  getNombreCategoria(id: number | string): string {
+    const categoria = this.categorias.find(c => c.id === id);
+    return categoria ? categoria.nombre : 'Sin categoría';
   }
 
 }

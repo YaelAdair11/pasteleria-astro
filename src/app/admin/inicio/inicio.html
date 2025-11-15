@@ -138,7 +138,9 @@
                       
                       <div>
                         <span class="fw-semibold d-block">{{ p.nombre }}</span>
-                        <!-- <small class="text-muted">${{ p.precio || 0 | number:'1.2-2' }}</small> -->
+                        
+                        <!-- ✅ SOLUCIÓN: Quitar el precio o usar verificación segura -->
+                        <small *ngIf="p.precio" class="text-muted">${{ p.precio | number:'1.2-2' }}</small>
                       </div>
                     </div>
                   </td>
@@ -160,17 +162,14 @@
                   </td>
                   <td class="text-center">
                     <!-- Badge según posición -->
-                    <span *ngIf="i === 0" class="badge bg-warning bg-opacity-20 text-warning border-0 py-2">
-                      <i class="fa-solid fa-trophy me-1"></i> #1 Más vendido
+                    <span *ngIf="i === 0" class="badge bg-warning text-dark border-0 py-2 px-3">
+                      Más vendido
                     </span>
-                    <span *ngIf="i === 1" class="badge bg-info bg-opacity-20 text-info border-0 py-2">
-                      <i class="fa-solid fa-medal me-1"></i> #2 Popular
+                    <span *ngIf="i === 1" class="badge bg-primary text-white border-0 py-2 px-3">
+                      Popular
                     </span>
-                    <span *ngIf="i === 2" class="badge bg-secondary bg-opacity-20 text-secondary border-0 py-2">
-                      <i class="fa-solid fa-award me-1"></i> #3 Destacado
-                    </span>
-                    <span *ngIf="i >= 3" class="badge bg-light text-muted border py-2">
-                      Top {{ i + 1 }}
+                    <span *ngIf="i >= 2" class="badge bg-primary text-white border-0 py-2 px-3">
+                      Popular
                     </span>
                   </td>
                 </tr>

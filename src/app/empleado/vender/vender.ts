@@ -1,48 +1,88 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';   // ← IMPORTANTE
 import { SupabaseService } from '../../services/supabase.service';
 
 @Component({
   selector: 'app-vender',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './vender.html',
   styleUrls: ['./vender.css']
 })
 export class Vender implements OnInit {
+
   productos: any[] = [];
   carrito: any[] = [];
   total = 0;
+
+  mostrarModalConfirmacion = false;
+  mostrarModalPago = false;
+  mostrarModalTarjeta = false;
+  mostrarModalTicket = false;
+  fechaVenta = new Date().toLocaleString();
+  cliente = 'Cliente General';
+  nombreTitularTarjeta = '';
+  tipoPago = '';
+  mostrarModalCarritoVacio = false;
+
 
   constructor(private supabaseService: SupabaseService) {}
 
   async ngOnInit() {
     await this.cargarProductos();
 
-    // 🔁 Escuchar cambios en tiempo real
     this.supabaseService.suscribirCambiosProductos(async () => {
       await this.cargarProductos();
     });
   }
+  cerrarModalCarritoVacio() {
+    this.mostrarModalCarritoVacio = false;
+  }
+  
 
   async cargarProductos() {
     try {
       this.productos = await this.supabaseService.getProductos(true);
-      console.log('📦 Productos recibidos desde Supabase:', this.productos);
     } catch (error) {
       console.error('Error cargando productos:', error);
     }
   }
-  
-  
 
   agregarAlCarrito(producto: any) {
-    const existente = this.carrito.find((p) => p.id === producto.id);
-    if (existente) {
-      existente.cantidad++;
+    const existe = this.carrito.find(p => p.id === producto.id);
+
+    if (existe) {
+      existe.cantidad++;
     } else {
-      this.carrito.push({ ...producto, cantidad: 1 });
+      this.carrito.push({
+        id: producto.id,
+        nombre: producto.nombre,
+        precio: producto.precio,
+        imagen: producto.imagen ?? 'assets/no-image.png',
+        cantidad: 1
+      });
     }
+
+    this.actualizarTotal();
+  }
+
+  aumentarCantidad(item: any) {
+    item.cantidad++;
+    this.actualizarTotal();
+  }
+
+  disminuirCantidad(item: any) {
+    if (item.cantidad > 1) {
+      item.cantidad--;
+    } else {
+      this.eliminarDelCarrito(item);
+    }
+    this.actualizarTotal();
+  }
+
+  eliminarDelCarrito(item: any) {
+    this.carrito = this.carrito.filter(p => p.id !== item.id);
     this.actualizarTotal();
   }
 
@@ -53,10 +93,113 @@ export class Vender implements OnInit {
     );
   }
 
-  // 🔽 ASEGÚRATE DE TENER ESTE MÉTODO DENTRO DE LA CLASE 🔽
-  finalizarCompra() {
-    alert(`Compra finalizada. Total a pagar: $${this.total}`);
+  mensajeCarritoVacio: boolean = false;
+
+finalizarCompra() {
+  if (this.carrito.length === 0) {
+    this.mensajeCarritoVacio = true;
+
+    // El mensaje desaparecerá después de 2.5 segundos
+    setTimeout(() => {
+      this.mensajeCarritoVacio = false;
+    }, 2500);
+
+    return;
+  }
+
+  this.mostrarModalConfirmacion = true;
+}
+
+  cerrarModal() {
+    this.mostrarModalConfirmacion = false;
+  }
+
+  abrirModalPago() {
+    this.mostrarModalConfirmacion = false;
+    this.mostrarModalPago = true;
+  }
+
+  cerrarPago() {
+    this.mostrarModalPago = false;
+  }
+
+  cerrarTarjeta() {
+    this.mostrarModalTarjeta = false;
+    this.mostrarModalPago = true; 
+  }
+
+  confirmarTarjeta() {
+    // Guardar como cliente el nombre del titular
+    this.cliente = this.nombreTitularTarjeta || 'Cliente Tarjeta';
+  
+    this.mostrarModalTarjeta = false;
+    this.mostrarModalTicket = true;
+    this.fechaVenta = new Date().toLocaleString();
+  }
+  
+  
+
+  pagar(metodo: string) {
+    this.tipoPago = metodo; // Guardar si fue tarjeta o efectivo
+  
+    if (metodo === 'efectivo') {
+      this.cliente = 'Cliente General';
+      this.mostrarModalPago = false;
+      this.mostrarModalTicket = true;
+      this.fechaVenta = new Date().toLocaleString();
+      return;
+    }
+  
+    if (metodo === 'tarjeta') {
+      this.mostrarModalPago = false;
+      this.mostrarModalTarjeta = true;
+    }
+  }
+  cerrarModalTicket() {
+    // Cerrar ticket
+    this.mostrarModalTicket = false;
+  
+    // Limpiar carrito y total
     this.carrito = [];
     this.total = 0;
+  
+    // También aseguramos que se cierre cualquier modal abierto
+    this.mostrarModalPago = false;
+    this.mostrarModalTarjeta = false;
+    this.mostrarModalConfirmacion = false;
+  
+    // Con esto ya tienes la pantalla limpia (panel de ventas)
   }
+  
+
+guardarTicket() {
+  let ticketTexto = '--- Ticket de Venta ---\n';
+  ticketTexto += `Fecha: ${this.fechaVenta}\n`;
+  ticketTexto += `Cliente: ${this.cliente}\n\n`;
+  ticketTexto += 'Productos:\n';
+
+  this.carrito.forEach(item => {
+    ticketTexto += `${item.nombre} x${item.cantidad}  $${(item.precio * item.cantidad).toFixed(2)}\n`;
+  });
+
+  ticketTexto += `\nTotal: $${this.total.toFixed(2)}\n`;
+  ticketTexto += '\n¡Gracias por su compra!\n';
+
+  const blob = new Blob([ticketTexto], { type: 'text/plain' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ticket_${Date.now()}.txt`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+
+  // Después de guardar, limpia carrito y cierra modal
+  this.carrito = [];
+  this.total = 0;
+  this.mostrarModalTicket = false;
+}
+imprimirTicket() {
+  window.print();
+}
+
 }

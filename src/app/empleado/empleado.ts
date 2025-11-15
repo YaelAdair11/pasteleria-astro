@@ -9,7 +9,7 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-empleado',
   imports: [CommonModule, RouterModule],
   templateUrl: './empleado.html',
-  styleUrl: './empleado.css',
+  styleUrls: ['./empleado.css',]
 })
 
 export class Empleado implements OnInit {

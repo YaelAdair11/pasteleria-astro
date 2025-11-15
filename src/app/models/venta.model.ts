@@ -13,8 +13,10 @@ export interface Venta {
 export interface productosMasVendidos {
   producto_id: string;
   nombre: string;
+  descripcion?: string;
   categoria: string;
   stock: number;
+  precio: number;
   imagen?: string;
   totalVendido: number;
 }
