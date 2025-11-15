@@ -4,6 +4,7 @@ import { environment } from '../../environments/environment';
 import { BehaviorSubject } from 'rxjs';
 import { Empleado } from '../models/empleado.model';
 import { Usuario } from '../models/usuario.model';
+import { Producto } from '../models/producto.model';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
@@ -236,10 +237,10 @@ export class SupabaseService {
   }
 
   // =================== PRODUCTOS ===================
-  async getProductos(admin = false) {
+  async getProductos(admin = false): Promise<Producto[]> { // Especificamos el tipo de retorno
     let query = this.supabase
       .from('productos')
-      .select('*')
+      .select(`*, categoria:categorias ( id, nombre )`)
       .order('nombre', { ascending: true });
 
     // Solo filtrar los activos si NO es admin
@@ -249,8 +250,13 @@ export class SupabaseService {
 
     const { data, error } = await query;
 
-    if (error) throw error;
-    return data;
+    if (error) {
+      console.error('Error en getProductos:', error);
+      throw error;
+    }
+    
+    // El 'data' ya coincide con el modelo Producto (con 'categorias' anidado)
+    return data as Producto[];
   }
 
   async addProducto(producto: any) {
@@ -361,8 +367,7 @@ export class SupabaseService {
     const { data, error } = await this.supabase
       .from('categorias')
       .insert(categoria)
-      .select()
-      .single();
+      .select();
     if (error) throw error;
     return data;
   }
@@ -372,8 +377,7 @@ export class SupabaseService {
       .from('categorias')
       .update(cambios)
       .eq('id', id)
-      .select()
-      .single();
+      .select();
     if (error) throw error;
     return data;
   }

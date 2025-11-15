@@ -1,9 +1,12 @@
+import { Categoria } from "./categoria.model";
+
 export interface Producto {
   id: string;
   nombre: string;
   descripcion?: string;
   precio: number;
-  categoria: string;
+  categoria: Categoria;
+  categoria_id: string;
   stock: number;
   imagen?: string;
   activo: boolean;

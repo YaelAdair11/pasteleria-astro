@@ -24,10 +24,16 @@
     <div class="">
       <select class="form-select" (change)="filtrarCategoria($event)">
         <option value="">Todas las categorías</option>
-        <option *ngFor="let c of categorias" [value]="c">{{ c.nombre }}</option>
-        <option value="__NUEVA__" class="text-primary fw-semibold">Crear categoría</option>
+        <option *ngFor="let c of categorias" [value]="c.nombre">{{ c.nombre }}</option>
+        <!-- <option value="__NUEVA__" class="text-primary fw-semibold">Crear categoría</option> -->
       </select>
     </div>
+
+    <!--Botón para abrir el nuevo modal -->
+    <button class="btn btn-outline-primary" (click)="abrirModalCategorias()">
+      <i class="fa-solid fa-tags me-2"></i>
+      Categorías
+    </button>
 
     <button class="btn btn-primary align-items-center ms-auto" (click)="abrirModalCrear()">
       <i class="fa-solid fa-plus me-0 me-md-2"></i>
@@ -60,7 +66,7 @@
             </div>
             <span>{{ p.nombre }}</span>
           </td>
-          <td>{{ p.categoria }}</td>
+          <td>{{ p.categoria.nombre }}</td>
           <td>{{ p.stock }}</td>
           <td>${{ p.precio }}</td>
           <td>
@@ -97,7 +103,7 @@
       </div>
 
       <div class="modal-body">
-        ¿Estas seguro que deseas {{productoSeleccionado?.activo === 'true' ? '"desactivar"' : '"activar"'}} <strong>{{ productoSeleccionado?.nombre }}</strong>?
+        ¿Estas seguro que deseas {{ productoSeleccionado?.activo ? 'desactivar' : 'activar' }} <strong>{{ productoSeleccionado?.nombre }}</strong>?
       </div>
 
       <div class="modal-footer">
@@ -125,9 +131,9 @@
       <div class="modal-header">
         <h5 class="modal-title fw-bold">
           <i class="fa-solid me-2 text-primary" 
-            [class.fa-plus]="!isEditMode" 
-            [class.fa-pen]="isEditMode"></i>
-          {{ isEditMode ? 'Editar Producto' : 'Crear Producto' }}
+            [class.fa-plus]="!modoEdicion" 
+            [class.fa-pen]="modoEdicion"></i>
+          {{ modoEdicion ? 'Editar Producto' : 'Crear Producto' }}
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" [disabled]="procesando"></button>
       </div>
@@ -151,9 +157,11 @@
 
                 <div class="col-12">
                   <label class="form-label fw-semibold">Categoría</label>
-                  <select class="form-select" formControlName="categoria">
+                  <select class="form-select" formControlName="categoria_id">
                     <option value="">Selecciona categoría</option>
-                    <option *ngFor="let c of categorias" [value]="c">{{ c }}</option>
+                    @for (c of categorias; track c.nombre) {
+                      <option [value]="c.id">{{ c.nombre }}</option>
+                    }
                   </select>
                   <div class="invalid-feedback d-block"
                       *ngIf="formProducto.get('categoria')?.touched && formProducto.get('categoria')?.invalid">
@@ -191,9 +199,9 @@
               
               <div class="border rounded-3 d-flex justify-content-center align-items-center bg-light mb-2"
                   style="width: 12rem; height: 12rem; overflow: hidden;">
-                <img *ngIf="imagenPreview" [src]="imagenPreview"
+                <img *ngIf="imagenProducto" [src]="imagenProducto"
                     class="object-fit-cover w-100 h-100">
-                <i *ngIf="!imagenPreview" class="fa-solid fa-image fa-3x text-muted"></i>
+                <i *ngIf="!imagenProducto" class="fa-solid fa-image fa-3x text-muted"></i>
               </div>
 
               <ul class="nav nav-tabs nav-fill" id="imageTab" role="tablist">
@@ -234,11 +242,11 @@
         <button class="btn btn-primary fw-semibold"
                 (click)="crearProducto()"
                 [disabled]="formProducto.invalid || procesando">
-          <span *ngIf="!procesando && estaAutenticado">
+          <span *ngIf="!procesando">
             <i class="fa-solid me-1" 
-              [class.fa-check]="!isEditMode" 
-              [class.fa-save]="isEditMode"></i>
-            {{ isEditMode ? 'Guardar Cambios' : 'Crear' }}
+              [class.fa-check]="!modoEdicion" 
+              [class.fa-save]="modoEdicion"></i>
+            {{ modoEdicion ? 'Guardar Cambios' : 'Crear' }}
           </span>
           <span *ngIf="procesando"><i class="fa-solid fa-spinner fa-spin me-2"></i> Procesando...</span>
         </button>
@@ -264,10 +272,6 @@
       <div class="modal-body">
         <p>¿Estás seguro de que deseas eliminar <strong>{{ productoSeleccionado?.nombre }}</strong>?</p>
         <p class="text-danger fw-semibold">Esta acción no se puede deshacer y borrará la imagen permanentemente.</p>
-        
-        <div *ngIf="errorMensaje" class="alert alert-danger mt-3">
-          <strong>Error:</strong> {{ errorMensaje }}
-        </div>
       </div>
 
       <div class="modal-footer">
@@ -285,6 +289,71 @@
         </button>
       </div>
 
+    </div>
+  </div>
+</div>
+
+<!-- NUEVO MODAL ÚNICO PARA CATEGORÍAS -->
+<div class="modal fade" id="modalGestionarCategorias" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">
+          <i class="fa-solid fa-tags me-2"></i>
+          Gestionar Categorías
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" [disabled]="procesandoCategoria"></button>
+      </div>
+      
+      <div class="modal-body">
+        <p>Edita, elimina o agrega nuevas categorías.</p>
+
+        <!-- Formulario que envuelve el FormArray -->
+        <form [formGroup]="formCategorias">
+          <div formArrayName="categorias" class="list-group">
+            
+            <!-- ✅ CORRECCIÓN: Itera sobre los FormGroups -->
+            <!-- 1. [formGroupName]="i" enlaza el div al FormGroup en el índice i -->
+            <div *ngFor="let catGroup of categoriasFormArray.controls; let i = index" 
+                 [formGroupName]="i"
+                 class="list-group-item d-flex align-items-center gap-2 p-2">
+              
+              <!-- 2. formControlName="nombre" enlaza el input a la propiedad 'nombre' DENTRO de ese FormGroup -->
+              <input type="text" class="form-control" formControlName="nombre"
+                     [class.is-invalid]="catGroup.get('nombre')?.invalid && catGroup.get('nombre')?.touched">
+              
+              <button type="button" class="btn btn-outline-danger flex-shrink-0" 
+                      (click)="eliminarCategoriaForm(i)" [disabled]="procesandoCategoria">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+
+          </div>
+        </form>
+        
+        <button class="btn btn-link text-primary p-0 mt-3" (click)="agregarCategoriaForm()">
+          <i class="fa-solid fa-plus me-2"></i>
+          Agregar categoría
+        </button>
+
+        <div *ngIf="errorCategoria" class="alert alert-danger mt-3">
+          <strong>Error:</strong> {{ errorCategoria }}
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="procesandoCategoria">Cancelar</button>
+        <button class="btn btn-primary" (click)="guardarCambiosCategorias()" [disabled]="formCategorias.invalid || procesandoCategoria">
+          <span *ngIf="!procesandoCategoria">
+            <i class="fa-solid fa-save me-1"></i>
+            Guardar Cambios
+          </span>
+          <span *ngIf="procesandoCategoria">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Guardando...
+          </span>
+        </button>
+      </div>
     </div>
   </div>
 </div>
