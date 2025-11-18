@@ -31,8 +31,17 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
 
   async ngAfterViewInit() {
   Chart.register(...registerables);
-  this.crearGraficoVentas(); // ✅ PRIMERO crear el gráfico
-  await this.cargarDatosReales(); // ✅ LUEGO cargar datos
+  
+  console.log('🔵 ngAfterViewInit EJECUTADO');
+  
+  setTimeout(async () => {
+    console.log('🟡 setTimeout EJECUTADO - Creando gráfico...');
+    this.crearGraficoVentas();
+    
+    
+    await this.cargarDatosReales();
+  }, 100);
+  
   this.suscribirCambiosTiempoReal();
 
   setInterval(() => {
@@ -66,7 +75,6 @@ async cargarDatosReales() {
       this.supabaseService.getVentasUltimosDias(7)
     ]);
     
-    // ✅ DEBUG CRÍTICO
     console.log('🔍 REPORTE HOY:', reporte);
     console.log('🔍 VENTAS SEMANA:', ventasSemana);
     
@@ -77,8 +85,8 @@ async cargarDatosReales() {
     
     this.productosMasVendidos = productosMasVendidos as productosMasVendidos[];
     
-    // ✅ ACTUALIZAR GRÁFICO
-    this.actualizarGraficoVentas(ventasSemana);
+    // ✅ PASAR VENTAS DE HOY CORRECTAS al gráfico
+    this.actualizarGraficoVentas(ventasSemana, reporte.totalIngresos);
     
   } catch (error) {
     console.error('❌ Error cargando datos del dashboard:', error);
@@ -121,13 +129,13 @@ async cargarDatosReales() {
       labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
       datasets: [{
         label: 'Ventas ($)',
-        data: [0, 0, 0, 0, 0, 0, 0],
-        backgroundColor: 'rgba(240, 98, 146, 0.8)',
-        borderColor: 'rgba(240, 98, 146, 1)',
-        borderWidth: 1,
-        barPercentage: 0.7,
-        categoryPercentage: 0.8,
-        borderRadius: 6, // ✅ ESQUINAS REDONDEADAS
+        data: [500, 600, 700, 800, 900, 1000, 1100], // Datos de ejemplo ALTOS
+        backgroundColor: 'rgba(241, 99, 222, 0.9)', // COLOR MÁS FUERTE
+        borderColor: 'rgba(241, 99, 222, 0.9)',
+        borderWidth: 2,
+        barPercentage: 0.6,
+        categoryPercentage: 0.7,
+        borderRadius: 8,
       }]
     },
     options: {
@@ -138,7 +146,7 @@ async cargarDatosReales() {
           display: false
         },
         tooltip: {
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
           padding: 12,
           cornerRadius: 8,
           callbacks: {
@@ -155,17 +163,20 @@ async cargarDatosReales() {
       scales: {
         y: {
           beginAtZero: true,
+          min: 0,
+          max: 1200, // ✅ FORZAR MÁXIMO PARA MEJOR VISUALIZACIÓN
           grid: {
-            color: 'rgba(0, 0, 0, 0.1)'
+            color: 'rgba(226, 232, 240, 1)',
+            drawTicks: false // ✅ CORRECCIÓN: en lugar de drawBorder
           },
           ticks: {
             callback: function(value) {
-              // ✅ FORMATO MEXICANO CON SEPARADORES DE MILES
               return `$${Number(value).toLocaleString('es-MX')}`;
             },
             font: {
               size: 11
-            }
+            },
+            color: 'rgb(100, 116, 139)'
           }
         },
         x: {
@@ -175,13 +186,14 @@ async cargarDatosReales() {
           ticks: {
             font: {
               size: 12,
-              weight: 'bold'
-            }
+              family: "'Inter', sans-serif" // ✅ CORRECCIÓN: usar family en lugar de weight
+            },
+            color: 'rgb(30, 41, 59)'
           }
         }
       },
       animation: {
-        duration: 1000,
+        duration: 800,
         easing: 'easeOutQuart'
       }
     }
@@ -259,8 +271,9 @@ async cargarDatosReales() {
 /**
  * ✨ ACTUALIZA el gráfico con datos REALES de ventas
  */
-private actualizarGraficoVentas(ventasPorDia: any) {
-  console.log('🔍 DATOS QUE LLEGAN AL GRÁFICO:', ventasPorDia);
+private actualizarGraficoVentas(ventasData: any, ventasHoy: number) {
+  console.log('🔍 DATOS CRUDOS PARA GRÁFICO:', ventasData);
+  console.log('🔍 VENTAS HOY CORRECTAS:', ventasHoy);
   
   if (!this.ventasChart) {
     console.log('❌ No hay gráfico inicializado');
@@ -268,13 +281,23 @@ private actualizarGraficoVentas(ventasPorDia: any) {
   }
   
   try {
-    const { labels, datos } = this.formatearDatosParaGrafico(ventasPorDia);
-    console.log('📊 Datos formateados:', { labels, datos });
+    const { labels, datos } = this.formatearDatosParaGrafico(ventasData);
     
-    // Actualizar el gráfico existente
+    // ✅ CORRECCIÓN CRÍTICA: Reemplazar el valor de HOY con el correcto
+    const datosCorregidos = [...datos];
+    datosCorregidos[datosCorregidos.length - 1] = ventasHoy; // Última posición es hoy
+    
+    console.log('✅ DATOS ORIGINALES:', datos);
+    console.log('✅ DATOS CORREGIDOS:', datosCorregidos);
+    
     this.ventasChart.data.labels = labels;
-    this.ventasChart.data.datasets[0].data = datos;
-    this.ventasChart.update('none');
+    this.ventasChart.data.datasets[0].data = datosCorregidos;
+    this.ventasChart.data.datasets[0].backgroundColor = datosCorregidos.map((valor: number) => 
+      valor === 0 ? 'rgba(200, 200, 200, 0.5)' : 'rgba(241, 99, 222, 0.9)'
+    );
+    
+    this.ventasChart.update('active');
+    console.log('🎯 GRÁFICO ACTUALIZADO CON DATOS CORREGIDOS');
     
   } catch (error) {
     console.error('❌ Error actualizando gráfico:', error);
@@ -289,27 +312,31 @@ private formatearDatosParaGrafico(ventasPorDia: { [key: string]: number }) {
   const labels = [];
   const datos = [];
   
-  // Generar últimos 7 días
+  // Generar últimos 7 días (incluyendo HOY)
   for (let i = 6; i >= 0; i--) {
     const fecha = new Date();
     fecha.setDate(fecha.getDate() - i);
     
-    const diaKey = fecha.toISOString().split('T')[0];
+    // ✅ FORMATO CORRECTO: YYYY-MM-DD
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    const diaKey = `${year}-${month}-${day}`;
+    
     const nombreDia = dias[fecha.getDay()];
     
-    labels.push(nombreDia);
+    labels.push(`${nombreDia} ${day}`);
     
-    let ventaDelDia = ventasPorDia[diaKey] || 0;
-    
-    // Si el valor es muy bajo (menos de 1 peso), asumimos que son centavos
-    if (ventaDelDia > 0 && ventaDelDia < 1) {
-      ventaDelDia = ventaDelDia * 100; // Convertir a pesos
-    }
-    
+    // ✅ Obtener venta del día
+    const ventaDelDia = ventasPorDia[diaKey] || 0;
     datos.push(ventaDelDia);
+    
+    console.log(`📅 Día ${i}: ${diaKey} = ${ventaDelDia}`);
   }
   
-  console.log('💰 Datos formateados para gráfico:', datos);
+  console.log('💰 Datos finales para gráfico:', datos);
+  console.log('📅 Labels finales:', labels);
+  
   return { labels, datos };
 }
 
