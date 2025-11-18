@@ -105,7 +105,7 @@ export class SupabaseService {
       .single();
   }
 
-  // =================== EMPLEADOS ===================
+// =================== EMPLEADOS ===================
   
   async getEmpleados(): Promise<Empleado[]> {
     const { data, error } = await this.supabase
@@ -118,26 +118,57 @@ export class SupabaseService {
     return data ?? [];
   }
 
+  // -----------------------------------------------------------------
+  // ⬇️⬇️⬇️ ¡ESTA ES LA FUNCIÓN BUENA! (USA .INSERT() EN PASO 2) ⬇️⬇️⬇️
+  // -----------------------------------------------------------------
   async crearEmpleado(empleadoData: any) {
-    console.log("Servicio: Insertando en 'perfiles':", empleadoData);
-    const { data, error } = await this.supabase
-      .from('perfiles')
-      .insert([
-        { 
-          username: empleadoData.username,
-          email: empleadoData.email,
-          rol: 'empleado' 
-        }
-      ])
-      .select('id, username, email, avatar, rol') 
-      .single(); 
+    console.log("Servicio: Creando USUARIO DE AUTH con:", empleadoData.email);
 
-    if (error) {
-      console.error("Error en insert:", error.message);
-      return { data: null, error: error }; 
+    // --- PASO 1: Crear el usuario en auth.users (La "Recepción") ---
+    const { data: authData, error: authError } = await this.supabase.auth.signUp({
+      email: empleadoData.email,
+      password: empleadoData.password
+    });
+
+    if (authError) {
+      console.error("Error en signUp (Paso 1):", authError.message);
+      if (authError.message.includes("User already registered")) {
+        return { data: null, error: new Error('Este email ya está registrado.') };
+      }
+      return { data: null, error: authError };
     }
-    return { data: [data], error: null };
+
+    if (!authData.user) {
+      return { data: null, error: new Error('No se pudo crear el usuario en Auth.') };
+    }
+
+    console.log("Servicio: Usuario de Auth creado, ID:", authData.user.id);
+
+    // --- PASO 2: INSERTAR el perfil en public.perfiles (El "Locker") ---
+    // ¡CAMBIO CLAVE! Usamos 'insert' y le pasamos el ID del Paso 1.
+    const { data: profileData, error: profileError } = await this.supabase
+      .from('perfiles')
+      .insert({
+        id: authData.user.id, // <-- ¡LA LÍNEA CLAVE DEL ARREGLO!
+        username: empleadoData.username,
+        rol: empleadoData.rol
+      })
+      .select('id, username, email, avatar, rol') // Devolvemos el perfil completo
+      .single();
+
+    if (profileError) {
+      console.error("Error en insert de perfil (Paso 2):", profileError.message);
+      return { data: null, error: new Error('Se creó el usuario en Auth, pero falló al *insertar* el perfil: ' + profileError.message) };
+    }
+
+    // ¡ÉXITO!
+    const fullProfile = { ...profileData, email: authData.user.email };
+    
+    return { data: [fullProfile], error: null };
   }
+  // -----------------------------------------------------------------
+  // ⬆️⬆️⬆️ ¡AQUÍ TERMINA LA FUNCIÓN CORREGIDA! ⬆️⬆️⬆️
+  // -----------------------------------------------------------------
 
   async borrarEmpleado(id: string) {
     console.log("Servicio: Borrando empleado con ID:", id);
@@ -175,26 +206,26 @@ export class SupabaseService {
   }
 
   async contarEmpleadosActivos(): Promise<number> {
-  try {
-    const { data, error } = await this.supabase
-      .from('perfiles')
-      .select('id', { count: 'exact' })
-      .eq('rol', 'empleado'); // ✅ Contar solo empleados
+    try {
+      const { count, error } = await this.supabase
+        .from('perfiles')
+        .select('*', { count: 'exact', head: true }) 
+        .eq('rol', 'empleado');
 
-    if (error) {
-      console.error('❌ Error contando empleados:', error);
+      if (error) {
+        console.error('❌ Error contando empleados:', error);
+        return 0;
+      }
+
+      console.log('✅ Empleados activos encontrados:', count || 0);
+      return count || 0;
+    } catch (error) {
+      console.error('❌ Error en contarEmpleadosActivos:', error);
       return 0;
     }
-
-    console.log('✅ Empleados activos encontrados:', data?.length || 0);
-    return data?.length || 0;
-  } catch (error) {
-    console.error('❌ Error en contarEmpleadosActivos:', error);
-    return 0;
   }
-}
 
-  // =================== AGENDA / TURNOS ===================
+// =================== AGENDA / TURNOS ===================
 
   /**
    * Obtiene TODOS los turnos guardados de la agenda.
@@ -384,30 +415,23 @@ export class SupabaseService {
     return data;
   }
 
-  async addCategoria(categoria: any) {
-    const { data, error } = await this.supabase
-      .from('categorias')
-      .insert(categoria)
-      .select();
-    if (error) throw error;
-    return data;
-  }
-
-  async updateCategoria(id: string, cambios: any) {
-    const { data, error } = await this.supabase
-      .from('categorias')
-      .update(cambios)
-      .eq('id', id)
-      .select();
-    if (error) throw error;
-    return data;
-  }
-
-  async deleteCategoria(id: string) {
+  async addCategoria(nombre: string) { 
     const { error } = await this.supabase
       .from('categorias')
-      .delete()
+      .insert({ nombre: nombre });
+    if (error) throw error;
+  }
+  
+  async updateCategoria(id: string, nombre: string) { 
+    const { error } = await this.supabase
+      .from('categorias')
+      .update({ nombre: nombre })
       .eq('id', id);
+    if (error) throw error;
+  }
+
+  async deleteCategoria(id: string) { 
+    const { error } = await this.supabase.from('categorias').delete().eq('id', id);
     if (error) throw error;
   }
 

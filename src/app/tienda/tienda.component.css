@@ -331,3 +331,77 @@
 .notification-toast {
   animation: slideInRight 0.3s ease-out;
 }
+
+/* Hace que el [ngSwitch] ocupe todo el alto */
+.h-100 {
+  height: 100% !important;
+}
+.d-flex {
+  display: flex !important;
+}
+.flex-column {
+  flex-direction: column !important;
+}
+
+/* Estilos para las vistas del checkout */
+.checkout-view {
+  padding: 1rem;
+}
+
+/* Header del checkout con botón de volver */
+.checkout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.5rem; /* Un poco menos de padding vertical */
+}
+
+.checkout-header .btn-link {
+  padding: 0;
+  text-decoration: none;
+  font-weight: 500;
+  color: #c62b66; /* Color de acento */
+}
+.checkout-header .btn-link:hover {
+  color: #333;
+}
+
+/* Formulario de envío */
+.checkout-form .form-group label {
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+/* Resumen del pedido */
+.checkout-summary {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.checkout-summary h6 {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+.checkout-summary p {
+  font-size: 0.95rem;
+  color: #333;
+}
+
+/* Vista de éxito */
+.checkout-success-view {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1; /* Ocupa todo el espacio de contenido */
+}
+
+.checkout-success-view .fa-check-circle {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}

@@ -1,4 +1,4 @@
-<div class="container-fluid py-3 bg-light">
+<div class="container-fluid px-4 py-3 bg-light">
   <div class="d-flex gap-2 align-items-center flex-wrap">
 
     <div class="col-12 col-lg-auto">
@@ -21,8 +21,7 @@
     <div class="">
       <select class="form-select" (change)="filtrarCategoria($event)">
         <option value="">Todas las categorías</option>
-        <option *ngFor="let c of categorias" [value]="c.id">{{ c.nombre }}</option>
-        <!-- <option value="__NUEVA__" class="text-primary fw-semibold">Crear categoría</option> -->
+        <option *ngFor="let c of categorias" [value]="c.nombre">{{ c.nombre }}</option>
       </select>
     </div>
 
@@ -72,8 +71,11 @@
           </td>
           <td>
             <div class="d-flex gap-2 justify-content-center">
-              <button class="btn btn-sm border-0" (click)="abrirModalEditar(p)">
+              <button class="btn btn-sm rounded-3 border-0 action" (click)="abrirModalEditar(p)">
                 <i class="fa-solid fa-pen"></i>
+              </button>
+              <button class="btn btn-sm rounded-3 border-0 action" (click)="solicitarEliminacion(p)">
+                <i class="fa-solid fa-trash"></i>
               </button>
             </div>
           </td>
