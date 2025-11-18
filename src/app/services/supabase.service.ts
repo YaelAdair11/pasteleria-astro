@@ -384,30 +384,23 @@ export class SupabaseService {
     return data;
   }
 
-  async addCategoria(categoria: any) {
-    const { data, error } = await this.supabase
-      .from('categorias')
-      .insert(categoria)
-      .select();
-    if (error) throw error;
-    return data;
-  }
-
-  async updateCategoria(id: string, cambios: any) {
-    const { data, error } = await this.supabase
-      .from('categorias')
-      .update(cambios)
-      .eq('id', id)
-      .select();
-    if (error) throw error;
-    return data;
-  }
-
-  async deleteCategoria(id: string) {
+  async addCategoria(nombre: string) { 
     const { error } = await this.supabase
       .from('categorias')
-      .delete()
+      .insert({ nombre: nombre });
+    if (error) throw error;
+  }
+  
+  async updateCategoria(id: string, nombre: string) { 
+    const { error } = await this.supabase
+      .from('categorias')
+      .update({ nombre: nombre })
       .eq('id', id);
+    if (error) throw error;
+  }
+
+  async deleteCategoria(id: string) { 
+    const { error } = await this.supabase.from('categorias').delete().eq('id', id);
     if (error) throw error;
   }
 
@@ -463,7 +456,8 @@ async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[
           imagen,          
           activo,
           categoria_id,
-          categorias:categoria_id (
+          categorias:categorias (
+            id,
             nombre
           )
         )

@@ -29,11 +29,16 @@ export class Admin implements OnInit {
 
   ngOnInit(): void {
     this.cargarEstadoSidebar();
-    this.obtenerData();
+    this.actualizarTituloEIcono();
     this.supabase.user$.subscribe(user => {
       this.nombreUsuario = user?.username || user?.email || 'Usuario';
       this.rol = user?.rol || '';
     });
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.actualizarTituloEIcono();
+      });
   }
 
   cargarEstadoSidebar(): void {
@@ -45,28 +50,24 @@ export class Admin implements OnInit {
     }
   }
 
-  obtenerData() {
-    this.router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(() => {
-        let current = this.route;
-        while (current.firstChild) { current = current.firstChild; }
-        const data = current.snapshot.data;
+  actualizarTituloEIcono(): void {
+    let current = this.route;
+    while (current.firstChild) { current = current.firstChild; }
+    const data = current.snapshot.data;
 
-        // Título
-        if (data['title']) {
-          this.title = data['title'];
-        } else if (current.snapshot.routeConfig?.path === '') {
-          this.title = 'Inicio';
-        }
+    // Título
+    if (data['title']) {
+      this.title = data['title'];
+    } else if (current.snapshot.routeConfig?.path === '') {
+      this.title = 'Inicio';
+    }
 
-        // Icono
-        if (data['icon']) {
-          this.icono = data['icon'];
-        } else if (current.snapshot.routeConfig?.path === '') {
-          this.icono = 'fa-home';
-        }
-      });
+    // Icono
+    if (data['icon']) {
+      this.icono = data['icon'];
+    } else if (current.snapshot.routeConfig?.path === '') {
+      this.icono = 'fa-home';
+    }
   }
 
   alternarMenu() {
