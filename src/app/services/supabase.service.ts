@@ -520,6 +520,7 @@ async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[
           categoria: venta.productos?.categorias?.nombre || 'Sin categoría',
           stock: venta.productos?.stock || 0,
           precio: venta.productos?.precio || 0,
+          productos: venta.productos,
           imagen: venta.productos?.imagen || undefined,
           totalVendido: 0
         };

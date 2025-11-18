@@ -30,15 +30,15 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
   constructor(private supabaseService: SupabaseService) {}
 
   async ngAfterViewInit() {
-    Chart.register(...registerables);
-    await this.cargarDatosReales();
-    this.suscribirCambiosTiempoReal();
-    this.crearGraficoVentas();
+  Chart.register(...registerables);
+  this.crearGraficoVentas(); // ✅ PRIMERO crear el gráfico
+  await this.cargarDatosReales(); // ✅ LUEGO cargar datos
+  this.suscribirCambiosTiempoReal();
 
-    setInterval(() => {
-      this.now = new Date();
-    }, 60000);
-  }
+  setInterval(() => {
+    this.now = new Date();
+  }, 60000);
+}
 
   ngOnDestroy() {
     console.log('🧹 Limpiando suscripciones del dashboard...');

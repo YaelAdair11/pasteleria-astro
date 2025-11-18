@@ -4,7 +4,8 @@
   <div class="d-flex align-items-center gap-2 mb-3">
     <input type="text" class="form-control" placeholder="Buscar por nombre de producto..."
            [(ngModel)]="filtro" 
-           (input)="loadVentas()"> <button class="btn btn-outline-secondary">
+           (input)="loadVentas()"> 
+    <button class="btn btn-outline-secondary">
       <i class="bi bi-funnel"></i> Filtros
     </button>
     <button class="btn btn-outline-secondary">
@@ -59,7 +60,14 @@
           </tr>
 
           <tr *ngFor="let v of ventas">
-            <td>{{ v.productos[0]?.nombre || 'Producto no encontrado' }}</td>
+            <td>
+              <ng-container *ngIf="v.productos; else noProducto">
+                {{ v.productos.nombre }}
+              </ng-container>
+              <ng-template #noProducto>
+                <span class="text-muted">Producto no encontrado</span>
+              </ng-template>
+            </td>
             <td>{{ v.cantidad }}</td>
             <td>{{ v.metodo_pago }}</td>
             <td>${{ v.total | number:'1.2-2' }}</td>
