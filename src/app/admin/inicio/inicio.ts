@@ -34,7 +34,6 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
     await this.cargarDatosReales();
     this.suscribirCambiosTiempoReal();
     this.crearGraficoVentas();
-    this.crearGraficoCategorias();
 
     setInterval(() => {
       this.now = new Date();
@@ -54,131 +53,140 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
     if (this.categoriasChart) this.categoriasChart.destroy();
   }
 
-  async cargarDatosReales() {
-    try {
-      console.log('🔄 Cargando datos reales del dashboard...');
-      
-      const [reporte, productos, productosMasVendidos] = await Promise.all([
-        this.supabaseService.getReportesPorDia(new Date()),
-        this.supabaseService.getProductos(true),
-        this.supabaseService.getProductosMasVendidos(5)
-      ]);
-      
-      this.metricas.ventasHoy = reporte.totalIngresos;
-      this.metricas.productosStock = productos.length;
-      
-      // ✅ SOLUCIÓN SIMPLE - Type assertion
-      this.productosMasVendidos = productosMasVendidos as productosMasVendidos[];
-      
-      console.log('📊 Datos actualizados correctamente');
-      
-    } catch (error) {
-      console.error('❌ Error cargando datos del dashboard:', error);
-      this.mostrarError('Error al cargar datos del dashboard. Reintentando...');
-      setTimeout(() => this.cargarDatosReales(), 5000);
-    }
+  // En inicio.ts - método cargarDatosReales
+async cargarDatosReales() {
+  try {
+    console.log('🔄 Cargando datos reales del dashboard...');
+    
+    const [reporte, productos, productosMasVendidos, totalEmpleados, ventasSemana] = await Promise.all([
+      this.supabaseService.getReportesPorDia(new Date()),
+      this.supabaseService.getProductos(true),
+      this.supabaseService.getProductosMasVendidos(5),
+      this.supabaseService.contarEmpleadosActivos(),
+      this.supabaseService.getVentasUltimosDias(7)
+    ]);
+    
+    // ✅ DEBUG CRÍTICO
+    console.log('🔍 REPORTE HOY:', reporte);
+    console.log('🔍 VENTAS SEMANA:', ventasSemana);
+    
+    // Actualizar métricas
+    this.metricas.ventasHoy = reporte.totalIngresos;
+    this.metricas.productosStock = productos.length;
+    this.metricas.empleadosActivos = totalEmpleados;
+    
+    this.productosMasVendidos = productosMasVendidos as productosMasVendidos[];
+    
+    // ✅ ACTUALIZAR GRÁFICO
+    this.actualizarGraficoVentas(ventasSemana);
+    
+  } catch (error) {
+    console.error('❌ Error cargando datos del dashboard:', error);
   }
+}
 
   private mostrarError(mensaje: string) {
     console.warn('⚠️ Error para el usuario:', mensaje);
   }
 
   private suscribirCambiosTiempoReal() {
-    console.log('🔔 Suscribiéndose a cambios en tiempo real...');
-    
-    const subVentas = this.supabaseService.suscribirCambiosVentas(() => {
-      console.log('💰 Nueva venta detectada, actualizando dashboard...');
-      this.cargarDatosReales();
-    });
+  console.log('🔔 Suscribiéndose a cambios en tiempo real...');
+  
+  const subVentas = this.supabaseService.suscribirCambiosVentas(() => {
+    console.log('💰 Nueva venta detectada, actualizando dashboard...');
+    this.cargarDatosReales();
+  });
 
-    const subProductos = this.supabaseService.suscribirCambiosProductos(() => {
-      console.log('📦 Stock actualizado, actualizando dashboard...');
-      this.cargarDatosReales();
-    });
+  const subProductos = this.supabaseService.suscribirCambiosProductos(() => {
+    console.log('📦 Stock actualizado, actualizando dashboard...');
+    this.cargarDatosReales();
+  });
 
-    this.subscriptions.push(subVentas, subProductos);
-  }
+  // ✅ NUEVO: Suscribirse a cambios en empleados
+  const subEmpleados = this.supabaseService.suscribirCambiosEmpleados(() => {
+    console.log('👥 Empleado agregado/eliminado, actualizando dashboard...');
+    this.cargarDatosReales();
+  });
+
+  this.subscriptions.push(subVentas, subProductos, subEmpleados);
+}
 
   private crearGraficoVentas() {
-    const ctx = document.getElementById('ventasChart') as HTMLCanvasElement;
-    if (!ctx) return;
-    
-    this.ventasChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-        datasets: [{
-          label: 'Ventas ($)',
-          data: [1200, 1900, 1500, 2200, 1800, 2500, 2100],
-          backgroundColor: 'rgba(198, 43, 102, 0.8)',
-          borderColor: 'rgba(198, 43, 102, 1)',
-          borderWidth: 1,
-          barPercentage: 0.6,
-          categoryPercentage: 0.8
-        }]
+  const ctx = document.getElementById('ventasChart') as HTMLCanvasElement;
+  if (!ctx) return;
+  
+  this.ventasChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+      datasets: [{
+        label: 'Ventas ($)',
+        data: [0, 0, 0, 0, 0, 0, 0],
+        backgroundColor: 'rgba(240, 98, 146, 0.8)',
+        borderColor: 'rgba(240, 98, 146, 1)',
+        borderWidth: 1,
+        barPercentage: 0.7,
+        categoryPercentage: 0.8,
+        borderRadius: 6, // ✅ ESQUINAS REDONDEADAS
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              const valor = context.parsed.y;
+              return `Ventas: $${(valor || 0).toLocaleString('es-MX', { 
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2 
+              })}`;
+            }
+          }
+        }
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(0, 0, 0, 0.1)'
+          },
+          ticks: {
+            callback: function(value) {
+              // ✅ FORMATO MEXICANO CON SEPARADORES DE MILES
+              return `$${Number(value).toLocaleString('es-MX')}`;
+            },
+            font: {
+              size: 11
+            }
           }
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: 'rgba(0, 0, 0, 0.1)'
-            }
+        x: {
+          grid: {
+            display: false
           },
-          x: {
-            grid: {
-              display: false
+          ticks: {
+            font: {
+              size: 12,
+              weight: 'bold'
             }
           }
         }
-      }
-    });
-  }
-
-  private crearGraficoCategorias() {
-    const ctx = document.getElementById('categoriasChart') as HTMLCanvasElement;
-    if (!ctx) return;
-    
-    this.categoriasChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Pasteles', 'Cupcakes', 'Galletas', 'Postres', 'Bebidas'],
-        datasets: [{
-          data: [35, 25, 20, 15, 5],
-          backgroundColor: [
-            'rgba(198, 43, 102, 0.8)',
-            'rgba(255, 159, 64, 0.8)',
-            'rgba(75, 192, 192, 0.8)',
-            'rgba(54, 162, 235, 0.8)',
-            'rgba(153, 102, 255, 0.8)'
-          ],
-          borderColor: [
-            'rgba(198, 43, 102, 1)',
-            'rgba(255, 159, 64, 1)',
-            'rgba(75, 192, 192, 1)',
-            'rgba(54, 162, 235, 1)',
-            'rgba(153, 102, 255, 1)'
-          ],
-          borderWidth: 1
-        }]
       },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          }
-        }
+      animation: {
+        duration: 1000,
+        easing: 'easeOutQuart'
       }
-    });
-  }
+    }
+  });
+}
 
   /**
    * Método para actualización manual
@@ -210,29 +218,6 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
       
     } catch (error) {
       console.error('❌ Error cargando datos para gráfico de ventas:', error);
-    }
-  }
-
-  /**
-   * ✨ NUEVO: Cargar datos reales para gráfico de categorías
-   */
-  async cargarDatosGraficoCategorias() {
-    try {
-      const ventasPorCategoria = await this.supabaseService.getVentasPorCategoria();
-      
-      // Formatear datos para el gráfico de donut
-      const { labels, datos, colores } = this.formatearDatosCategoriasParaGrafico(ventasPorCategoria);
-      
-      // Actualizar gráfico si existe
-      if (this.categoriasChart) {
-        this.categoriasChart.data.labels = labels;
-        this.categoriasChart.data.datasets[0].data = datos;
-        this.categoriasChart.data.datasets[0].backgroundColor = colores;
-        this.categoriasChart.update('none');
-      }
-      
-    } catch (error) {
-      console.error('❌ Error cargando datos para gráfico de categorías:', error);
     }
   }
 
@@ -270,28 +255,63 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
     return datos;
   }
 
-  /**
-   * ✨ NUEVO: Formatear datos de categorías para el gráfico
-   */
-  private formatearDatosCategoriasParaGrafico(ventasPorCategoria: any) {
-    const coloresBase = [
-      'rgba(198, 43, 102, 0.8)',
-      'rgba(255, 159, 64, 0.8)',
-      'rgba(75, 192, 192, 0.8)',
-      'rgba(54, 162, 235, 0.8)',
-      'rgba(153, 102, 255, 0.8)',
-      'rgba(201, 203, 207, 0.8)',
-      'rgba(255, 205, 86, 0.8)'
-    ];
-    
-    const categorias = Object.keys(ventasPorCategoria);
-    const datos = Object.values(ventasPorCategoria) as number[];
-    const colores = categorias.map((_, index) => coloresBase[index % coloresBase.length]);
-    
-    return {
-      labels: categorias,
-      datos: datos,
-      colores: colores
-    };
+
+/**
+ * ✨ ACTUALIZA el gráfico con datos REALES de ventas
+ */
+private actualizarGraficoVentas(ventasPorDia: any) {
+  console.log('🔍 DATOS QUE LLEGAN AL GRÁFICO:', ventasPorDia);
+  
+  if (!this.ventasChart) {
+    console.log('❌ No hay gráfico inicializado');
+    return;
   }
+  
+  try {
+    const { labels, datos } = this.formatearDatosParaGrafico(ventasPorDia);
+    console.log('📊 Datos formateados:', { labels, datos });
+    
+    // Actualizar el gráfico existente
+    this.ventasChart.data.labels = labels;
+    this.ventasChart.data.datasets[0].data = datos;
+    this.ventasChart.update('none');
+    
+  } catch (error) {
+    console.error('❌ Error actualizando gráfico:', error);
+  }
+}
+
+/**
+ * ✨ FORMATEA datos de ventas para el gráfico
+ */
+private formatearDatosParaGrafico(ventasPorDia: { [key: string]: number }) {
+  const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const labels = [];
+  const datos = [];
+  
+  // Generar últimos 7 días
+  for (let i = 6; i >= 0; i--) {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() - i);
+    
+    const diaKey = fecha.toISOString().split('T')[0];
+    const nombreDia = dias[fecha.getDay()];
+    
+    labels.push(nombreDia);
+    
+    let ventaDelDia = ventasPorDia[diaKey] || 0;
+    
+    // Si el valor es muy bajo (menos de 1 peso), asumimos que son centavos
+    if (ventaDelDia > 0 && ventaDelDia < 1) {
+      ventaDelDia = ventaDelDia * 100; // Convertir a pesos
+    }
+    
+    datos.push(ventaDelDia);
+  }
+  
+  console.log('💰 Datos formateados para gráfico:', datos);
+  return { labels, datos };
+}
+
+
 }

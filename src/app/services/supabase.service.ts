@@ -418,29 +418,35 @@ export class SupabaseService {
    * Puede filtrar por el nombre del producto.
    */
   async getVentas(filtro: string = '') {
-    let query = this.supabase
-      .from('ventas')
-      .select('id, cantidad, metodo_pago, total, fecha, productos(nombre)')
-      .order('fecha', { ascending: false });
+  let query = this.supabase
+    .from('ventas')
+    .select(`
+      id, cantidad, metodo_pago, total, fecha, 
+      productos!inner (
+        nombre
+      )
+    `)
+    .order('fecha', { ascending: false });
 
-    // Aplicamos el filtro si existe
-    if (filtro && filtro.trim()) {
-      query = query.filter(
-        'productos.nombre',
-        'ilike',
-        `%${filtro.trim()}%`
-      );
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Error en getVentas:', error);
-      throw new Error(error.message);
-    }
-
-    return data;
+  // Aplicamos el filtro si existe
+  if (filtro && filtro.trim()) {
+    query = query.filter(
+      'productos.nombre',
+      'ilike',
+      `%${filtro.trim()}%`
+    );
   }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('Error en getVentas:', error);
+    throw new Error(error.message);
+  }
+
+  console.log('✅ Ventas cargadas:', data?.length);
+  return data;
+}
 
   /**
    * ✨ NUEVA: Obtiene los productos más vendidos con datos REALES
@@ -454,22 +460,18 @@ async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[
       .from('ventas')
       .select(`
         producto_id, 
-        cantidad, 
-        productos:producto_id (
+        cantidad,
+        productos!inner (
           nombre, 
-          descripcion,
           precio, 
           stock, 
-          imagen,          
-          activo,
-          categoria_id,
-          categorias:categoria_id (
+          imagen,
+          categorias!inner (
             nombre
           )
         )
       `)
-      .eq('productos.activo', true)
-      .order('fecha', { ascending: false });
+      .eq('productos.activo', true);
 
     if (error) {
       console.error('❌ Error en query productos más vendidos:', error);
@@ -481,7 +483,7 @@ async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[
       return [];
     }
 
-    console.log('✅ Ventas encontradas:', ventas.length);
+    console.log('✅ Ventas encontradas para productos más vendidos:', ventas.length);
 
     // Agrupar por producto_id y sumar cantidades
     const ventasPorProducto = ventas.reduce((acc: any, venta: any) => {
@@ -491,11 +493,10 @@ async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[
         acc[productoId] = {
           producto_id: productoId,
           nombre: venta.productos?.nombre || 'Producto no encontrado',
-          descripcion: venta.productos?.descripcion || '',
           categoria: venta.productos?.categorias?.nombre || 'Sin categoría',
           stock: venta.productos?.stock || 0,
           precio: venta.productos?.precio || 0,
-          imagen: venta.productos?.imagen || undefined, // ✅ CAMBIADO: imagen_url → imagen
+          imagen: venta.productos?.imagen || undefined,
           totalVendido: 0
         };
       }
@@ -509,7 +510,7 @@ async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[
       .sort((a: any, b: any) => b.totalVendido - a.totalVendido)
       .slice(0, limite);
 
-    console.log('🏆 Productos más vendidos procesados:', productosOrdenados.length);
+    console.log('🏆 Productos más vendidos procesados:', productosOrdenados);
     return productosOrdenados as productosMasVendidos[];
 
   } catch (error) {
@@ -552,41 +553,64 @@ async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[
    * ✨ NUEVA: Obtiene ventas de los últimos N días (para gráficos)
    */
   async getVentasUltimosDias(dias: number = 7) {
-    try {
-      const hoy = new Date();
-      const fechaInicio = new Date(hoy);
-      fechaInicio.setDate(hoy.getDate() - dias);
-      fechaInicio.setHours(0, 0, 0, 0);
+  try {
+    console.log('🔍 Buscando ventas de los últimos', dias, 'días...');
+    
+    const hoy = new Date();
+    const fechaInicio = new Date(hoy);
+    fechaInicio.setDate(hoy.getDate() - dias);
+    fechaInicio.setHours(0, 0, 0, 0);
 
-      const { data, error } = await this.supabase
-        .from('ventas')
-        .select('total, fecha')
-        .gte('fecha', fechaInicio.toISOString())
-        .order('fecha', { ascending: true });
+    const { data, error } = await this.supabase
+      .from('ventas')
+      .select('total, fecha')
+      .gte('fecha', fechaInicio.toISOString())
+      .order('fecha', { ascending: true });
 
-      if (error) throw error;
-
-      // Agrupar por día
-      const ventasPorDia: { [key: string]: number } = {};
-      
-      data.forEach((venta: any) => {
-        const fecha = new Date(venta.fecha);
-        const dia = fecha.toISOString().split('T')[0]; // YYYY-MM-DD
-        
-        if (!ventasPorDia[dia]) {
-          ventasPorDia[dia] = 0;
-        }
-        ventasPorDia[dia] += venta.total;
-      });
-
-      return ventasPorDia;
-
-    } catch (error) {
-      console.error('Error en getVentasUltimosDias:', error);
-      throw error;
+    if (error) {
+      console.error('❌ Error en getVentasUltimosDias:', error);
+      return {};
     }
-  }
 
+    console.log('✅ Ventas encontradas:', data?.length || 0);
+
+    // Si no hay datos, devolver objeto con ceros
+    if (!data || data.length === 0) {
+      console.log(' No hay ventas registradas en los últimos', dias, 'días');
+      const ventasVacias: { [key: string]: number } = {};
+      
+      // Generar últimos 7 días con valor 0
+      for (let i = 6; i >= 0; i--) {
+        const fecha = new Date();
+        fecha.setDate(fecha.getDate() - i);
+        const diaKey = fecha.toISOString().split('T')[0];
+        ventasVacias[diaKey] = 0;
+      }
+      
+      return ventasVacias;
+    }
+
+    // Agrupar por día
+    const ventasPorDia: { [key: string]: number } = {};
+    
+    data.forEach((venta: any) => {
+      const fecha = new Date(venta.fecha);
+      const dia = fecha.toISOString().split('T')[0]; // YYYY-MM-DD
+      
+      if (!ventasPorDia[dia]) {
+        ventasPorDia[dia] = 0;
+      }
+      ventasPorDia[dia] += venta.total;
+    });
+
+    console.log('📊 Ventas por día procesadas:', ventasPorDia);
+    return ventasPorDia;
+
+  } catch (error) {
+    console.error('❌ Error en getVentasUltimosDias:', error);
+    return {};
+  }
+}
   /**
    * ✨ NUEVA: Obtiene ventas agrupadas por categoría (para gráfico de donut)
    */
@@ -714,4 +738,24 @@ suscribirCambiosProductos(callback: (payload: any) => void) {
     )
     .subscribe();
 }
+
+// Conectar empleados
+suscribirCambiosEmpleados(callback: (payload: any) => void) {
+  return this.supabase
+    .channel('cambios-empleados-dashboard')
+    .on(
+      'postgres_changes',
+      {
+        event: '*', // Escuchar INSERT, UPDATE, DELETE
+        schema: 'public',
+        table: 'perfiles'
+      },
+      (payload) => {
+        console.log('👥 Cambio en empleados detectado:', payload);
+        callback(payload);
+      }
+    )
+    .subscribe();
+}
+
 }
