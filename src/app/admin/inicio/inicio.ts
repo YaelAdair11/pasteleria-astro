@@ -67,16 +67,14 @@ async cargarDatosReales() {
   try {
     console.log('🔄 Cargando datos reales del dashboard...');
     
-    const [reporte, productos, productosMasVendidos, totalEmpleados, ventasSemana] = await Promise.all([
+    const [reporte, productos, productosMasVendidos, totalEmpleados] = await Promise.all([
       this.supabaseService.getReportesPorDia(new Date()),
       this.supabaseService.getProductos(true),
       this.supabaseService.getProductosMasVendidos(5),
-      this.supabaseService.contarEmpleadosActivos(),
-      this.supabaseService.getVentasUltimosDias(7)
+      this.supabaseService.contarEmpleadosActivos()
     ]);
     
     console.log('🔍 REPORTE HOY:', reporte);
-    console.log('🔍 VENTAS SEMANA:', ventasSemana);
     
     // Actualizar métricas
     this.metricas.ventasHoy = reporte.totalIngresos;
@@ -85,12 +83,54 @@ async cargarDatosReales() {
     
     this.productosMasVendidos = productosMasVendidos as productosMasVendidos[];
     
-    // ✅ PASAR VENTAS DE HOY CORRECTAS al gráfico
-    this.actualizarGraficoVentas(ventasSemana, reporte.totalIngresos);
+    // ✅ SOLUCIÓN: Obtener ventas semanales CORRECTAS usando reportes individuales
+    const ventasSemanalesCorregidas = await this.obtenerVentasSemanalesCorrectas();
+    console.log('✅ VENTAS SEMANALES CORREGIDAS:', ventasSemanalesCorregidas);
+    
+    this.actualizarGraficoVentas(ventasSemanalesCorregidas, reporte.totalIngresos);
     
   } catch (error) {
     console.error('❌ Error cargando datos del dashboard:', error);
   }
+}
+
+/**
+ * Obtiene ventas semanales CORRECTAS usando reportes individuales
+ */
+private async obtenerVentasSemanalesCorrectas(): Promise<{ [key: string]: number }> {
+  const ventasSemanales: { [key: string]: number } = {};
+  
+  // Obtener reportes para los últimos 7 días
+  const promesasReportes = [];
+  
+  for (let i = 6; i >= 0; i--) {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() - i);
+    promesasReportes.push(this.supabaseService.getReportesPorDia(fecha));
+  }
+  
+  try {
+    const reportes = await Promise.all(promesasReportes);
+    
+    for (let i = 6; i >= 0; i--) {
+      const fecha = new Date();
+      fecha.setDate(fecha.getDate() - i);
+      const fechaKey = fecha.toISOString().split('T')[0];
+      ventasSemanales[fechaKey] = reportes[6 - i].totalIngresos; // reportes[6-i] porque el array está en orden inverso
+    }
+    
+  } catch (error) {
+    console.error('Error obteniendo reportes semanales:', error);
+    // En caso de error, llenar con ceros
+    for (let i = 6; i >= 0; i--) {
+      const fecha = new Date();
+      fecha.setDate(fecha.getDate() - i);
+      const fechaKey = fecha.toISOString().split('T')[0];
+      ventasSemanales[fechaKey] = 0;
+    }
+  }
+  
+  return ventasSemanales;
 }
 
   private mostrarError(mensaje: string) {
@@ -129,8 +169,8 @@ async cargarDatosReales() {
       labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
       datasets: [{
         label: 'Ventas ($)',
-        data: [500, 600, 700, 800, 900, 1000, 1100], // Datos de ejemplo ALTOS
-        backgroundColor: 'rgba(241, 99, 222, 0.9)', // COLOR MÁS FUERTE
+        data: [500, 600, 700, 800, 900, 1000, 1100],
+        backgroundColor: 'rgba(241, 99, 222, 0.9)',
         borderColor: 'rgba(241, 99, 222, 0.9)',
         borderWidth: 2,
         barPercentage: 0.6,
@@ -164,10 +204,10 @@ async cargarDatosReales() {
         y: {
           beginAtZero: true,
           min: 0,
-          max: 1200, // ✅ FORZAR MÁXIMO PARA MEJOR VISUALIZACIÓN
+          // ❌ ELIMINAR ESTA LÍNEA: max: 1200,
           grid: {
             color: 'rgba(226, 232, 240, 1)',
-            drawTicks: false // ✅ CORRECCIÓN: en lugar de drawBorder
+            drawTicks: false
           },
           ticks: {
             callback: function(value) {
@@ -186,7 +226,7 @@ async cargarDatosReales() {
           ticks: {
             font: {
               size: 12,
-              family: "'Inter', sans-serif" // ✅ CORRECCIÓN: usar family en lugar de weight
+              family: "'Inter', sans-serif"
             },
             color: 'rgb(30, 41, 59)'
           }
@@ -283,12 +323,14 @@ private actualizarGraficoVentas(ventasData: any, ventasHoy: number) {
   try {
     const { labels, datos } = this.formatearDatosParaGrafico(ventasData);
     
-    // ✅ CORRECCIÓN CRÍTICA: Reemplazar el valor de HOY con el correcto
     const datosCorregidos = [...datos];
-    datosCorregidos[datosCorregidos.length - 1] = ventasHoy; // Última posición es hoy
+    datosCorregidos[datosCorregidos.length - 1] = ventasHoy;
     
-    console.log('✅ DATOS ORIGINALES:', datos);
     console.log('✅ DATOS CORREGIDOS:', datosCorregidos);
+    
+    // ✅ CALCULAR MÁXIMO DINÁMICO
+    const maxValor = Math.max(...datosCorregidos);
+    const maxEjeY = maxValor * 1.2; // 20% más alto que el valor máximo
     
     this.ventasChart.data.labels = labels;
     this.ventasChart.data.datasets[0].data = datosCorregidos;
@@ -296,8 +338,11 @@ private actualizarGraficoVentas(ventasData: any, ventasHoy: number) {
       valor === 0 ? 'rgba(200, 200, 200, 0.5)' : 'rgba(241, 99, 222, 0.9)'
     );
     
+    // ✅ ACTUALIZAR MÁXIMO DEL EJE Y
+    this.ventasChart.options.scales.y.max = maxEjeY;
+    
     this.ventasChart.update('active');
-    console.log('🎯 GRÁFICO ACTUALIZADO CON DATOS CORREGIDOS');
+    console.log('🎯 GRÁFICO ACTUALIZADO CON MÁXIMO DINÁMICO:', maxEjeY);
     
   } catch (error) {
     console.error('❌ Error actualizando gráfico:', error);
@@ -312,9 +357,11 @@ private formatearDatosParaGrafico(ventasPorDia: { [key: string]: number }) {
   const labels = [];
   const datos = [];
   
-  // Generar últimos 7 días (incluyendo HOY)
+  // ✅ CORRECCIÓN: Generar últimos 7 días correctamente
+  const hoy = new Date();
+  
   for (let i = 6; i >= 0; i--) {
-    const fecha = new Date();
+    const fecha = new Date(hoy);
     fecha.setDate(fecha.getDate() - i);
     
     // ✅ FORMATO CORRECTO: YYYY-MM-DD
@@ -331,14 +378,17 @@ private formatearDatosParaGrafico(ventasPorDia: { [key: string]: number }) {
     const ventaDelDia = ventasPorDia[diaKey] || 0;
     datos.push(ventaDelDia);
     
-    console.log(`📅 Día ${i}: ${diaKey} = ${ventaDelDia}`);
+    console.log(`📅 Día ${i}: ${diaKey} (${nombreDia} ${day}) = ${ventaDelDia}`);
   }
   
   console.log('💰 Datos finales para gráfico:', datos);
   console.log('📅 Labels finales:', labels);
+  console.log('📆 HOY ES:', hoy.toISOString().split('T')[0]);
   
   return { labels, datos };
 }
+
+
 
 
 }
