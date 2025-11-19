@@ -65,20 +65,18 @@
   </div>
 
   <div class="container-fluid mt-4">
-    <div class="row">
-      
+    <div class="row g-4">
       <aside
-        class="col-md-3"
+        class="col-md-3 filters-sidebar-col"
         [class.d-none]="!mostrarFiltros"
         [class.d-md-block]="true"
       >
         <div class="filters-card">
           <h5>Filtros</h5>
-
           <div class="filter-section">
-            <h6>Categorías</h6>
-            <div class="category-list">
-              <button
+             <h6>Categorías</h6>
+             <div class="category-list">
+               <button
                 class="category-btn"
                 [class.active]="categoriaSeleccionada === 'todos'"
                 (click)="categoriaSeleccionada = 'todos'; filtrarProductos()"
@@ -95,51 +93,32 @@
               >
                 {{ categoria.nombre }}
               </button>
-            </div>
+             </div>
           </div>
 
           <div class="filter-section">
-            <h6>Precio</h6>
-            <div class="price-range">
-              <label>Mín: ${{ precioMin }}</label>
-              <input
-                type="range"
-                [(ngModel)]="precioMin"
-                min="0"
-                max="1000"
-                step="10"
-                (change)="filtrarProductos()"
-                class="form-range"
-              />
-              <label>Máx: ${{ precioMax }}</label>
-              <input
-                type="range"
-                [(ngModel)]="precioMax"
-                min="0"
-                max="1000"
-                step="10"
-                (change)="filtrarProductos()"
-                class="form-range"
-              />
-            </div>
+             <h6>Precio</h6>
+             <div class="price-range">
+               <label>Mín: ${{ precioMin }}</label>
+               <input type="range" [(ngModel)]="precioMin" min="0" max="1000" step="10" (change)="filtrarProductos()" class="form-range" />
+               <label>Máx: ${{ precioMax }}</label>
+               <input type="range" [(ngModel)]="precioMax" min="0" max="1000" step="10" (change)="filtrarProductos()" class="form-range" />
+             </div>
           </div>
 
           <div class="filter-section">
             <h6>Ordenar por</h6>
-            <select
-              [(ngModel)]="ordenSeleccionado"
-              (change)="ordenarProductos()"
-              class="form-select"
-            >
+            <select [(ngModel)]="ordenSeleccionado" (change)="ordenarProductos()" class="form-select">
               <option value="nombre">Nombre A-Z</option>
               <option value="precio-asc">Precio: Menor a Mayor</option>
               <option value="precio-desc">Precio: Mayor a Menor</option>
               <option value="stock-desc">Mayor Stock</option>
             </select>
           </div>
+
         </div>
       </aside>
-
+      
       <main class="col-md-9">
         <div class="products-header mb-4">
           <h4>{{ productosFiltrados.length }} productos encontrados</h4>
