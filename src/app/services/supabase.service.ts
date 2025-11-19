@@ -424,6 +424,22 @@ export class SupabaseService {
     return { totalIngresos, totalVentas, ticketPromedio };
   }
 
+  async getVentasPorFecha(fecha: Date) {
+    const dia = new Date(fecha);
+    const inicioDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 0, 0, 0).toISOString();
+    const finDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 23, 59, 59).toISOString();
+
+    const { data, error } = await this.supabase
+      .from('ventas')
+      .select('id, cantidad, total, metodo_pago, fecha, productos(nombre, precio)') 
+      .gte('fecha', inicioDelDia)
+      .lte('fecha', finDelDia)
+      .order('fecha', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data || [];
+  }
+
   async getVentasUltimosDias(dias: number = 7) {
     try {
       const hoy = new Date();
