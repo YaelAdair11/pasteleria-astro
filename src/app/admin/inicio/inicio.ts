@@ -30,16 +30,24 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
   constructor(private supabaseService: SupabaseService) {}
 
   async ngAfterViewInit() {
-    Chart.register(...registerables);
-    await this.cargarDatosReales();
-    this.suscribirCambiosTiempoReal();
+  Chart.register(...registerables);
+  
+  console.log('🔵 ngAfterViewInit EJECUTADO');
+  
+  setTimeout(async () => {
+    console.log('🟡 setTimeout EJECUTADO - Creando gráfico...');
     this.crearGraficoVentas();
-    this.crearGraficoCategorias();
+    
+    
+    await this.cargarDatosReales();
+  }, 100);
+  
+  this.suscribirCambiosTiempoReal();
 
-    setInterval(() => {
-      this.now = new Date();
-    }, 60000);
-  }
+  setInterval(() => {
+    this.now = new Date();
+  }, 60000);
+}
 
   ngOnDestroy() {
     console.log('🧹 Limpiando suscripciones del dashboard...');
@@ -54,131 +62,183 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
     if (this.categoriasChart) this.categoriasChart.destroy();
   }
 
-  async cargarDatosReales() {
-    try {
-      console.log('🔄 Cargando datos reales del dashboard...');
-      
-      const [reporte, productos, productosMasVendidos] = await Promise.all([
-        this.supabaseService.getReportesPorDia(new Date()),
-        this.supabaseService.getProductos(true),
-        this.supabaseService.getProductosMasVendidos(5)
-      ]);
-      
-      this.metricas.ventasHoy = reporte.totalIngresos;
-      this.metricas.productosStock = productos.length;
-      
-      // ✅ SOLUCIÓN SIMPLE - Type assertion
-      this.productosMasVendidos = productosMasVendidos as productosMasVendidos[];
-      
-      console.log('📊 Datos actualizados correctamente');
-      
-    } catch (error) {
-      console.error('❌ Error cargando datos del dashboard:', error);
-      this.mostrarError('Error al cargar datos del dashboard. Reintentando...');
-      setTimeout(() => this.cargarDatosReales(), 5000);
+  // En inicio.ts - método cargarDatosReales
+async cargarDatosReales() {
+  try {
+    console.log('🔄 Cargando datos reales del dashboard...');
+    
+    const [reporte, productos, productosMasVendidos, totalEmpleados] = await Promise.all([
+      this.supabaseService.getReportesPorDia(new Date()),
+      this.supabaseService.getProductos(true),
+      this.supabaseService.getProductosMasVendidos(5),
+      this.supabaseService.contarEmpleadosActivos()
+    ]);
+    
+    console.log('🔍 REPORTE HOY:', reporte);
+    
+    // Actualizar métricas
+    this.metricas.ventasHoy = reporte.totalIngresos;
+    this.metricas.productosStock = productos.length;
+    this.metricas.empleadosActivos = totalEmpleados;
+    
+    this.productosMasVendidos = productosMasVendidos as productosMasVendidos[];
+    
+    // ✅ SOLUCIÓN: Obtener ventas semanales CORRECTAS usando reportes individuales
+    const ventasSemanalesCorregidas = await this.obtenerVentasSemanalesCorrectas();
+    console.log('✅ VENTAS SEMANALES CORREGIDAS:', ventasSemanalesCorregidas);
+    
+    this.actualizarGraficoVentas(ventasSemanalesCorregidas, reporte.totalIngresos);
+    
+  } catch (error) {
+    console.error('❌ Error cargando datos del dashboard:', error);
+  }
+}
+
+/**
+ * Obtiene ventas semanales CORRECTAS usando reportes individuales
+ */
+private async obtenerVentasSemanalesCorrectas(): Promise<{ [key: string]: number }> {
+  const ventasSemanales: { [key: string]: number } = {};
+  
+  // Obtener reportes para los últimos 7 días
+  const promesasReportes = [];
+  
+  for (let i = 6; i >= 0; i--) {
+    const fecha = new Date();
+    fecha.setDate(fecha.getDate() - i);
+    promesasReportes.push(this.supabaseService.getReportesPorDia(fecha));
+  }
+  
+  try {
+    const reportes = await Promise.all(promesasReportes);
+    
+    for (let i = 6; i >= 0; i--) {
+      const fecha = new Date();
+      fecha.setDate(fecha.getDate() - i);
+      const fechaKey = fecha.toISOString().split('T')[0];
+      ventasSemanales[fechaKey] = reportes[6 - i].totalIngresos; // reportes[6-i] porque el array está en orden inverso
+    }
+    
+  } catch (error) {
+    console.error('Error obteniendo reportes semanales:', error);
+    // En caso de error, llenar con ceros
+    for (let i = 6; i >= 0; i--) {
+      const fecha = new Date();
+      fecha.setDate(fecha.getDate() - i);
+      const fechaKey = fecha.toISOString().split('T')[0];
+      ventasSemanales[fechaKey] = 0;
     }
   }
+  
+  return ventasSemanales;
+}
 
   private mostrarError(mensaje: string) {
     console.warn('⚠️ Error para el usuario:', mensaje);
   }
 
   private suscribirCambiosTiempoReal() {
-    console.log('🔔 Suscribiéndose a cambios en tiempo real...');
-    
-    const subVentas = this.supabaseService.suscribirCambiosVentas(() => {
-      console.log('💰 Nueva venta detectada, actualizando dashboard...');
-      this.cargarDatosReales();
-    });
+  console.log('🔔 Suscribiéndose a cambios en tiempo real...');
+  
+  const subVentas = this.supabaseService.suscribirCambiosVentas(() => {
+    console.log('💰 Nueva venta detectada, actualizando dashboard...');
+    this.cargarDatosReales();
+  });
 
-    const subProductos = this.supabaseService.suscribirCambiosProductos(() => {
-      console.log('📦 Stock actualizado, actualizando dashboard...');
-      this.cargarDatosReales();
-    });
+  const subProductos = this.supabaseService.suscribirCambiosProductos(() => {
+    console.log('📦 Stock actualizado, actualizando dashboard...');
+    this.cargarDatosReales();
+  });
 
-    this.subscriptions.push(subVentas, subProductos);
-  }
+  // ✅ NUEVO: Suscribirse a cambios en empleados
+  const subEmpleados = this.supabaseService.suscribirCambiosEmpleados(() => {
+    console.log('👥 Empleado agregado/eliminado, actualizando dashboard...');
+    this.cargarDatosReales();
+  });
+
+  this.subscriptions.push(subVentas, subProductos, subEmpleados);
+}
 
   private crearGraficoVentas() {
-    const ctx = document.getElementById('ventasChart') as HTMLCanvasElement;
-    if (!ctx) return;
-    
-    this.ventasChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-        datasets: [{
-          label: 'Ventas ($)',
-          data: [1200, 1900, 1500, 2200, 1800, 2500, 2100],
-          backgroundColor: 'rgba(198, 43, 102, 0.8)',
-          borderColor: 'rgba(198, 43, 102, 1)',
-          borderWidth: 1,
-          barPercentage: 0.6,
-          categoryPercentage: 0.8
-        }]
+  const ctx = document.getElementById('ventasChart') as HTMLCanvasElement;
+  if (!ctx) return;
+  
+  this.ventasChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+      datasets: [{
+        label: 'Ventas ($)',
+        data: [500, 600, 700, 800, 900, 1000, 1100],
+        backgroundColor: 'rgba(241, 99, 222, 0.9)',
+        borderColor: 'rgba(241, 99, 222, 0.9)',
+        borderWidth: 2,
+        barPercentage: 0.6,
+        categoryPercentage: 0.7,
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+          padding: 12,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              const valor = context.parsed.y;
+              return `Ventas: $${(valor || 0).toLocaleString('es-MX', { 
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2 
+              })}`;
+            }
+          }
+        }
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false
+      scales: {
+        y: {
+          beginAtZero: true,
+          min: 0,
+          // ❌ ELIMINAR ESTA LÍNEA: max: 1200,
+          grid: {
+            color: 'rgba(226, 232, 240, 1)',
+            drawTicks: false
+          },
+          ticks: {
+            callback: function(value) {
+              return `$${Number(value).toLocaleString('es-MX')}`;
+            },
+            font: {
+              size: 11
+            },
+            color: 'rgb(100, 116, 139)'
           }
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: {
-              color: 'rgba(0, 0, 0, 0.1)'
-            }
+        x: {
+          grid: {
+            display: false
           },
-          x: {
-            grid: {
-              display: false
-            }
+          ticks: {
+            font: {
+              size: 12,
+              family: "'Inter', sans-serif"
+            },
+            color: 'rgb(30, 41, 59)'
           }
         }
-      }
-    });
-  }
-
-  private crearGraficoCategorias() {
-    const ctx = document.getElementById('categoriasChart') as HTMLCanvasElement;
-    if (!ctx) return;
-    
-    this.categoriasChart = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        labels: ['Pasteles', 'Cupcakes', 'Galletas', 'Postres', 'Bebidas'],
-        datasets: [{
-          data: [35, 25, 20, 15, 5],
-          backgroundColor: [
-            'rgba(198, 43, 102, 0.8)',
-            'rgba(255, 159, 64, 0.8)',
-            'rgba(75, 192, 192, 0.8)',
-            'rgba(54, 162, 235, 0.8)',
-            'rgba(153, 102, 255, 0.8)'
-          ],
-          borderColor: [
-            'rgba(198, 43, 102, 1)',
-            'rgba(255, 159, 64, 1)',
-            'rgba(75, 192, 192, 1)',
-            'rgba(54, 162, 235, 1)',
-            'rgba(153, 102, 255, 1)'
-          ],
-          borderWidth: 1
-        }]
       },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          }
-        }
+      animation: {
+        duration: 800,
+        easing: 'easeOutQuart'
       }
-    });
-  }
+    }
+  });
+}
 
   /**
    * Método para actualización manual
@@ -210,29 +270,6 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
       
     } catch (error) {
       console.error('❌ Error cargando datos para gráfico de ventas:', error);
-    }
-  }
-
-  /**
-   * ✨ NUEVO: Cargar datos reales para gráfico de categorías
-   */
-  async cargarDatosGraficoCategorias() {
-    try {
-      const ventasPorCategoria = await this.supabaseService.getVentasPorCategoria();
-      
-      // Formatear datos para el gráfico de donut
-      const { labels, datos, colores } = this.formatearDatosCategoriasParaGrafico(ventasPorCategoria);
-      
-      // Actualizar gráfico si existe
-      if (this.categoriasChart) {
-        this.categoriasChart.data.labels = labels;
-        this.categoriasChart.data.datasets[0].data = datos;
-        this.categoriasChart.data.datasets[0].backgroundColor = colores;
-        this.categoriasChart.update('none');
-      }
-      
-    } catch (error) {
-      console.error('❌ Error cargando datos para gráfico de categorías:', error);
     }
   }
 
@@ -270,28 +307,88 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
     return datos;
   }
 
-  /**
-   * ✨ NUEVO: Formatear datos de categorías para el gráfico
-   */
-  private formatearDatosCategoriasParaGrafico(ventasPorCategoria: any) {
-    const coloresBase = [
-      'rgba(198, 43, 102, 0.8)',
-      'rgba(255, 159, 64, 0.8)',
-      'rgba(75, 192, 192, 0.8)',
-      'rgba(54, 162, 235, 0.8)',
-      'rgba(153, 102, 255, 0.8)',
-      'rgba(201, 203, 207, 0.8)',
-      'rgba(255, 205, 86, 0.8)'
-    ];
-    
-    const categorias = Object.keys(ventasPorCategoria);
-    const datos = Object.values(ventasPorCategoria) as number[];
-    const colores = categorias.map((_, index) => coloresBase[index % coloresBase.length]);
-    
-    return {
-      labels: categorias,
-      datos: datos,
-      colores: colores
-    };
+
+/**
+ * ✨ ACTUALIZA el gráfico con datos REALES de ventas
+ */
+private actualizarGraficoVentas(ventasData: any, ventasHoy: number) {
+  console.log('🔍 DATOS CRUDOS PARA GRÁFICO:', ventasData);
+  console.log('🔍 VENTAS HOY CORRECTAS:', ventasHoy);
+  
+  if (!this.ventasChart) {
+    console.log('❌ No hay gráfico inicializado');
+    return;
   }
+  
+  try {
+    const { labels, datos } = this.formatearDatosParaGrafico(ventasData);
+    
+    const datosCorregidos = [...datos];
+    datosCorregidos[datosCorregidos.length - 1] = ventasHoy;
+    
+    console.log('✅ DATOS CORREGIDOS:', datosCorregidos);
+    
+    // ✅ CALCULAR MÁXIMO DINÁMICO
+    const maxValor = Math.max(...datosCorregidos);
+    const maxEjeY = maxValor * 1.2; // 20% más alto que el valor máximo
+    
+    this.ventasChart.data.labels = labels;
+    this.ventasChart.data.datasets[0].data = datosCorregidos;
+    this.ventasChart.data.datasets[0].backgroundColor = datosCorregidos.map((valor: number) => 
+      valor === 0 ? 'rgba(200, 200, 200, 0.5)' : 'rgba(241, 99, 222, 0.9)'
+    );
+    
+    // ✅ ACTUALIZAR MÁXIMO DEL EJE Y
+    this.ventasChart.options.scales.y.max = maxEjeY;
+    
+    this.ventasChart.update('active');
+    console.log('🎯 GRÁFICO ACTUALIZADO CON MÁXIMO DINÁMICO:', maxEjeY);
+    
+  } catch (error) {
+    console.error('❌ Error actualizando gráfico:', error);
+  }
+}
+
+/**
+ * ✨ FORMATEA datos de ventas para el gráfico
+ */
+private formatearDatosParaGrafico(ventasPorDia: { [key: string]: number }) {
+  const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const labels = [];
+  const datos = [];
+  
+  // ✅ CORRECCIÓN: Generar últimos 7 días correctamente
+  const hoy = new Date();
+  
+  for (let i = 6; i >= 0; i--) {
+    const fecha = new Date(hoy);
+    fecha.setDate(fecha.getDate() - i);
+    
+    // ✅ FORMATO CORRECTO: YYYY-MM-DD
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    const diaKey = `${year}-${month}-${day}`;
+    
+    const nombreDia = dias[fecha.getDay()];
+    
+    labels.push(`${nombreDia} ${day}`);
+    
+    // ✅ Obtener venta del día
+    const ventaDelDia = ventasPorDia[diaKey] || 0;
+    datos.push(ventaDelDia);
+    
+    console.log(`📅 Día ${i}: ${diaKey} (${nombreDia} ${day}) = ${ventaDelDia}`);
+  }
+  
+  console.log('💰 Datos finales para gráfico:', datos);
+  console.log('📅 Labels finales:', labels);
+  console.log('📆 HOY ES:', hoy.toISOString().split('T')[0]);
+  
+  return { labels, datos };
+}
+
+
+
+
 }

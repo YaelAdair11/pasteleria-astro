@@ -105,8 +105,19 @@ export class SupabaseService {
       .single();
   }
 
-  // =================== EMPLEADOS ===================
+  // =================== EMPLEADOS / PERFILES ===================
   
+  // ✅ NUEVO: Obtener todos los perfiles (para el filtro de vendedores)
+  async getPerfiles() {
+    const { data, error } = await this.supabase
+      .from('perfiles')
+      .select('*') // Traemos todo para tener ID y Username
+      .order('username', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
+  }
+
   async getEmpleados(): Promise<Empleado[]> {
     const { data, error } = await this.supabase
       .from('perfiles')
@@ -119,43 +130,51 @@ export class SupabaseService {
   }
 
   async crearEmpleado(empleadoData: any) {
-    console.log("Servicio: Insertando en 'perfiles':", empleadoData);
-    const { data, error } = await this.supabase
-      .from('perfiles')
-      .insert([
-        { 
-          username: empleadoData.username,
-          email: empleadoData.email,
-          rol: 'empleado' 
-        }
-      ])
-      .select('id, username, email, avatar, rol') 
-      .single(); 
+    console.log("Servicio: Creando USUARIO DE AUTH con:", empleadoData.email);
 
-    if (error) {
-      console.error("Error en insert:", error.message);
-      return { data: null, error: error }; 
+    // PASO 1: Auth
+    const { data: authData, error: authError } = await this.supabase.auth.signUp({
+      email: empleadoData.email,
+      password: empleadoData.password
+    });
+
+    if (authError) {
+      if (authError.message.includes("User already registered")) {
+        return { data: null, error: new Error('Este email ya está registrado.') };
+      }
+      return { data: null, error: authError };
     }
-    return { data: [data], error: null };
+
+    if (!authData.user) {
+      return { data: null, error: new Error('No se pudo crear el usuario en Auth.') };
+    }
+
+    // PASO 2: Perfil
+    const { data: profileData, error: profileError } = await this.supabase
+      .from('perfiles')
+      .insert({
+        id: authData.user.id, 
+        username: empleadoData.username,
+        rol: empleadoData.rol
+      })
+      .select('id, username, email, avatar, rol') 
+      .single();
+
+    if (profileError) {
+      return { data: null, error: new Error('Se creó Auth pero falló perfil: ' + profileError.message) };
+    }
+
+    const fullProfile = { ...profileData, email: authData.user.email };
+    return { data: [fullProfile], error: null };
   }
 
   async borrarEmpleado(id: string) {
-    console.log("Servicio: Borrando empleado con ID:", id);
-    const { error } = await this.supabase
-      .from('perfiles')
-      .delete()
-      .eq('id', id); 
-
-    if (error) {
-      console.error("Error en delete:", error.message);
-      return { error: error };
-    }
+    const { error } = await this.supabase.from('perfiles').delete().eq('id', id); 
+    if (error) return { error: error };
     return { error: null }; 
   }
 
   async updateEmpleado(id: string, empleadoData: any) {
-    console.log("Servicio: Actualizando empleado con ID:", id);
-
     const { data, error } = await this.supabase
       .from('perfiles')
       .update({ 
@@ -166,61 +185,38 @@ export class SupabaseService {
       .select('id, username, email, avatar, rol')
       .single();
 
-    if (error) {
-      console.error("Error en update:", error.message);
-      return { data: null, error: error };
-    }
-    
+    if (error) return { data: null, error: error };
     return { data: data, error: null };
   }
 
   async contarEmpleadosActivos(): Promise<number> {
-  try {
-    const { data, error } = await this.supabase
-      .from('perfiles')
-      .select('id', { count: 'exact' })
-      .eq('rol', 'empleado'); // ✅ Contar solo empleados
+    try {
+      const { count, error } = await this.supabase
+        .from('perfiles')
+        .select('*', { count: 'exact', head: true }) 
+        .eq('rol', 'empleado');
 
-    if (error) {
-      console.error('❌ Error contando empleados:', error);
+      if (error) return 0;
+      return count || 0;
+    } catch (error) {
       return 0;
     }
-
-    console.log('✅ Empleados activos encontrados:', data?.length || 0);
-    return data?.length || 0;
-  } catch (error) {
-    console.error('❌ Error en contarEmpleadosActivos:', error);
-    return 0;
   }
-}
 
   // =================== AGENDA / TURNOS ===================
 
-  /**
-   * Obtiene TODOS los turnos guardados de la agenda.
-   */
   async getAgendaSemanal() {
     const { data, error } = await this.supabase
       .from('agenda_turnos')
       .select('empleado_id, dia_semana, tarea');
-
-    if (error) {
-      console.error('Error cargando agenda:', error);
-      throw error;
-    }
+    if (error) throw error;
     return data ?? [];
   }
 
-  /**
-   * Inserta o actualiza (Upsert) un turno específico para un empleado.
-   * Si la 'tarea' está vacía, lo trata como un borrado.
-   */
   async upsertTurno(empleado_id: string, dia_semana: number, tarea: string) {
-    
     if (!tarea || tarea.trim() === '') {
       return this.borrarTurno(empleado_id, dia_semana);
     }
-
     const { error } = await this.supabase
       .from('agenda_turnos')
       .upsert({
@@ -230,53 +226,32 @@ export class SupabaseService {
       }, {
         onConflict: 'empleado_id, dia_semana'
       });
-      
-    if (error) {
-      console.error('Error guardando turno:', error);
-      throw error;
-    }
+    if (error) throw error;
     return { success: true };
   }
 
-  /**
-   * Borra un turno específico de la agenda.
-   */
   async borrarTurno(empleado_id: string, dia_semana: number) {
     const { error } = await this.supabase
       .from('agenda_turnos')
       .delete()
-      .match({
-        empleado_id: empleado_id,
-        dia_semana: dia_semana
-      });
-
-    if (error) {
-      console.error('Error borrando turno:', error);
-      throw error;
-    }
+      .match({ empleado_id: empleado_id, dia_semana: dia_semana });
+    if (error) throw error;
     return { success: true };
   }
 
   // =================== PRODUCTOS ===================
-  async getProductos(admin = false): Promise<Producto[]> { // Especificamos el tipo de retorno
+  async getProductos(admin = false): Promise<Producto[]> {
     let query = this.supabase
       .from('productos')
       .select(`*, categoria:categorias ( id, nombre )`)
       .order('nombre', { ascending: true });
 
-    // Solo filtrar los activos si NO es admin
      if (!admin) {
       query = query.eq('activo', true);
     }
 
     const { data, error } = await query;
-
-    if (error) {
-      console.error('Error en getProductos:', error);
-      throw error;
-    }
-    
-    // El 'data' ya coincide con el modelo Producto (con 'categorias' anidado)
+    if (error) throw error;
     return data as Producto[];
   }
 
@@ -284,8 +259,7 @@ export class SupabaseService {
     const { data, error } = await this.supabase
       .from('productos')
       .insert(producto)
-      .select()
-      .single();
+      .select().single();
     if (error) throw error;
     return data;
   }
@@ -295,141 +269,87 @@ export class SupabaseService {
       .from('productos')
       .update(cambios)
       .eq('id', id)
-      .select()
-      .single();
+      .select().single();
     if (error) throw error;
     return data;
   }
 
   async deleteProducto(id: string) {
-    const { error } = await this.supabase
-      .from('productos')
-      .delete()
-      .eq('id', id);
+    const { error } = await this.supabase.from('productos').delete().eq('id', id);
     if (error) throw error;
   }
 
   async uploadImagenProducto(file: File): Promise<string> {
-    
     const BUCKET_NAME = 'productos';
-
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
     const filePath = `${fileName}`;
 
     const { error: uploadError } = await this.supabase.storage
       .from(BUCKET_NAME)
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: false,
-      });
+      .upload(filePath, file, { cacheControl: '3600', upsert: false });
 
-    if (uploadError) {
-      console.error('Error subiendo archivo:', uploadError);
-      throw uploadError;
-    }
+    if (uploadError) throw uploadError;
 
-    const { data } = this.supabase.storage
-      .from(BUCKET_NAME)
-      .getPublicUrl(filePath);
-
-    if (!data || !data.publicUrl) {
-      throw new Error('No se pudo obtener la URL pública.');
-    }
-
+    const { data } = this.supabase.storage.from(BUCKET_NAME).getPublicUrl(filePath);
+    if (!data || !data.publicUrl) throw new Error('No se pudo obtener la URL pública.');
     return data.publicUrl;
   }
 
   async deleteImagenProducto(publicUrl: string | null | undefined): Promise<void> {
-    
-    if (!publicUrl) {
-      console.log('No hay URL pública, no se borra nada.');
-      return;
-    }
-
+    if (!publicUrl) return;
     const BUCKET_NAME = 'productos';
-    
     try {
       const path = publicUrl.split(`/${BUCKET_NAME}/`)[1];
-      
-      if (!path) {
-        console.warn('No se pudo extraer el path del archivo de la URL:', publicUrl);
-        return;
-      }
-
-      const { error } = await this.supabase.storage
-        .from(BUCKET_NAME)
-        .remove([path]);
-
-      if (error) {
-        throw error;
-      }
-      
-      console.log('Imagen antigua borrada exitosamente:', path);
-
+      if (!path) return;
+      await this.supabase.storage.from(BUCKET_NAME).remove([path]);
     } catch (error) {
       console.error('Error borrando imagen antigua:', error);
     }
   }
 
   // =================== CATEGORÍAS ===================
-  
   async getCategorias() {
     const { data, error } = await this.supabase
       .from('categorias')
       .select('id, nombre')
       .order('nombre', { ascending: true });
-
     if (error) throw error;
     return data;
   }
 
-  async addCategoria(categoria: any) {
-    const { data, error } = await this.supabase
-      .from('categorias')
-      .insert(categoria)
-      .select();
+  async addCategoria(nombre: string) { 
+    const { error } = await this.supabase.from('categorias').insert({ nombre: nombre });
     if (error) throw error;
-    return data;
+  }
+  
+  async updateCategoria(id: string, nombre: string) { 
+    const { error } = await this.supabase.from('categorias').update({ nombre: nombre }).eq('id', id);
+    if (error) throw error;
   }
 
-  async updateCategoria(id: string, cambios: any) {
-    const { data, error } = await this.supabase
-      .from('categorias')
-      .update(cambios)
-      .eq('id', id)
-      .select();
-    if (error) throw error;
-    return data;
-  }
-
-  async deleteCategoria(id: string) {
-    const { error } = await this.supabase
-      .from('categorias')
-      .delete()
-      .eq('id', id);
+  async deleteCategoria(id: string) { 
+    const { error } = await this.supabase.from('categorias').delete().eq('id', id);
     if (error) throw error;
   }
 
   // =================== VENTAS ===================
 
   /**
-   * Obtiene el historial de ventas, con el nombre del producto relacionado.
-   * Puede filtrar por el nombre del producto.
+   * ✅ ACTUALIZADO: Obtiene el historial de ventas, INCLUYENDO EL VENDEDOR.
    */
   async getVentas(filtro: string = '') {
+    // 1. Quitamos "perfiles ( username )" porque tu tabla ventas no tiene la columna de usuario todavía.
     let query = this.supabase
       .from('ventas')
-      .select('id, cantidad, metodo_pago, total, fecha, productos(nombre)')
+      .select(`
+        *,
+        productos!inner ( nombre )
+      `) 
       .order('fecha', { ascending: false });
 
-    // Aplicamos el filtro si existe
     if (filtro && filtro.trim()) {
-      query = query.filter(
-        'productos.nombre',
-        'ilike',
-        `%${filtro.trim()}%`
-      );
+      query = query.filter('productos.nombre', 'ilike', `%${filtro.trim()}%`);
     }
 
     const { data, error } = await query;
@@ -438,89 +358,52 @@ export class SupabaseService {
       console.error('Error en getVentas:', error);
       throw new Error(error.message);
     }
-
     return data;
   }
 
-  /**
-   * ✨ NUEVA: Obtiene los productos más vendidos con datos REALES
-   * Agrupa las ventas por producto y suma las cantidades
-   */
-async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[]> {
-  try {
-    console.log('📊 Obteniendo productos más vendidos...');
-    
-    const { data: ventas, error } = await this.supabase
-      .from('ventas')
-      .select(`
-        producto_id, 
-        cantidad, 
-        productos:producto_id (
-          nombre, 
-          descripcion,
-          precio, 
-          stock, 
-          imagen,          
-          activo,
-          categoria_id,
-          categorias:categoria_id (
-            nombre
+  async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[]> {
+    try {
+      const { data: ventas, error } = await this.supabase
+        .from('ventas')
+        .select(`
+          producto_id, 
+          cantidad,
+          productos!inner (
+            nombre, precio, stock, imagen, categorias!inner ( nombre )
           )
-        )
-      `)
-      .eq('productos.activo', true)
-      .order('fecha', { ascending: false });
+        `)
+        .eq('productos.activo', true);
 
-    if (error) {
-      console.error('❌ Error en query productos más vendidos:', error);
+      if (error) return [];
+      if (!ventas || ventas.length === 0) return [];
+
+      const ventasPorProducto = ventas.reduce((acc: any, venta: any) => {
+        const pid = venta.producto_id;
+        if (!acc[pid]) {
+          acc[pid] = {
+            producto_id: pid,
+            nombre: venta.productos?.nombre,
+            categoria: venta.productos?.categorias?.nombre,
+            stock: venta.productos?.stock,
+            precio: venta.productos?.precio,
+            productos: venta.productos,
+            imagen: venta.productos?.imagen,
+            totalVendido: 0
+          };
+        }
+        acc[pid].totalVendido += venta.cantidad;
+        return acc;
+      }, {});
+
+      return Object.values(ventasPorProducto)
+        .sort((a: any, b: any) => b.totalVendido - a.totalVendido)
+        .slice(0, limite) as productosMasVendidos[];
+
+    } catch (error) {
       return [];
     }
-
-    if (!ventas || ventas.length === 0) {
-      console.log('ℹ️ No hay ventas registradas');
-      return [];
-    }
-
-    console.log('✅ Ventas encontradas:', ventas.length);
-
-    // Agrupar por producto_id y sumar cantidades
-    const ventasPorProducto = ventas.reduce((acc: any, venta: any) => {
-      const productoId = venta.producto_id;
-      
-      if (!acc[productoId]) {
-        acc[productoId] = {
-          producto_id: productoId,
-          nombre: venta.productos?.nombre || 'Producto no encontrado',
-          descripcion: venta.productos?.descripcion || '',
-          categoria: venta.productos?.categorias?.nombre || 'Sin categoría',
-          stock: venta.productos?.stock || 0,
-          precio: venta.productos?.precio || 0,
-          imagen: venta.productos?.imagen || undefined, // ✅ CAMBIADO: imagen_url → imagen
-          totalVendido: 0
-        };
-      }
-      
-      acc[productoId].totalVendido += venta.cantidad;
-      return acc;
-    }, {});
-
-    // Convertir a array, ordenar y limitar
-    const productosOrdenados = Object.values(ventasPorProducto)
-      .sort((a: any, b: any) => b.totalVendido - a.totalVendido)
-      .slice(0, limite);
-
-    console.log('🏆 Productos más vendidos procesados:', productosOrdenados.length);
-    return productosOrdenados as productosMasVendidos[];
-
-  } catch (error) {
-    console.error('❌ Error en getProductosMasVendidos:', error);
-    return [];
   }
-}
 
-  /**
-   * Obtiene reportes de ventas por día específico
-   */
   async getReportesPorDia(fecha: Date) {
     const dia = new Date(fecha);
     const inicioDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 0, 0, 0).toISOString();
@@ -532,25 +415,31 @@ async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[
       .gte('fecha', inicioDelDia)
       .lte('fecha', finDelDia);
 
-    if (error) {
-      console.error('Error en getReportesPorDia:', error);
-      throw new Error(error.message);
-    }
+    if (error) throw new Error(error.message);
 
     const totalVentas = data.length;
     const totalIngresos = data.reduce((acc, v) => acc + v.total, 0);
     const ticketPromedio = totalVentas > 0 ? totalIngresos / totalVentas : 0;
 
-    return {
-      totalIngresos,
-      totalVentas,
-      ticketPromedio
-    };
+    return { totalIngresos, totalVentas, ticketPromedio };
   }
 
-  /**
-   * ✨ NUEVA: Obtiene ventas de los últimos N días (para gráficos)
-   */
+  async getVentasPorFecha(fecha: Date) {
+    const dia = new Date(fecha);
+    const inicioDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 0, 0, 0).toISOString();
+    const finDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 23, 59, 59).toISOString();
+
+    const { data, error } = await this.supabase
+      .from('ventas')
+      .select('id, cantidad, total, metodo_pago, fecha, productos(nombre, precio)') 
+      .gte('fecha', inicioDelDia)
+      .lte('fecha', finDelDia)
+      .order('fecha', { ascending: false });
+
+    if (error) throw new Error(error.message);
+    return data || [];
+  }
+
   async getVentasUltimosDias(dias: number = 7) {
     try {
       const hoy = new Date();
@@ -564,154 +453,99 @@ async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[
         .gte('fecha', fechaInicio.toISOString())
         .order('fecha', { ascending: true });
 
-      if (error) throw error;
-
-      // Agrupar por día
-      const ventasPorDia: { [key: string]: number } = {};
-      
-      data.forEach((venta: any) => {
-        const fecha = new Date(venta.fecha);
-        const dia = fecha.toISOString().split('T')[0]; // YYYY-MM-DD
-        
-        if (!ventasPorDia[dia]) {
-          ventasPorDia[dia] = 0;
+      if (error) return {};
+      if (!data || data.length === 0) {
+        const ventasVacias: { [key: string]: number } = {};
+        for (let i = 6; i >= 0; i--) {
+          const f = new Date();
+          f.setDate(f.getDate() - i);
+          ventasVacias[f.toISOString().split('T')[0]] = 0;
         }
-        ventasPorDia[dia] += venta.total;
+        return ventasVacias;
+      }
+
+      const ventasPorDia: { [key: string]: number } = {};
+      data.forEach((venta: any) => {
+        const d = new Date(venta.fecha).toISOString().split('T')[0];
+        if (!ventasPorDia[d]) ventasPorDia[d] = 0;
+        ventasPorDia[d] += venta.total;
       });
-
       return ventasPorDia;
-
     } catch (error) {
-      console.error('Error en getVentasUltimosDias:', error);
-      throw error;
+      return {};
     }
   }
 
-  /**
-   * ✨ NUEVA: Obtiene ventas agrupadas por categoría (para gráfico de donut)
-   */
   async getVentasPorCategoria() {
     try {
       const { data, error } = await this.supabase
         .from('ventas')
         .select('cantidad, productos(categoria)');
 
-      if (error) throw error;
-      if (!data || data.length === 0) return {};
+      if (error || !data) return {};
 
-      // Agrupar por categoría
       const ventasPorCategoria: { [key: string]: number } = {};
-      
       data.forEach((venta: any) => {
         const categoria = venta.productos?.categoria || 'Sin categoría';
-        
-        if (!ventasPorCategoria[categoria]) {
-          ventasPorCategoria[categoria] = 0;
-        }
+        if (!ventasPorCategoria[categoria]) ventasPorCategoria[categoria] = 0;
         ventasPorCategoria[categoria] += venta.cantidad;
       });
-
       return ventasPorCategoria;
-
     } catch (error) {
-      console.error('Error en getVentasPorCategoria:', error);
       throw error;
     }
   }
 
-  /**
- * ✨ NUEVO: Registrar venta con actualización automática de stock
- */
-async registrarVentaConStock(ventaData: any) {
-  try {
-    console.log('🛒 Registrando venta con actualización de stock...');
-    
-    // 1. Obtener producto actual para verificar stock
-    const { data: producto, error: errorProducto } = await this.supabase
-      .from('productos')
-      .select('stock, nombre')
-      .eq('id', ventaData.producto_id)
-      .single();
+  async registrarVentaConStock(ventaData: any) {
+    try {
+      const { data: producto, error: errorProducto } = await this.supabase
+        .from('productos')
+        .select('stock, nombre')
+        .eq('id', ventaData.producto_id)
+        .single();
 
-    if (errorProducto) throw new Error(`Producto no encontrado: ${errorProducto.message}`);
-    if (!producto) throw new Error('Producto no existe');
-    if (producto.stock < ventaData.cantidad) {
-      throw new Error(`Stock insuficiente. Disponible: ${producto.stock}, Solicitado: ${ventaData.cantidad}`);
+      if (errorProducto || !producto) throw new Error('Producto no existe');
+      if (producto.stock < ventaData.cantidad) throw new Error(`Stock insuficiente.`);
+
+      const { data: venta, error: errorVenta } = await this.supabase
+        .from('ventas')
+        .insert([{
+          producto_id: ventaData.producto_id,
+          cantidad: ventaData.cantidad,
+          total: ventaData.total,
+          metodo_pago: ventaData.metodo_pago,
+          fecha: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (errorVenta) throw new Error(`Error al registrar venta`);
+
+      const nuevoStock = producto.stock - ventaData.cantidad;
+      await this.supabase.from('productos').update({ stock: nuevoStock }).eq('id', ventaData.producto_id);
+      
+      return venta;
+    } catch (error) {
+      throw error;
     }
-
-    // 2. Insertar la venta
-    const { data: venta, error: errorVenta } = await this.supabase
-      .from('ventas')
-      .insert([{
-        producto_id: ventaData.producto_id,
-        cantidad: ventaData.cantidad,
-        total: ventaData.total,
-        metodo_pago: ventaData.metodo_pago,
-        fecha: new Date().toISOString()
-      }])
-      .select()
-      .single();
-
-    if (errorVenta) throw new Error(`Error al registrar venta: ${errorVenta.message}`);
-
-    // 3. Actualizar stock del producto
-    const nuevoStock = producto.stock - ventaData.cantidad;
-    const { error: errorStock } = await this.supabase
-      .from('productos')
-      .update({ stock: nuevoStock })
-      .eq('id', ventaData.producto_id);
-
-    if (errorStock) throw new Error(`Error al actualizar stock: ${errorStock.message}`);
-
-    console.log(`✅ Venta registrada. Stock actualizado: ${producto.nombre} - ${producto.stock} → ${nuevoStock}`);
-    
-    return venta;
-
-  } catch (error) {
-    console.error('❌ Error en registrarVentaConStock:', error);
-    throw error;
   }
-}
 
   // =================== REALTIME ===================
-
-  /**
-   * Suscribirse a cambios en VENTAS
-   */
   suscribirCambiosVentas(callback: (payload: any) => void) {
-    return this.supabase
-      .channel('cambios-ventas-directo')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'ventas'
-        },
-        (payload) => {
-          console.log('💰 NUEVA VENTA EN TIEMPO REAL:', payload);
-          callback(payload);
-        }
-      )
+    return this.supabase.channel('cambios-ventas-directo')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'ventas' }, callback)
       .subscribe();
   }
 
-// Suscribirse a cambios en PRODUCTOS (para stock)
-suscribirCambiosProductos(callback: (payload: any) => void) {
-  return this.supabase
-    .channel('cambios-productos-directo')
-    .on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'productos'
-      },
-      (payload) => {
-        console.log(' PRODUCTO ACTUALIZADO:', payload);
-        callback(payload);
-      }
-    )
-    .subscribe();
-}
+  suscribirCambiosProductos(callback: (payload: any) => void) {
+    return this.supabase.channel('cambios-productos-directo')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'productos' }, callback)
+      .subscribe();
+  }
+
+  suscribirCambiosEmpleados(callback: (payload: any) => void) {
+    return this.supabase.channel('cambios-empleados-dashboard')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'perfiles' }, callback)
+      .subscribe();
+  }
 }

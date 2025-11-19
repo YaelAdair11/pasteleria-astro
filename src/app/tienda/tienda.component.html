@@ -1,6 +1,5 @@
-<!-- tienda.component.html -->
 <div class="tienda-container">
-  <!-- Header de la tienda -->
+  
   <header class="tienda-header">
     <div class="container">
       <div class="row align-items-center">
@@ -12,35 +11,42 @@
         </div>
         <div class="col-md-6 text-end">
           <div class="d-flex align-items-center justify-content-end gap-3">
-            
-            <!-- Loading indicator -->
-            <div *ngIf="loading" class="spinner-border spinner-border-sm text-light" role="status">
+            <div
+              *ngIf="loading"
+              class="spinner-border spinner-border-sm text-light"
+              role="status"
+            >
               <span class="visually-hidden">Cargando...</span>
             </div>
 
-            <!-- Barra de búsqueda -->
             <div class="search-bar">
-              <input type="text" 
-                     [(ngModel)]="terminoBusqueda" 
-                     (input)="filtrarProductos()"
-                     placeholder="Buscar productos..."
-                     class="form-control">
+              <input
+                type="text"
+                [(ngModel)]="terminoBusqueda"
+                (input)="filtrarProductos()"
+                placeholder="Buscar productos..."
+                class="form-control"
+              />
               <i class="fas fa-search search-icon"></i>
             </div>
-            
-            <!-- Botón carrito -->
-            <button class="btn btn-outline-light position-relative" 
-                    (click)="carritoAbierto = !carritoAbierto">
+
+            <button
+              class="btn btn-outline-light position-relative"
+              (click)="carritoAbierto = !carritoAbierto"
+            >
               <i class="fas fa-shopping-cart"></i>
-              <span *ngIf="getCantidadTotal() > 0" 
-                    class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                {{getCantidadTotal()}}
+              <span
+                *ngIf="getCantidadTotal() > 0"
+                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+              >
+                {{ getCantidadTotal() }}
               </span>
             </button>
-            
-            <!-- Botón filtros móvil -->
-            <button class="btn btn-outline-light d-md-none" 
-                    (click)="mostrarFiltros = !mostrarFiltros">
+
+            <button
+              class="btn btn-outline-light d-md-none"
+              (click)="mostrarFiltros = !mostrarFiltros"
+            >
               <i class="fas fa-filter"></i>
             </button>
           </div>
@@ -49,60 +55,82 @@
     </div>
   </header>
 
-  <!-- Error message -->
-  <div *ngIf="error" class="alert alert-danger m-3">
-    {{error}}
-    <button class="btn-close float-end" (click)="error = null"></button>
+  <div *ngIf="error" class="alert alert-danger m-3 alert-dismissible">
+    {{ error }}
+    <button
+      class="btn-close"
+      (click)="error = null"
+      aria-label="Cerrar"
+    ></button>
   </div>
 
   <div class="container-fluid mt-4">
     <div class="row">
-      <!-- Sidebar de filtros -->
-      <aside class="col-md-3" [class.d-none]="!mostrarFiltros" [class.d-md-block]="true">
+      
+      <aside
+        class="col-md-3"
+        [class.d-none]="!mostrarFiltros"
+        [class.d-md-block]="true"
+      >
         <div class="filters-card">
           <h5>Filtros</h5>
-          
-          <!-- Categorías -->
+
           <div class="filter-section">
-            <h6>Categorías</h6> <!-- Quitamos la clase 'product-category' de aquí -->
+            <h6>Categorías</h6>
             <div class="category-list">
-              <button class="category-btn" 
-                      [class.active]="categoriaSeleccionada === 'todos'"
-                      (click)="categoriaSeleccionada = 'todos'; filtrarProductos()">
+              <button
+                class="category-btn"
+                [class.active]="categoriaSeleccionada === 'todos'"
+                (click)="categoriaSeleccionada = 'todos'; filtrarProductos()"
+              >
                 Todos
               </button>
-              <button *ngFor="let categoria of categorias" 
-                      class="category-btn" 
-                      [class.active]="categoriaSeleccionada === categoria.id"
-                      (click)="categoriaSeleccionada = categoria.id; filtrarProductos()">
-                {{categoria.nombre}}
+              <button
+                *ngFor="let categoria of categorias"
+                class="category-btn"
+                [class.active]="categoriaSeleccionada === categoria.id"
+                (click)="
+                  categoriaSeleccionada = categoria.id; filtrarProductos()
+                "
+              >
+                {{ categoria.nombre }}
               </button>
             </div>
           </div>
-          
-          <!-- Rango de precios -->
+
           <div class="filter-section">
             <h6>Precio</h6>
             <div class="price-range">
-              <label>Mín: ${{precioMin}}</label>
-              <input type="range" [(ngModel)]="precioMin" 
-                     min="0" max="1000" step="10"
-                     (change)="filtrarProductos()"
-                     class="form-range">
-              <label>Máx: ${{precioMax}}</label>
-              <input type="range" [(ngModel)]="precioMax" 
-                     min="0" max="1000" step="10"
-                     (change)="filtrarProductos()"
-                     class="form-range">
+              <label>Mín: ${{ precioMin }}</label>
+              <input
+                type="range"
+                [(ngModel)]="precioMin"
+                min="0"
+                max="1000"
+                step="10"
+                (change)="filtrarProductos()"
+                class="form-range"
+              />
+              <label>Máx: ${{ precioMax }}</label>
+              <input
+                type="range"
+                [(ngModel)]="precioMax"
+                min="0"
+                max="1000"
+                step="10"
+                (change)="filtrarProductos()"
+                class="form-range"
+              />
             </div>
           </div>
-          
-          <!-- Ordenamiento -->
+
           <div class="filter-section">
             <h6>Ordenar por</h6>
-            <select [(ngModel)]="ordenSeleccionado" 
-                    (change)="ordenarProductos()"
-                    class="form-select">
+            <select
+              [(ngModel)]="ordenSeleccionado"
+              (change)="ordenarProductos()"
+              class="form-select"
+            >
               <option value="nombre">Nombre A-Z</option>
               <option value="precio-asc">Precio: Menor a Mayor</option>
               <option value="precio-desc">Precio: Mayor a Menor</option>
@@ -112,68 +140,90 @@
         </div>
       </aside>
 
-      <!-- Lista de productos -->
       <main class="col-md-9">
         <div class="products-header mb-4">
-          <h4>{{productosFiltrados.length}} productos encontrados</h4>
+          <h4>{{ productosFiltrados.length }} productos encontrados</h4>
         </div>
 
-        <!-- Loading state -->
-        <div *ngIf="loading" class="text-center py-5">
+        <div *ngIf="loading && checkoutStep === 'cart'" class="text-center py-5">
           <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Cargando productos...</span>
           </div>
           <p class="mt-3">Cargando productos...</p>
         </div>
 
-        <div class="row" *ngIf="!loading">
-          <div *ngFor="let producto of productosFiltrados" class="col-xl-3 col-lg-4 col-md-6 mb-4">
+        <div class="row" *ngIf="!loading || checkoutStep !== 'cart'">
+          <div
+            *ngFor="let producto of productosFiltrados"
+            class="col-xl-3 col-lg-4 col-md-6 mb-4"
+          >
             <div class="product-card">
-              <!-- Badges -->
               <div class="product-badges">
-                <span *ngIf="producto.destacado" class="badge bg-warning">Destacado</span>
+                <span *ngIf="producto.destacado" class="badge bg-warning"
+                  >Destacado</span
+                >
                 <span *ngIf="producto.stock <= 5" class="badge bg-danger">
                   ¡Últimas unidades!
                 </span>
               </div>
-              
-              <!-- Imagen -->
+
               <div class="product-image">
-                <img [src]="producto.imagen || '/images/placeholder-producto.jpg'" 
-                     [alt]="producto.nombre"
-                     (error)="producto.imagen = '/images/placeholder-producto.jpg'">
+                <img
+                  [src]="producto.imagen || '/images/placeholder-producto.jpg'"
+                  [alt]="producto.nombre"
+                  (error)="producto.imagen = '/images/placeholder-producto.jpg'"
+                />
                 <div class="product-overlay">
-                  <button class="btn btn-primary btn-sm" 
-                          (click)="agregarAlCarrito(producto)"
-                          [disabled]="producto.stock <= 0">
-                    <i class="fas fa-cart-plus"></i> 
-                    {{producto.stock > 0 ? 'Agregar' : 'Sin Stock'}}
+                  <button
+                    class="btn btn-primary btn-sm"
+                    (click)="agregarAlCarrito(producto)"
+                    [disabled]="producto.stock <= 0"
+                  >
+                    <i class="fas fa-cart-plus"></i>
+                    {{ producto.stock > 0 ? 'Agregar' : 'Sin Stock' }}
                   </button>
                 </div>
               </div>
-              
-              <!-- Información -->
+
               <div class="product-info">
-                <h6 class="product-category">{{getNombreCategoria(producto)}}</h6> <!-- Cambiado a usar el método -->
-                <h5 class="product-title">{{producto.nombre}}</h5>
-                <p class="product-description">{{producto.descripcion}}</p>
-                
-                <!-- Rating -->
+                <h6 class="product-category">
+                  {{ getNombreCategoria(producto) }}
+                </h6>
+                <h5 class="product-title">{{ producto.nombre }}</h5>
+                <p class="product-description">{{ producto.descripcion }}</p>
+
                 <div class="product-rating" *ngIf="producto.rating">
-                  <div class="stars" [innerHTML]="generarEstrellas(producto.rating)"></div>
-                  <span class="rating-text">({{producto.rating}})</span>
+                  <div
+                    class="stars"
+                    [innerHTML]="generarEstrellas(producto.rating)"
+                  ></div>
+                  <span class="rating-text">({{ producto.rating }})</span>
                 </div>
-                
-                <!-- Precio -->
+
                 <div class="product-price">
-                  <span class="current-price">${{producto.precio}}</span>
+                  <span class="current-price">${{ producto.precio }}</span>
                 </div>
-                
-                <!-- Stock -->
+
                 <div class="product-stock">
-                  <span [class]="producto.stock > 10 ? 'text-success' : producto.stock > 0 ? 'text-warning' : 'text-danger'">
-                    {{producto.stock > 10 ? 'En stock' : producto.stock > 0 ? 'Últimas unidades' : 'Agotado'}}
-                    <small *ngIf="producto.stock > 0">({{producto.stock}} disponibles)</small>
+                  <span
+                    [class]="
+                      producto.stock > 10
+                        ? 'text-success'
+                        : producto.stock > 0
+                        ? 'text-warning'
+                        : 'text-danger'
+                    "
+                  >
+                    {{
+                      producto.stock > 10
+                        ? 'En stock'
+                        : producto.stock > 0
+                        ? 'Últimas unidades'
+                        : 'Agotado'
+                    }}
+                    <small *ngIf="producto.stock > 0"
+                      >({{ producto.stock }} disponibles)</small
+                    >
                   </span>
                 </div>
               </div>
@@ -181,8 +231,10 @@
           </div>
         </div>
 
-        <!-- Mensaje sin resultados -->
-        <div *ngIf="productosFiltrados.length === 0 && !loading" class="text-center py-5">
+        <div
+          *ngIf="productosFiltrados.length === 0 && !loading"
+          class="text-center py-5"
+        >
           <i class="fas fa-search fa-3x text-muted mb-3"></i>
           <h4>No se encontraron productos</h4>
           <p>Intenta con otros filtros o términos de búsqueda</p>
@@ -191,57 +243,177 @@
     </div>
   </div>
 
-  <!-- Carrito lateral -->
   <div class="cart-sidebar" [class.active]="carritoAbierto">
-    <div class="cart-header">
-      <h4>Tu Carrito</h4>
-      <button class="btn-close" (click)="carritoAbierto = false"></button>
-    </div>
     
-    <div class="cart-content">
-      <div *ngIf="carrito.length === 0" class="empty-cart text-center">
-        <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
-        <p>Tu carrito está vacío</p>
-      </div>
+    <div [ngSwitch]="checkoutStep" class="h-100 d-flex flex-column">
       
-      <div *ngFor="let item of carrito; let i = index" class="cart-item">
-        <img [src]="item.producto.imagen || '/images/placeholder-producto.jpg'" 
-             [alt]="item.producto.nombre"
-             (error)="item.producto.imagen = '/images/placeholder-producto.jpg'">
-        <div class="item-details">
-          <h6>{{item.producto.nombre}}</h6>
-          <p>${{item.producto.precio}} c/u</p>
-          <div class="quantity-controls">
-            <button class="btn btn-sm" 
-                    (click)="actualizarCantidad(i, item.cantidad - 1)"
-                    [disabled]="item.cantidad <= 1">-</button>
-            <span>{{item.cantidad}}</span>
-            <button class="btn btn-sm" 
-                    (click)="actualizarCantidad(i, item.cantidad + 1)"
-                    [disabled]="item.cantidad >= item.producto.stock">+</button>
+      <div *ngSwitchCase="'cart'" class="d-flex flex-column h-100">
+        <div class="cart-header">
+          <h4>Tu Carrito</h4>
+          <button class="btn-close" (click)="carritoAbierto = false"></button>
+        </div>
+
+        <div class="cart-content">
+          <div *ngIf="carrito.length === 0" class="empty-cart text-center">
+            <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+            <p>Tu carrito está vacío</p>
+          </div>
+
+          <div *ngFor="let item of carrito; let i = index" class="cart-item">
+            <img
+              [src]="item.producto.imagen || '/images/placeholder-producto.jpg'"
+              [alt]="item.producto.nombre"
+              (error)="item.producto.imagen = '/images/placeholder-producto.jpg'"
+            />
+            <div class="item-details">
+              <h6>{{ item.producto.nombre }}</h6>
+              <p>${{ item.producto.precio }} c/u</p>
+              <div class="quantity-controls">
+                <button
+                  class="btn btn-sm"
+                  (click)="actualizarCantidad(i, item.cantidad - 1)"
+                  [disabled]="item.cantidad <= 1"
+                >
+                  -
+                </button>
+                <span>{{ item.cantidad }}</span>
+                <button
+                  class="btn btn-sm"
+                  (click)="actualizarCantidad(i, item.cantidad + 1)"
+                  [disabled]="item.cantidad >= item.producto.stock"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <div class="item-total">
+              <strong>${{ item.producto.precio * item.cantidad }}</strong>
+              <button
+                class="btn btn-link text-danger"
+                (click)="eliminarDelCarrito(i)"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
           </div>
         </div>
-        <div class="item-total">
-          <strong>${{item.producto.precio * item.cantidad}}</strong>
-          <button class="btn btn-link text-danger" (click)="eliminarDelCarrito(i)">
-            <i class="fas fa-trash"></i>
+
+        <div class="cart-footer" *ngIf="carrito.length > 0">
+          <div class="cart-total">
+            <strong>Total: ${{ getTotalCarrito() }}</strong>
+          </div>
+          <button class="btn btn-primary w-100" (click)="iniciarCheckout()">
+            Proceder al Pago
           </button>
         </div>
       </div>
-    </div>
-    
-    <div class="cart-footer" *ngIf="carrito.length > 0">
-      <div class="cart-total">
-        <strong>Total: ${{getTotalCarrito()}}</strong>
-      </div>
-      <button class="btn btn-primary w-100" 
-              (click)="realizarCompra()"
-              [disabled]="loading">
-        {{loading ? 'Procesando...' : 'Proceder al Pago'}}
-      </button>
-    </div>
-  </div>
 
-  <!-- Overlay para carrito -->
-  <div class="cart-overlay" [class.active]="carritoAbierto" (click)="carritoAbierto = false"></div>
+      <div *ngSwitchCase="'shipping'" class="d-flex flex-column h-100">
+        <div class="cart-header checkout-header">
+          <button class="btn btn-link" (click)="volverA('cart')">
+             <i class="fas fa-arrow-left me-2"></i> Volver al carrito
+          </button>
+          <button class="btn-close" (click)="carritoAbierto = false"></button>
+        </div>
+        
+        <div class="cart-content checkout-view">
+          <h5>Información de Envío</h5>
+          <p>¿A dónde enviamos tu pedido?</p>
+          
+          <form #shippingForm="ngForm" class="checkout-form">
+            <div class="form-group mb-3">
+              <label for="nombre">Nombre Completo</label>
+              <input type="text" id="nombre" name="nombre" class="form-control" [(ngModel)]="shippingInfo.nombre" required>
+            </div>
+            <div class="form-group mb-3">
+              <label for="email">Email</label>
+              <input type="email" id="email" name="email" class="form-control" [(ngModel)]="shippingInfo.email" required>
+            </div>
+            <div class="form-group mb-3">
+              <label for="direccion">Dirección</label>
+              <input type="text" id="direccion" name="direccion" class="form-control" [(ngModel)]="shippingInfo.direccion" required>
+            </div>
+            <div class="row">
+              <div class="col-md-8 form-group mb-3">
+                <label for="ciudad">Ciudad</label>
+                <input type="text" id="ciudad" name="ciudad" class="form-control" [(ngModel)]="shippingInfo.ciudad">
+              </div>
+              <div class="col-md-4 form-group mb-3">
+                <label for="cp">C.P.</label>
+                <input type="text" id="cp" name="cp" class="form-control" [(ngModel)]="shippingInfo.codigo_postal">
+              </div>
+            </div>
+          </form>
+        </div>
+        
+        <div class="cart-footer">
+          <button class="btn btn-primary w-100" (click)="irAPago()" [disabled]="!shippingForm.valid">
+            Ir a Pagar
+          </button>
+        </div>
+      </div>
+      
+      <div *ngSwitchCase="'payment'" class="d-flex flex-column h-100">
+        <div class="cart-header checkout-header">
+          <button class="btn btn-link" (click)="volverA('shipping')">
+             <i class="fas fa-arrow-left me-2"></i> Editar envío
+          </button>
+          <button class="btn-close" (click)="carritoAbierto = false"></button>
+        </div>
+        
+        <div class="cart-content checkout-view">
+          <h5>Resumen y Pago</h5>
+          
+          <div class="checkout-summary">
+            <h6>Enviar a:</h6>
+            <p class="mb-0"><strong>Nombre:</strong> {{shippingInfo.nombre}}</p>
+            <p class="mb-0"><strong>Dirección:</strong> {{shippingInfo.direccion}}</p>
+            <p class="mb-0"><strong>Ciudad:</strong> {{shippingInfo.ciudad}}</p>
+            <p><strong>Email:</strong> {{shippingInfo.email}}</p>
+          </div>
+          
+          <div class="checkout-summary">
+            <h6>Total del Pedido:</h6>
+            <h4 class="text-primary">${{ getTotalCarrito() }}</h4>
+          </div>
+          
+          <p class="mt-3 text-muted">Al hacer clic en "Pagar Ahora", la compra se registrará y el stock se descontará.</p>
+          
+          </div>
+        
+        <div class="cart-footer">
+          <button class="btn btn-primary w-100" (click)="realizarCompra()" [disabled]="loading">
+             <span *ngIf="loading" class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+             {{ loading ? ' Procesando...' : 'Pagar Ahora $' + getTotalCarrito() }}
+          </button>
+        </div>
+      </div>
+
+      <div *ngSwitchCase="'success'" class="d-flex flex-column h-100">
+        <div class="cart-header">
+          <h4>¡Pedido Confirmado!</h4>
+          <button class="btn-close" (click)="finalizarYVolver()"></button>
+        </div>
+        
+        <div class="cart-content checkout-view checkout-success-view">
+          <i class="fas fa-check-circle text-success"></i>
+          <h5 class="mt-3">¡Gracias por tu compra, {{shippingInfo.nombre}}!</h5>
+          <p>Tu pedido ha sido procesado con éxito.</p>
+          <p>Recibirás una confirmación en tu correo:</p>
+          <strong>{{shippingInfo.email}}</strong>
+        </div>
+        
+        <div class="cart-footer">
+          <button class="btn btn-primary w-100" (click)="finalizarYVolver()">
+            Seguir Comprando
+          </button>
+        </div>
+      </div>
+      
+
+    </div> </div> <div
+    class="cart-overlay"
+    [class.active]="carritoAbierto"
+    (click)="carritoAbierto = false"
+  ></div>
 </div>

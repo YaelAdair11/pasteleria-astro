@@ -21,8 +21,7 @@
     <div class="">
       <select class="form-select" (change)="filtrarCategoria($event)">
         <option value="">Todas las categorías</option>
-        <option *ngFor="let c of categorias" [value]="c.id">{{ c.nombre }}</option>
-        <!-- <option value="__NUEVA__" class="text-primary fw-semibold">Crear categoría</option> -->
+        <option *ngFor="let c of categorias" [value]="c.nombre">{{ c.nombre }}</option>
       </select>
     </div>
 

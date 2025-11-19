@@ -11,9 +11,7 @@ interface ReporteData {
 @Component({
   selector: 'app-reportes',
   standalone: true,
-  imports: [
-    CommonModule 
-  ],
+  imports: [ CommonModule ],
   templateUrl: './reportes.html',
   styleUrls: ['./reportes.css']
 })
@@ -21,6 +19,7 @@ export class Reportes implements OnInit {
   fechaSeleccionada = new Date(); 
   
   reporte: ReporteData | null = null;
+  detalleVentas: any[] = []; 
   loading: boolean = true;
   error: string | null = null;
 
@@ -30,15 +29,19 @@ export class Reportes implements OnInit {
     this.loadReporte(); 
   }
 
-  /**
-   * Carga el reporte para la fecha actualmente seleccionada.
-   */
   async loadReporte(): Promise<void> {
     this.loading = true;
     this.error = null;
 
     try {
-      this.reporte = await this.supabaseService.getReportesPorDia(this.fechaSeleccionada);
+      const [resumen, lista] = await Promise.all([
+        this.supabaseService.getReportesPorDia(this.fechaSeleccionada),
+        this.supabaseService.getVentasPorFecha(this.fechaSeleccionada)
+      ]);
+
+      this.reporte = resumen;
+      this.detalleVentas = lista;
+
     } catch (error: any) {
       console.error('Error al cargar reporte:', error);
       this.error = 'No se pudo cargar el reporte. ' + error.message;
@@ -47,37 +50,29 @@ export class Reportes implements OnInit {
     this.loading = false;
   }
 
-  /**
-   * Cambia la fecha seleccionada (suma o resta días) y recarga el reporte.
-   */
   cambiarDia(dias: number): void {
     const nuevaFecha = new Date(this.fechaSeleccionada);
     nuevaFecha.setDate(nuevaFecha.getDate() + dias);
 
-    // No permitir navegar al futuro
-    if (nuevaFecha > new Date()) {
-      return; 
-    }
+    if (nuevaFecha > new Date()) return; 
 
     this.fechaSeleccionada = nuevaFecha;
     this.loadReporte(); 
   }
 
-  /**
-   * Resetea la fecha a "hoy" y recarga el reporte.
-   */
   volverAHoy(): void {
     this.fechaSeleccionada = new Date();
     this.loadReporte();
   }
 
-  /**
-   * Helper para saber si la fecha seleccionada es el día de hoy.
-   */
   esHoy(): boolean {
     const hoy = new Date();
     return this.fechaSeleccionada.getDate() === hoy.getDate() &&
            this.fechaSeleccionada.getMonth() === hoy.getMonth() &&
            this.fechaSeleccionada.getFullYear() === hoy.getFullYear();
+  }
+
+  imprimirReporte(): void {
+    window.print();
   }
 }
