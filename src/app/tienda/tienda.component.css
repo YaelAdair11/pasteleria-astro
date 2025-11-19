@@ -622,3 +622,130 @@
     scrollbar-width: thin;
     padding-right: 10px;
 }
+
+/* --- MODAL DE AUTENTICACIÓN (Nuevo) --- */
+.auth-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Fondo oscuro */
+  backdrop-filter: blur(5px);
+  z-index: 3000; /* Encima de todo, incluso del carrito */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.auth-card {
+  background: #fff;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 1rem;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  animation: slideUp 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.auth-card .form-control {
+  border-radius: 0.5rem;
+  padding: 0.8rem;
+  background: #f8f9fa;
+  border: 1px solid #eee;
+}
+
+.auth-card .form-control:focus {
+  background: #fff;
+  border-color: #111;
+  box-shadow: none;
+}
+
+.auth-card .btn-primary {
+  border-radius: 0.5rem;
+  padding: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* Animaciones simples */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* --- AJUSTES DEL HEADER --- */
+.tienda-header {
+  /* Aseguramos que el header sea flexible */
+  height: auto;
+  min-height: 80px;
+}
+
+/* Botones de perfil */
+.btn-outline-light {
+  color: #333;
+  border-color: transparent;
+}
+.btn-outline-light:hover {
+  background: #f0f0f0;
+  color: #000;
+}
+
+.input-group .form-control:focus {
+  z-index: 1; /* Para que el borde azul se vea bien */
+}
+.input-group button {
+  border-color: #eee;
+}
+.input-group button:hover {
+  background: #e9ecef;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.user-dropdown-menu {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  width: 200px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.user-dropdown-menu .dropdown-item {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  padding: 0.7rem 1rem;
+  transition: background 0.2s;
+  color: #333;
+}
+
+.user-dropdown-menu .dropdown-item:hover {
+  background: #f8f9fa;
+}
+
+.fixed-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999; /* Detrás del menú pero delante de todo lo demás */
+  cursor: default;
+}
