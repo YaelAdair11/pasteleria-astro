@@ -42,6 +42,11 @@ export class Inventario {
   procesandoCategoria = false;
   errorCategoria: string | null = null;
 
+  modalMensaje!: any;
+  mensajeTitulo: string = '';
+  mensajeCuerpo: string = '';
+  mensajeTipo: 'success' | 'error' = 'success';
+
   private colorCache: { [key: string]: string } = {};
   
   constructor(private supabase: SupabaseService, private fb: FormBuilder) {}
@@ -84,12 +89,23 @@ export class Inventario {
         if (this.procesandoCategoria) event.preventDefault();
       });
     }
+
+    const elMensaje = document.getElementById('modalMensaje');
+    if (elMensaje) {
+      this.modalMensaje = new bootstrap.Modal(elMensaje);
+    }
+  }
+
+  mostrarMensaje(titulo: string, cuerpo: string, tipo: 'success' | 'error') {
+    this.mensajeTitulo = titulo;
+    this.mensajeCuerpo = cuerpo;
+    this.mensajeTipo = tipo;
+    this.modalMensaje.show();
   }
 
   cargarFormulario() {
     this.formProducto = this.fb.group({
       nombre: ['', Validators.required],
-      categoria: ['', Validators.required],
       categoria_id: ['', Validators.required],
       precio: [0, [Validators.required, Validators.min(0)]],
       stock: [0, [Validators.required, Validators.min(0)]],
@@ -113,8 +129,7 @@ export class Inventario {
     this.archivoImagen = null;
     this.formProducto.reset({
       nombre: '',
-      categoria: null,
-      categoria_id: null,
+      categoria_id: '',
       precio: 0,
       stock: 0,
       imagen: null,
@@ -133,7 +148,6 @@ export class Inventario {
     this.formProducto.patchValue(
       {
         nombre: producto.nombre,
-        categoria: producto.categoria,
         categoria_id: producto.categoria_id,
         precio: producto.precio,
         stock: producto.stock,
@@ -211,6 +225,7 @@ export class Inventario {
       await this.cargarProductos(); 
       this.validarCategoriaFormulario();
       this.modalCategorias.hide();
+      this.mostrarMensaje('Categorías Actualizadas', 'Los cambios en las categorías se han guardado correctamente.', 'success');
     } catch (err: any) {
       console.error('Error guardando categorías:', err);
       if (err.message.includes('23505') || err.message.includes('unique constraint')) {
@@ -286,29 +301,21 @@ export class Inventario {
 
     this.procesando = true;
     try {
-      // Obtiene el ID del producto guardado
-      const id = this.productoSeleccionado.id; 
-      // Obtiene todos los valores nuevos del formulario
-      const cambios = { ...this.formProducto.value }; 
-
-      // TODO: Lógica de imagen para Actualizar
-      // (Esto es más complejo: si sube archivo nuevo,
-      // hay que subirlo y BORRAR el anterior de Storage)
-      
-      // Por ahora, solo actualiza la URL si cambió o se subió una nueva
+      const id = this.productoSeleccionado.id;
+      const cambios = { ...this.formProducto.value };
       if (this.archivoImagen) {
         const imageUrl = await this.supabase.uploadImagenProducto(this.archivoImagen);
         cambios.imagen = imageUrl;
-        // Aquí faltaría borrar la imagen antigua: this.productoSeleccionado.imagen
       } else if (cambios.imagen === '') {
         cambios.imagen = null;
       }
-      
       await this.supabase.updateProducto(id, cambios);
       await this.cargarProductos();
       this.modalCrearEditar.hide();
-    } catch (err) {
+      this.mostrarMensaje('¡Producto Actualizado!', `El producto "${cambios.nombre}" se ha guardado correctamente.`, 'success');
+    } catch (err: any) {
       console.error('Error actualizando producto', err);
+      this.mostrarMensaje('Error al Actualizar', err.message || 'Ocurrió un problema al guardar los cambios.', 'error');
     }
     this.procesando = false;
   }
@@ -362,16 +369,14 @@ export class Inventario {
       console.log('Creando producto', nuevo);
       await this.supabase.addProducto(nuevo);
       await this.cargarProductos();
-    } catch (err) {
+      this.modalCrearEditar.hide();
+      this.mostrarMensaje('¡Producto Creado!', `El producto "${nuevo.nombre}" se ha creado correctamente.`, 'success');
+    } catch (err: any) {
       console.error('Error creando producto', err);
+      this.mostrarMensaje('Error al Crear', err.message || 'Ocurrió un problema al crear el producto.', 'error');
     }
 
     this.procesando = false;
-
-    // Cerrar modal de forma segura
-    const el = document.getElementById('modalCrearProducto');
-    const instance = bootstrap.Modal.getInstance(el);
-    instance?.hide();
   }
 
   // ✨ --- AÑADE ESTA NUEVA FUNCIÓN ---
@@ -385,32 +390,23 @@ export class Inventario {
     if (!this.productoSeleccionado) return;
 
     this.procesando = true;
-    const productoAEliminar = this.productoSeleccionado; // Guarda la referencia
+    const productoAEliminar = this.productoSeleccionado;
 
     try {
-      // 1. Eliminar de la base de datos (tabla 'productos')
       await this.supabase.deleteProducto(productoAEliminar.id);
-
-      // 2. Eliminar la imagen de Supabase Storage
-      //    (Usando la función que creamos en la optimización)
       await this.supabase.deleteImagenProducto(productoAEliminar.imagen);
-
-      // 3. Actualizar la UI (quitando el producto del array local)
       this.productos = this.productos.filter(p => p.id !== productoAEliminar.id);
-
-      // 4. Cerrar el modal y limpiar
       this.productoSeleccionado = null;
+      this.modalEliminar.hide();
+      this.mostrarMensaje('Producto Eliminado', `El producto "${productoAEliminar.nombre}" ha sido eliminado.`, 'success');
 
     } catch (err: any) {
       console.error('Error eliminando producto:', err);
+      this.modalEliminar.hide();
+      this.mostrarMensaje('Error al Eliminar', err.message || 'No se pudo eliminar el producto.', 'error');
     }
 
     this.procesando = false;
-
-    // Cerrar modal de forma segura
-    const el = document.getElementById('modalEliminarProducto');
-    const instance = bootstrap.Modal.getInstance(el);
-    instance?.hide();
   }
 
   async cargarCategorias() {
@@ -485,30 +481,31 @@ export class Inventario {
     this.modalConfirmar.show();
   }
 
-  /** ✅ Lógica correcta para confirmar */
+  /** Lógica correcta para confirmar */
   async confirmarCambio() {
     this.procesando = true;
     try {
       if (!this.productoSeleccionado) return;
 
-      // Actualizar en la base de datos
-      await this.supabase.updateProducto(this.productoSeleccionado.id, {
+      await this.supabase.updateProducto(this.productoSeleccionado.id!, {
         activo: this.productoActivoCheckBox,
       });
-
-      // Actualizar en UI
       this.productoSeleccionado.activo = this.productoActivoCheckBox;
+      const index = this.todosLosProductos.findIndex(p => p.id === this.productoSeleccionado!.id);
+      if (index > -1) {
+        this.todosLosProductos[index].activo = this.productoActivoCheckBox;
+      }
+      this.aplicarFiltros(); 
+      
+      // Opcional: Mostrar mensaje de éxito rápido o toast
+      // this.mostrarMensaje('Estado Actualizado', 'El estado del producto ha cambiado.', 'success');
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error al actualizar estado:', err);
+      this.mostrarMensaje('Error', 'No se pudo cambiar el estado del producto.', 'error');
     }
-
     this.procesando = false;
-
-    // Cerrar modal de forma segura
-    const el = document.getElementById('modalConfirmar');
-    const instance = bootstrap.Modal.getInstance(el);
-    instance?.hide();
+    this.modalConfirmar.hide();
   }
 
   toggleSidebar() {

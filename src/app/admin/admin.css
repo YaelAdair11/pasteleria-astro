@@ -10,7 +10,7 @@
 #btn-menu:hover { background-color: #35354d; }
 
 .logo-icon::before {
-  content: "\f818";
+  content: "\f1fd";
 }
 
 /* Ícono al hacer hover en el contenedor */
