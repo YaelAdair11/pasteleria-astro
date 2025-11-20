@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';   // ← IMPORTANTE
 import { SupabaseService } from '../../services/supabase.service';
+import { Categoria } from '../../models/categoria.model';
+import { Producto } from '../../models/producto.model';
 
 @Component({
   selector: 'app-vender',
@@ -12,9 +14,14 @@ import { SupabaseService } from '../../services/supabase.service';
 })
 export class Vender implements OnInit {
 
-  productos: any[] = [];
+  productos: Producto[] = [];
+  todosLosProductos: Producto[] = [];
   carrito: any[] = [];
   total = 0;
+  categorias: Categoria[] = [];
+  filtroTexto: string = '';
+  filtroActivo: string = '';
+  filtroCategoria: string = '';
 
   mostrarModalConfirmacion = false;
   mostrarModalPago = false;
@@ -31,6 +38,7 @@ export class Vender implements OnInit {
 
   async ngOnInit() {
     await this.cargarProductos();
+    this.cargarCategorias();
 
     this.supabaseService.suscribirCambiosProductos(async () => {
       await this.cargarProductos();
@@ -42,11 +50,10 @@ export class Vender implements OnInit {
   
 
   async cargarProductos() {
-    try {
-      this.productos = await this.supabaseService.getProductos(true);
-    } catch (error) {
-      console.error('Error cargando productos:', error);
-    }
+    const data = await this.supabaseService.getProductos(true);
+    this.todosLosProductos = data;
+    console.log('Productos cargados:', this.todosLosProductos);
+    this.aplicarFiltros();
   }
 
   agregarAlCarrito(producto: any) {
@@ -119,8 +126,45 @@ finalizarCompra() {
     this.mostrarModalPago = true;
   }
 
+  async cargarCategorias() {
+    this.categorias = await this.supabaseService.getCategorias();
+    console.log('Categorías cargadas:', this.categorias);
+  }
+
   cerrarPago() {
     this.mostrarModalPago = false;
+  }
+
+  filtrarCategoria(event: any) {
+    const categoria = event.target.value;
+    console.log('Categoría seleccionada para filtrar:', categoria);
+    this.filtroCategoria = categoria;
+    this.aplicarFiltros();
+  }
+
+  aplicarFiltros() {
+    let productosFiltrados = [...this.todosLosProductos];
+
+    if (this.filtroTexto) {
+      productosFiltrados = productosFiltrados.filter(p => 
+        p.nombre.toLowerCase().includes(this.filtroTexto)
+      );
+    }
+
+    if (this.filtroCategoria) {
+      console.log('Filtrando por categoría:', this.filtroCategoria);
+      productosFiltrados = productosFiltrados.filter(p => 
+        p.categoria.nombre === this.filtroCategoria
+      );
+    }
+
+    if (this.filtroActivo === 'true') {
+      productosFiltrados = productosFiltrados.filter(p => p.activo);
+    } else if (this.filtroActivo === 'false') {
+      productosFiltrados = productosFiltrados.filter(p => !p.activo);
+    }
+
+    this.productos = productosFiltrados;
   }
 
   cerrarTarjeta() {

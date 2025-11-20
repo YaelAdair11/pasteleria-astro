@@ -10,6 +10,13 @@
     <section class="productos">
       <h2>Productos Disponibles</h2>
 
+      <div class="mb-2">
+        <select id="categoria" class="form-select" (change)="filtrarCategoria($event)">
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let c of categorias" [value]="c.nombre">{{ c.nombre }}</option>
+        </select>
+      </div>
+
       <div class="grid-productos">
         <div class="producto" *ngFor="let p of productos">
           <img [src]="p.imagen" alt="producto" />
@@ -253,5 +260,4 @@
 
   </div>
 </div>
-
 </div>

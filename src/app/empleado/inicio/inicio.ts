@@ -15,35 +15,67 @@ export class InicioEmpleado {
 
   pedidos: any[] = [];
 
+  tiposProductos = ['Pastel', 'Bebida', 'Galletas', 'Postre'];
+
   nuevoPedido: any = {
+    Tipo: '',
     nombre: '',
     telefono: '',
-    kilos: 1,
-    kilosIngresado: false,
-    relleno: '',
-    cubierta: '',
-    tematica: '',
     fecha: '',
     lugar: '',
+  
+    // pastel
+    color: '',
+    kilos: '',
+    relleno: '',
+    tematica: '',
+  
+    // bebidas, galletas, postres
+    sabor: '',
+    cantidad: '',
+    tamano: '',
+    tipoPostre: '',
+  
     estado: 'en proceso'
   };
-
-  abrirModalAgregar() {
-    this.mostrarAgregar = true;
-  }
-
-  abrirModalPedidos() {
-    this.mostrarPedidos = true;
-  }
-
+  
+  // 👉 Métodos principales
+  abrirModalAgregar() { this.mostrarAgregar = true; }
+  abrirModalPedidos() { this.mostrarPedidos = true; }
   cerrarModal() {
     this.mostrarAgregar = false;
     this.mostrarPedidos = false;
+  
+    // 🔄 Reiniciar el formulario para que al abrirlo esté vacío
+    this.nuevoPedido = {
+      Tipo: '',
+      nombre: '',
+      telefono: '',
+      fecha: '',
+      lugar: '',
+      
+      // pastel
+      color: '',
+      kilos: '',
+      relleno: '',
+      tematica: '',
+      
+      // bebidas, galletas, postres
+      sabor: '',
+      cantidad: '',
+      tamano: '',
+      tipoPostre: '',
+  
+      estado: 'en proceso'
+    };
   }
+  
 
   guardarPedido() {
     this.pedidos.push({ ...this.nuevoPedido });
+
     this.nuevoPedido = {
+      Tipo: '',
       nombre: '',
       telefono: '',
       kilos: 1,
@@ -55,14 +87,18 @@ export class InicioEmpleado {
       lugar: '',
       estado: 'en proceso'
     };
+
     this.cerrarModal();
   }
 
+  // ✅👉 AQUÍ va tu verReporte() (posición correcta)
+  reporteSeleccionado: any = null;
+
   verReporte(pedido: any) {
-    alert(
-      `📋 Reporte del Pedido:\n\nCliente: ${pedido.nombre}\nTeléfono: ${pedido.telefono}\n` +
-      `Pastel: ${pedido.kilos}kg, Relleno ${pedido.relleno}, Cubierta ${pedido.cubierta}\n` +
-      `Temática: ${pedido.tematica}\nEntrega: ${pedido.fecha} en ${pedido.lugar || 'Recoger en tienda'}`
-    );
+    this.reporteSeleccionado = pedido; // abre modal
   }
+  
+  cerrarReporte() {
+    this.reporteSeleccionado = null; // cierra modal
+  }  
 }

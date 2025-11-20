@@ -255,3 +255,329 @@
   padding: 10px;
   margin-bottom: 10px;
 }
+
+/* 🧁 FORMULARIO DE AGREGAR PEDIDO — Estilo pastel verde */
+.form-step {
+  margin-bottom: 15px;
+  padding: 12px;
+  background: #e8f8ec; /* Verde pastel suave */
+  border-left: 5px solid #81c784; /* Verde pastel más fuerte */
+  border-radius: 12px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.form-step:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+}
+/* ✨ Animación suave de aparición para cada paso del formulario */
+.form-step {
+  opacity: 30;
+  transform: translateY(-10px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+/* Cuando Angular muestra el elemento con *ngIf */
+.form-step.ng-star-inserted {
+  opacity: 20;
+  transform: translateY(0);
+}
+
+.form-step label {
+  display: block;
+  font-weight: 600;
+  color: #388e3c;
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+/* Inputs */
+.form-step input,
+.form-step select {
+  width: 100%;
+  padding: 10px;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  border: 1px solid #a5d6a7;
+  background: #f1fdf2;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-step input:focus,
+.form-step select:focus {
+  border-color: #66bb6a;
+  box-shadow: 0 0 6px rgba(102, 187, 106, 0.6);
+  outline: none;
+}
+
+/* Título dentro del modal */
+.modal-content h2 {
+  color: #66bb6a !important;
+  font-weight: 700;
+}
+
+/* Botón guardar más verde pastel */
+.btn.save {
+  background-color: #81c784 !important;
+}
+
+.btn.save:hover {
+  background-color: #66bb6a !important;
+}
+
+/* Botón cancelar con tono coral suave */
+.btn.cancel {
+  background-color: #ff8a80 !important;
+}
+
+.btn.cancel:hover {
+  background-color: #ff5252 !important;
+}
+/* Lista desplegable pastel */
+select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #e8f5e9;        /* verde pastel suave */
+  border: 2px solid #c8e6c9;  /* borde verde pastel claro */
+  color: #33691e;             /* verde oscuro elegante */
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+/* Hover */
+select:hover {
+  background: #dcedc8; /* verde pastel más claro */
+}
+
+/* Focus */
+select:focus {
+  border-color: #81c784; /* verde pastel fuerte */
+  box-shadow: 0 0 8px rgba(129, 199, 132, 0.6);
+  outline: none;
+}
+/* Opciones del menú */
+select option {
+  background: #ffffff;  /* opciones en blanco para que se vean bien */
+  color: #333;
+  padding: 10px;
+  font-size: 1rem;
+}
+
+.reporte-card {
+  background: #ffffff;
+  width: 90%;
+  max-width: 420px;
+  padding: 25px;
+  border-radius: 20px;
+  animation: fadeIn 0.4s ease;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  border: 4px solid #f8bbd0; /* borde rosa pastel */
+}
+
+.reporte-card h2 {
+  text-align: center;
+  color: #f06292; 
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.reporte-info {
+  background: #fff0f7;
+  border-left: 6px solid #f48fb1;
+  padding: 15px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.reporte-info p {
+  margin: 6px 0;
+  font-size: 1rem;
+  color: #444;
+}
+
+.reporte-info strong {
+  color: #d81b60;
+}
+
+.reporte-card .btn.cancel {
+  background: #f48fb1;
+  border-radius: 12px;
+}
+
+.reporte-card .btn.cancel:hover {
+  background: #ec407a;
+}
+/* ================================
+   📌 Estilos del Reporte (Pastelería)
+================================= */
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background:transparent; /* Rosa suave — evita fondo negro */
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background: #fff;
+  width: 90%;
+  max-width: 450px;
+  max-height: 90vh;          /* 🔥 Activa scroll */
+  overflow-y: auto;          /* 🔥 Desplazamiento interno */
+  padding: 25px;
+  border-radius: 20px;
+
+  border: 3px solid #ffd1e8;
+  box-shadow: 0 0 20px rgba(255, 182, 193, 0.4);
+
+  animation: aparecer 0.3s ease-out;
+}
+
+/* Scroll pastel */
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #ffb3d6;
+  border-radius: 10px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: #ffe6f2;
+}
+
+/* Animación suave */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-content h2 {
+  text-align: center;
+  font-size: 1.7rem;
+  color: #ff70a6;
+  margin-bottom: 10px;
+}
+
+h3 {
+  color: #ff89c0;
+  font-size: 1.2rem;
+  margin-top: 15px;
+  border-left: 5px solid #ffd1e8;
+  padding-left: 8px;
+}
+
+.modal-content p {
+  font-size: 15px;
+  color: #444;
+  margin: 5px 0;
+}
+
+/* Botón cerrar */
+.cerrar {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background: linear-gradient(135deg, #ffb3d6, #ffc8dd);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.cerrar:hover {
+  background: linear-gradient(135deg, #ffa3cc, #ffbcd3);
+  transform: scale(1.03);
+}
+
+/* Tarjetas internas */
+.modal-content div {
+  background: #fff7fb;
+  padding: 10px 15px;
+  border-radius: 12px;
+  border: 2px solid #ffe3f1;
+  margin-top: 10px;
+}
+
+/* Animación suave */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-content h2 {
+  text-align: center;
+  font-size: 1.7rem;
+  color: #ff70a6; /* Rosa pastel vibrante */
+  margin-bottom: 10px;
+}
+
+h3 {
+  color: #ff89c0;
+  font-size: 1.2rem;
+  margin-top: 15px;
+  border-left: 5px solid #ffd1e8;
+  padding-left: 8px;
+}
+
+.modal-content p {
+  font-size: 15px;
+  color: #444;
+  margin: 5px 0;
+}
+
+/* Botón cerrar */
+.cerrar {
+  margin-top: 20px;
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background: linear-gradient(135deg, #ffb3d6, #ffc8dd);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.cerrar:hover {
+  background: linear-gradient(135deg, #ffa3cc, #ffbcd3);
+  transform: scale(1.03);
+}
+
+/* Tarjetas internas según el tipo de producto */
+.modal-content div {
+  background: #fff7fb;
+  padding: 10px 15px;
+  border-radius: 12px;
+  border: 2px solid #ffe3f1;
+  margin-top: 10px;
+}

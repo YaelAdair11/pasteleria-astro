@@ -525,7 +525,7 @@ header h1 {
    ====================================== */
    .modal-tarjeta {
     background: #ffe6f2;  /* Rosa pastel suave */
-    width: 425px;
+    width: 450px;
     padding: 28px;
     border-radius: 22px;
     box-shadow: 0 12px 32px rgba(255, 150, 200, 0.35);
@@ -653,5 +653,11 @@ header h1 {
       opacity: 1;
       transform: translateY(0);
     }
+  }
+
+  #categoria{
+    color: black;
+    background-color: #B9F8CF
+    ;
   }
   
