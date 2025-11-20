@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';   // ← IMPORTANTE
+import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../services/supabase.service';
 import { Categoria } from '../../models/categoria.model';
 import { Producto } from '../../models/producto.model';
@@ -17,6 +17,8 @@ export class Vender implements OnInit {
   productos: Producto[] = [];
   todosLosProductos: Producto[] = [];
   carrito: any[] = [];
+  ventas: any[] = [];
+  reporteSeleccionado: any = null;
   total = 0;
   categorias: Categoria[] = [];
   filtroTexto: string = '';
@@ -25,14 +27,15 @@ export class Vender implements OnInit {
 
   mostrarModalConfirmacion = false;
   mostrarModalPago = false;
+  mostrarVentas = false;
+  mostrarModalReporte = false;
   mostrarModalTarjeta = false;
   mostrarModalTicket = false;
   fechaVenta = new Date().toLocaleString();
   cliente = 'Cliente General';
   nombreTitularTarjeta = '';
   tipoPago = '';
-  mostrarModalCarritoVacio = false;
-
+  mensajeCarritoVacio = false;
 
   constructor(private supabaseService: SupabaseService) {}
 
@@ -44,21 +47,19 @@ export class Vender implements OnInit {
       await this.cargarProductos();
     });
   }
-  cerrarModalCarritoVacio() {
-    this.mostrarModalCarritoVacio = false;
-  }
-  
 
   async cargarProductos() {
     const data = await this.supabaseService.getProductos(true);
     this.todosLosProductos = data;
-    console.log('Productos cargados:', this.todosLosProductos);
     this.aplicarFiltros();
+  }
+
+  async cargarCategorias() {
+    this.categorias = await this.supabaseService.getCategorias();
   }
 
   agregarAlCarrito(producto: any) {
     const existe = this.carrito.find(p => p.id === producto.id);
-
     if (existe) {
       existe.cantidad++;
     } else {
@@ -70,7 +71,6 @@ export class Vender implements OnInit {
         cantidad: 1
       });
     }
-
     this.actualizarTotal();
   }
 
@@ -94,28 +94,17 @@ export class Vender implements OnInit {
   }
 
   actualizarTotal() {
-    this.total = this.carrito.reduce(
-      (acc, item) => acc + item.precio * item.cantidad,
-      0
-    );
+    this.total = this.carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
   }
 
-  mensajeCarritoVacio: boolean = false;
-
-finalizarCompra() {
-  if (this.carrito.length === 0) {
-    this.mensajeCarritoVacio = true;
-
-    // El mensaje desaparecerá después de 2.5 segundos
-    setTimeout(() => {
-      this.mensajeCarritoVacio = false;
-    }, 2500);
-
-    return;
+  finalizarCompra() {
+    if (this.carrito.length === 0) {
+      this.mensajeCarritoVacio = true;
+      setTimeout(() => this.mensajeCarritoVacio = false, 2500);
+      return;
+    }
+    this.mostrarModalConfirmacion = true;
   }
-
-  this.mostrarModalConfirmacion = true;
-}
 
   cerrarModal() {
     this.mostrarModalConfirmacion = false;
@@ -126,19 +115,12 @@ finalizarCompra() {
     this.mostrarModalPago = true;
   }
 
-  async cargarCategorias() {
-    this.categorias = await this.supabaseService.getCategorias();
-    console.log('Categorías cargadas:', this.categorias);
-  }
-
   cerrarPago() {
     this.mostrarModalPago = false;
   }
 
   filtrarCategoria(event: any) {
-    const categoria = event.target.value;
-    console.log('Categoría seleccionada para filtrar:', categoria);
-    this.filtroCategoria = categoria;
+    this.filtroCategoria = event.target.value;
     this.aplicarFiltros();
   }
 
@@ -146,14 +128,13 @@ finalizarCompra() {
     let productosFiltrados = [...this.todosLosProductos];
 
     if (this.filtroTexto) {
-      productosFiltrados = productosFiltrados.filter(p => 
-        p.nombre.toLowerCase().includes(this.filtroTexto)
+      productosFiltrados = productosFiltrados.filter(p =>
+        p.nombre.toLowerCase().includes(this.filtroTexto.toLowerCase())
       );
     }
 
     if (this.filtroCategoria) {
-      console.log('Filtrando por categoría:', this.filtroCategoria);
-      productosFiltrados = productosFiltrados.filter(p => 
+      productosFiltrados = productosFiltrados.filter(p =>
         p.categoria.nombre === this.filtroCategoria
       );
     }
@@ -167,83 +148,108 @@ finalizarCompra() {
     this.productos = productosFiltrados;
   }
 
-  cerrarTarjeta() {
-    this.mostrarModalTarjeta = false;
-    this.mostrarModalPago = true; 
-  }
-
-  confirmarTarjeta() {
-    // Guardar como cliente el nombre del titular
-    this.cliente = this.nombreTitularTarjeta || 'Cliente Tarjeta';
-  
-    this.mostrarModalTarjeta = false;
-    this.mostrarModalTicket = true;
-    this.fechaVenta = new Date().toLocaleString();
-  }
-  
-  
-
   pagar(metodo: string) {
-    this.tipoPago = metodo; // Guardar si fue tarjeta o efectivo
-  
+    this.tipoPago = metodo;
     if (metodo === 'efectivo') {
       this.cliente = 'Cliente General';
       this.mostrarModalPago = false;
       this.mostrarModalTicket = true;
       this.fechaVenta = new Date().toLocaleString();
-      return;
+      this.registrarVenta();
     }
-  
     if (metodo === 'tarjeta') {
       this.mostrarModalPago = false;
       this.mostrarModalTarjeta = true;
     }
   }
+
+  cerrarTarjeta() {
+    this.mostrarModalTarjeta = false;
+    this.mostrarModalPago = true;
+  }
+
+  confirmarTarjeta() {
+    this.cliente = this.nombreTitularTarjeta || 'Cliente Tarjeta';
+    this.mostrarModalTarjeta = false;
+    this.mostrarModalTicket = true;
+    this.fechaVenta = new Date().toLocaleString();
+    this.registrarVenta();
+  }
+
   cerrarModalTicket() {
-    // Cerrar ticket
     this.mostrarModalTicket = false;
-  
-    // Limpiar carrito y total
     this.carrito = [];
     this.total = 0;
-  
-    // También aseguramos que se cierre cualquier modal abierto
     this.mostrarModalPago = false;
     this.mostrarModalTarjeta = false;
     this.mostrarModalConfirmacion = false;
-  
-    // Con esto ya tienes la pantalla limpia (panel de ventas)
   }
-  
 
-guardarTicket() {
-  let ticketTexto = '--- Ticket de Venta ---\n';
-  ticketTexto += `Fecha: ${this.fechaVenta}\n`;
-  ticketTexto += `Cliente: ${this.cliente}\n\n`;
-  ticketTexto += 'Productos:\n';
+  guardarTicket() {
+    let ticketTexto = '--- Ticket de Venta ---\n';
+    ticketTexto += `Fecha: ${this.fechaVenta}\nCliente: ${this.cliente}\n\nProductos:\n`;
+    this.carrito.forEach(item => {
+      ticketTexto += `${item.nombre} x${item.cantidad} $${(item.precio * item.cantidad).toFixed(2)}\n`;
+    });
+    ticketTexto += `\nTotal: $${this.total.toFixed(2)}\n\n¡Gracias por su compra!\n`;
 
-  this.carrito.forEach(item => {
-    ticketTexto += `${item.nombre} x${item.cantidad}  $${(item.precio * item.cantidad).toFixed(2)}\n`;
-  });
+    const blob = new Blob([ticketTexto], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ticket_${Date.now()}.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
 
-  ticketTexto += `\nTotal: $${this.total.toFixed(2)}\n`;
-  ticketTexto += '\n¡Gracias por su compra!\n';
+    this.carrito = [];
+    this.total = 0;
+    this.mostrarModalTicket = false;
+  }
 
-  const blob = new Blob([ticketTexto], { type: 'text/plain' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `ticket_${Date.now()}.txt`;
-  a.click();
-  window.URL.revokeObjectURL(url);
+  imprimirTicket() {
+    window.print();
+  }
 
-  // Después de guardar, limpia carrito y cierra modal
-  this.carrito = [];
-  this.total = 0;
-  this.mostrarModalTicket = false;
-}
-imprimirTicket() {
-  window.print();
-}
+  registrarVenta() {
+    this.ventas.push({
+      fecha: this.fechaVenta,
+      total: this.total,
+      cliente: this.cliente,
+      metodo: this.tipoPago,
+      productos: JSON.parse(JSON.stringify(this.carrito))
+    });
+  }
 
+  verReporte(indice: number) {
+    this.reporteSeleccionado = this.ventas[indice];
+    this.mostrarModalReporte = true;
+  }
+
+  cerrarReporte() {
+    this.mostrarModalReporte = false;
+  }
+
+  descargarReporte() {
+    let texto = `--- Reporte de Venta ---\n\n`;
+    texto += `Fecha: ${this.reporteSeleccionado.fecha}\n`;
+    texto += `Cliente: ${this.reporteSeleccionado.cliente}\n`;
+    texto += `Método de pago: ${this.reporteSeleccionado.metodo}\n\n`;
+    texto += `Productos:\n`;
+    this.reporteSeleccionado.productos.forEach((item: any) => {
+      texto += `${item.nombre} x${item.cantidad} - $${(item.precio * item.cantidad).toFixed(2)}\n`;
+    });
+    texto += `\nTOTAL: $${this.reporteSeleccionado.total.toFixed(2)}\n\nPastelería Dulce Encanto 🍰\n`;
+
+    const blob = new Blob([texto], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reporte_${Date.now()}.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  toggleTodasVentas() {
+    this.mostrarVentas = !this.mostrarVentas;
+  }
 }
