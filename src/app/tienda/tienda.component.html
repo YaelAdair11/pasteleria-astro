@@ -1,19 +1,38 @@
 <div class="tienda-container">
+  
   <header class="tienda-header">
     <div class="container">
       <div class="d-flex justify-content-between align-items-center">
-        <h1 class="tienda-title mb-0"><i class="fas fa-store me-2"></i> Tienda en Línea</h1>
         
+        <h1 class="tienda-title mb-0">
+          <i class="fas fa-store me-2"></i>
+          Tienda en Línea
+        </h1>
+
         <div class="d-flex align-items-center gap-3">
-          <div *ngIf="loading" class="spinner-border spinner-border-sm text-light" role="status"></div>
           
+          <div *ngIf="loading" class="spinner-border spinner-border-sm text-light" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+
           <div class="search-bar d-none d-md-block">
-            <input type="text" [(ngModel)]="terminoBusqueda" (input)="filtrarProductos()" placeholder="Buscar productos..." class="form-control"/>
+            <input
+              type="text"
+              [(ngModel)]="terminoBusqueda"
+              (input)="filtrarProductos()"
+              placeholder="Buscar productos..."
+              class="form-control"
+            />
             <i class="fas fa-search search-icon"></i>
           </div>
-          
+
           <div class="dropdown position-relative">
-            <button *ngIf="!usuario" class="btn btn-outline-light rounded-circle p-2" (click)="abrirLogin()" title="Iniciar Sesión">
+            <button 
+              *ngIf="!usuario"
+              class="btn btn-outline-light rounded-circle p-2" 
+              (click)="abrirLogin()" 
+              title="Iniciar Sesión"
+            >
               <i class="fas fa-user"></i>
             </button>
 
@@ -37,127 +56,367 @@
             <div *ngIf="menuUsuarioAbierto" class="fixed-overlay" (click)="menuUsuarioAbierto = false"></div>
           </div>
 
-          <button class="btn btn-outline-light position-relative" (click)="carritoAbierto = !carritoAbierto">
+          <button
+            class="btn btn-outline-light position-relative"
+            (click)="carritoAbierto = !carritoAbierto"
+          >
             <i class="fas fa-shopping-cart"></i>
-            <span *ngIf="getCantidadTotal() > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ getCantidadTotal() }}</span>
+            <span
+              *ngIf="getCantidadTotal() > 0"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+            >
+              {{ getCantidadTotal() }}
+            </span>
           </button>
-          
-          <button class="btn btn-outline-light d-md-none" (click)="mostrarFiltros = !mostrarFiltros"><i class="fas fa-filter"></i></button>
+
+          <button
+            class="btn btn-outline-light d-md-none"
+            (click)="mostrarFiltros = !mostrarFiltros"
+          >
+            <i class="fas fa-filter"></i>
+          </button>
         </div>
       </div>
-
+      
       <div class="mt-3 d-md-none">
-         <input type="text" [(ngModel)]="terminoBusqueda" (input)="filtrarProductos()" placeholder="Buscar..." class="form-control w-100"/>
+         <input
+            type="text"
+            [(ngModel)]="terminoBusqueda"
+            (input)="filtrarProductos()"
+            placeholder="Buscar..."
+            class="form-control w-100"
+          />
       </div>
+
     </div>
   </header>
 
   <div class="container-fluid mt-4">
     <div class="row g-4">
-      <aside class="col-md-3 filters-sidebar-col" [class.d-none]="!mostrarFiltros" [class.d-md-block]="true">
+      
+      <aside
+        class="col-md-3 filters-sidebar-col" 
+        [class.d-none]="!mostrarFiltros"
+        [class.d-md-block]="true"
+      >
         <div class="filters-card">
           <h5>Filtros</h5>
-           <div class="filter-section">
+          
+          <div class="filter-section">
              <h6>Categorías</h6>
              <div class="category-list">
-               <button class="category-btn" [class.active]="categoriaSeleccionada === 'todos'" (click)="categoriaSeleccionada = 'todos'; filtrarProductos()">Todos</button>
-               <button *ngFor="let categoria of categorias" class="category-btn" [class.active]="categoriaSeleccionada === categoria.id" (click)="categoriaSeleccionada = categoria.id; filtrarProductos()">{{ categoria.nombre }}</button>
+               <button
+                class="category-btn"
+                [class.active]="categoriaSeleccionada === 'todos'"
+                (click)="categoriaSeleccionada = 'todos'; filtrarProductos()"
+              >
+                Todos
+              </button>
+              <button
+                *ngFor="let categoria of categorias"
+                class="category-btn"
+                [class.active]="categoriaSeleccionada === categoria.id"
+                (click)="categoriaSeleccionada = categoria.id; filtrarProductos()"
+              >
+                {{ categoria.nombre }}
+              </button>
              </div>
           </div>
+
           <div class="filter-section">
              <h6>Precio</h6>
              <div class="price-range">
-               <label>Mín: ${{ precioMin }}</label> <input type="range" [(ngModel)]="precioMin" min="0" max="5000" step="50" (change)="filtrarProductos()" class="form-range" />
-               <label>Máx: ${{ precioMax }}</label> <input type="range" [(ngModel)]="precioMax" min="0" max="5000" step="50" (change)="filtrarProductos()" class="form-range" />
+               <label>Mín: ${{ precioMin }}</label>
+               <input type="range" [(ngModel)]="precioMin" min="0" max="5000" step="50" (change)="filtrarProductos()" class="form-range" />
+               <label>Máx: ${{ precioMax }}</label>
+               <input type="range" [(ngModel)]="precioMax" min="0" max="5000" step="50" (change)="filtrarProductos()" class="form-range" />
              </div>
           </div>
+
           <div class="filter-section">
             <h6>Ordenar</h6>
             <select [(ngModel)]="ordenSeleccionado" (change)="ordenarProductos()" class="form-select">
-              <option value="nombre">Nombre A-Z</option> <option value="precio-asc">Precio: Menor a Mayor</option> <option value="precio-desc">Precio: Mayor a Menor</option> <option value="stock-desc">Mayor Stock</option>
+              <option value="nombre">Nombre A-Z</option>
+              <option value="precio-asc">Precio: Menor a Mayor</option>
+              <option value="precio-desc">Precio: Mayor a Menor</option>
+              <option value="stock-desc">Mayor Stock</option>
             </select>
           </div>
+
         </div>
       </aside>
 
       <main class="col-md-9">
-          <div class="products-header mb-4"><h4>{{ productosFiltrados.length }} productos encontrados</h4></div>
-          <div class="row" *ngIf="!loading">
+         <div class="products-header mb-4">
+          <h4>{{ productosFiltrados.length }} productos encontrados</h4>
+         </div>
+
+         <div class="row" *ngIf="!loading">
             <div *ngFor="let producto of productosFiltrados" class="col-xl-3 col-lg-4 col-md-6 mb-4">
                <div class="product-card">
-                  <div class="product-badges"><span *ngIf="producto.destacado" class="badge bg-warning">Destacado</span> <span *ngIf="producto.stock <= 5" class="badge bg-danger">¡Últimas unidades!</span></div>
+                  <div class="product-badges">
+                    <span *ngIf="producto.destacado" class="badge bg-warning">Destacado</span>
+                    <span *ngIf="producto.stock <= 5" class="badge bg-danger">¡Últimas unidades!</span>
+                  </div>
+                  
                   <div class="product-image">
-                    <img [src]="producto.imagen || '/images/placeholder.jpg'" [alt]="producto.nombre" (error)="producto.imagen='/images/placeholder.jpg'">
+                    <img 
+                      [src]="producto.imagen || defaultImage" 
+                      [alt]="producto.nombre" 
+                      (error)="producto.imagen = defaultImage"
+                    >
                     <div class="product-overlay">
-                       <button class="btn btn-primary btn-sm" (click)="agregarAlCarrito(producto)" [disabled]="producto.stock <= 0"><i class="fas fa-cart-plus"></i> {{ producto.stock > 0 ? 'Agregar' : 'Sin Stock' }}</button>
+                       <button class="btn btn-primary btn-sm" (click)="agregarAlCarrito(producto)" [disabled]="producto.stock <= 0">
+                         <i class="fas fa-cart-plus"></i> {{ producto.stock > 0 ? 'Agregar' : 'Sin Stock' }}
+                       </button>
                     </div>
                   </div>
+
                   <div class="product-info">
                     <h6 class="product-category">{{ getNombreCategoria(producto) }}</h6>
                     <h5 class="product-title">{{ producto.nombre }}</h5>
-                    <div class="product-price"><span class="current-price">${{ producto.precio }}</span></div>
+                    <div class="product-price">
+                      <span class="current-price">${{ producto.precio }}</span>
+                    </div>
                   </div>
                </div>
             </div>
-          </div>
-          <div *ngIf="productosFiltrados.length === 0 && !loading" class="text-center py-5">
-             <i class="fas fa-search fa-3x text-muted mb-3"></i><h4>No se encontraron productos</h4><p>Intenta con otros filtros</p>
-          </div>
+         </div>
+
+         <div *ngIf="productosFiltrados.length === 0 && !loading" class="text-center py-5">
+             <i class="fas fa-search fa-3x text-muted mb-3"></i>
+             <h4>No se encontraron productos</h4>
+             <p>Intenta ajustar los filtros de búsqueda</p>
+         </div>
       </main>
     </div>
   </div>
 
   <div class="cart-sidebar" [class.active]="carritoAbierto">
+     
      <div [ngSwitch]="checkoutStep" class="h-100 d-flex flex-column">
-        <div *ngSwitchCase="'cart'" class="d-flex flex-column h-100">
-            <div class="cart-header"><h4>Tu Carrito</h4><button class="btn-close" (click)="carritoAbierto = false"></button></div>
+        
+        <div class="cart-header-wrapper" *ngIf="checkoutStep !== 'success'">
+          <div class="cart-header">
+              <h4 *ngIf="checkoutStep === 'cart'">Tu Carrito</h4>
+              <h4 *ngIf="checkoutStep === 'shipping'">Envío</h4>
+              <h4 *ngIf="checkoutStep === 'payment'">Pago Seguro</h4>
+              <button class="btn-close" (click)="carritoAbierto = false"></button>
+          </div>
+          
+          <div class="checkout-stepper">
+              <div class="step" [class.active]="checkoutStep === 'cart' || checkoutStep === 'shipping' || checkoutStep === 'payment'">1</div>
+              <div class="line" [class.active]="checkoutStep === 'shipping' || checkoutStep === 'payment'"></div>
+              <div class="step" [class.active]="checkoutStep === 'shipping' || checkoutStep === 'payment'">2</div>
+              <div class="line" [class.active]="checkoutStep === 'payment'"></div>
+              <div class="step" [class.active]="checkoutStep === 'payment'">3</div>
+          </div>
+        </div>
+
+        <div *ngSwitchCase="'cart'" class="d-flex flex-column flex-grow-1 overflow-hidden">
             <div class="cart-content">
+               <div *ngIf="carrito.length === 0" class="empty-cart text-center py-5">
+                   <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                   <p>Tu carrito está vacío</p>
+                   <button class="btn btn-outline-dark btn-sm mt-2" (click)="carritoAbierto = false">Ir a comprar</button>
+               </div>
+
                <div *ngFor="let item of carrito; let i = index" class="cart-item">
-                  <img [src]="item.producto.imagen" (error)="item.producto.imagen='/images/placeholder.jpg'">
-                  <div class="item-details"><h6>{{item.producto.nombre}}</h6><p>${{item.producto.precio}}</p><div class="quantity-controls"><button (click)="actualizarCantidad(i, item.cantidad - 1)">-</button><span>{{item.cantidad}}</span><button (click)="actualizarCantidad(i, item.cantidad + 1)">+</button></div></div>
-                  <div class="item-total"><strong>${{item.producto.precio*item.cantidad}}</strong><button class="btn btn-link text-danger" (click)="eliminarDelCarrito(i)"><i class="fas fa-trash"></i></button></div>
+                  <img 
+                    [src]="item.producto.imagen || defaultImage" 
+                    (error)="item.producto.imagen = defaultImage"
+                  >
+                  <div class="item-details">
+                      <h6 class="text-truncate">{{item.producto.nombre}}</h6>
+                      <p class="mb-1">${{item.producto.precio}} x {{item.cantidad}}</p>
+                      <div class="quantity-controls">
+                          <button (click)="actualizarCantidad(i, item.cantidad - 1)" [disabled]="item.cantidad <= 1">-</button>
+                          <span>{{item.cantidad}}</span>
+                          <button (click)="actualizarCantidad(i, item.cantidad + 1)" [disabled]="item.cantidad >= item.producto.stock">+</button>
+                      </div>
+                  </div>
+                  <div class="item-total text-end">
+                      <strong class="d-block mb-2">${{item.producto.precio*item.cantidad}}</strong>
+                      <button class="btn btn-link text-danger p-0" (click)="eliminarDelCarrito(i)">
+                        <i class="fas fa-trash-alt"></i>
+                      </button>
+                  </div>
                </div>
             </div>
-            <div class="cart-footer">
-               <div class="cart-total"><strong>Total: ${{getTotalCarrito()}}</strong></div>
+
+            <div class="cart-footer" *ngIf="carrito.length > 0">
+               <div class="d-flex justify-content-between mb-3">
+                   <span class="text-muted">Subtotal</span>
+                   <strong>${{getTotalCarrito()}}</strong>
+               </div>
                <button class="btn btn-primary w-100" (click)="iniciarCheckout()">Proceder al Pago</button>
             </div>
         </div>
-        <div *ngSwitchCase="'shipping'" class="d-flex flex-column h-100">
-           <div class="cart-header checkout-header"><button class="btn btn-link" (click)="volverA('cart')">Volver</button></div>
+
+        <div *ngSwitchCase="'shipping'" class="d-flex flex-column flex-grow-1">
            <div class="cart-content checkout-view">
-              <h5>Envío</h5>
-              <form #shippingForm="ngForm"><input type="text" placeholder="Nombre" [(ngModel)]="shippingInfo.nombre" name="nombre" class="form-control mb-2" required><input type="email" placeholder="Email" [(ngModel)]="shippingInfo.email" name="email" class="form-control mb-2" required><input type="text" placeholder="Dirección" [(ngModel)]="shippingInfo.direccion" name="direccion" class="form-control mb-2" required></form>
+              <button class="btn btn-link text-decoration-none mb-3 ps-0 text-muted" (click)="volverA('cart')">
+                  <i class="fas fa-arrow-left me-2"></i> Volver al carrito
+              </button>
+
+              <h5 class="mb-4">Dirección de Entrega</h5>
+              <form #shippingForm="ngForm" class="checkout-form">
+                 <div class="form-group mb-3">
+                   <label>Nombre Completo</label>
+                   <input type="text" [(ngModel)]="shippingInfo.nombre" name="nombre" class="form-control" required placeholder="Ej. Juan Pérez">
+                 </div>
+                 <div class="form-group mb-3">
+                   <label>Email de Contacto</label>
+                   <input type="email" [(ngModel)]="shippingInfo.email" name="email" class="form-control" required placeholder="tu@email.com">
+                 </div>
+                 <div class="form-group mb-3">
+                   <label>Dirección y Número</label>
+                   <input type="text" [(ngModel)]="shippingInfo.direccion" name="direccion" class="form-control" required placeholder="Calle Principal #123">
+                 </div>
+                 <div class="row">
+                     <div class="col-7 form-group mb-3">
+                       <label>Ciudad</label>
+                       <input type="text" [(ngModel)]="shippingInfo.ciudad" name="ciudad" class="form-control" required>
+                     </div>
+                     <div class="col-5 form-group mb-3">
+                       <label>C.P.</label>
+                       <input type="text" [(ngModel)]="shippingInfo.codigo_postal" name="cp" class="form-control" required>
+                     </div>
+                 </div>
+              </form>
            </div>
-           <div class="cart-footer"><button class="btn btn-primary w-100" (click)="irAPago()" [disabled]="!shippingForm.valid">Ir a Pagar</button></div>
+           <div class="cart-footer">
+               <button class="btn btn-primary w-100" (click)="irAPago()" [disabled]="!shippingForm.valid">Continuar al Pago</button>
+           </div>
         </div>
-        <div *ngSwitchCase="'payment'" class="d-flex flex-column h-100">
-           <div class="cart-header checkout-header"><button class="btn btn-link" (click)="volverA('shipping')">Volver</button></div>
-           <div class="cart-content checkout-view"><h5>Resumen</h5><div class="checkout-summary"><h6>Total: ${{getTotalCarrito()}}</h6></div></div>
-           <div class="cart-footer"><button class="btn btn-primary w-100" (click)="realizarCompra()" [disabled]="loading">{{ loading ? 'Procesando...' : 'Pagar' }}</button></div>
+
+        <div *ngSwitchCase="'payment'" class="d-flex flex-column flex-grow-1">
+           <div class="cart-content checkout-view">
+              <button class="btn btn-link text-decoration-none mb-3 ps-0 text-muted" (click)="volverA('shipping')">
+                  <i class="fas fa-arrow-left me-2"></i> Editar envío
+              </button>
+
+              <div class="order-summary bg-light p-3 rounded mb-4">
+                  <div class="d-flex justify-content-between mb-1"><span>Productos ({{getCantidadTotal()}})</span> <span>${{getTotalCarrito()}}</span></div>
+                  <div class="d-flex justify-content-between mb-1"><span>Envío</span> <span class="text-success">Gratis</span></div>
+                  <div class="border-top my-2"></div>
+                  <div class="d-flex justify-content-between fw-bold"><span>Total a Pagar</span> <span class="fs-5">${{getTotalCarrito()}}</span></div>
+              </div>
+
+              <h6 class="mb-3 text-uppercase text-muted small ls-1">Método de Pago</h6>
+              
+              <div class="d-flex gap-2 mb-3 text-muted">
+                  <i class="fab fa-cc-visa fa-2x"></i>
+                  <i class="fab fa-cc-mastercard fa-2x"></i>
+                  <i class="fab fa-cc-amex fa-2x"></i>
+              </div>
+
+              <form #paymentForm="ngForm" class="payment-form">
+                  <div class="mb-3">
+                      <label class="form-label small text-muted">Número de Tarjeta</label>
+                      <div class="input-group">
+                          <span class="input-group-text bg-white border-end-0"><i class="far fa-credit-card"></i></span>
+                          <input type="text" class="form-control border-start-0 ps-0" placeholder="0000 0000 0000 0000" 
+                                 [(ngModel)]="datosTarjeta.numero" name="cardNum" maxlength="19" (input)="formatearTarjeta()" required>
+                      </div>
+                  </div>
+                  
+                  <div class="mb-3">
+                      <label class="form-label small text-muted">Nombre del Titular</label>
+                      <input type="text" class="form-control" placeholder="COMO APARECE EN LA TARJETA" 
+                             [(ngModel)]="datosTarjeta.nombre" name="cardName" required>
+                  </div>
+
+                  <div class="row">
+                      <div class="col-6 mb-3">
+                          <label class="form-label small text-muted">Vence (MM/AA)</label>
+                          <input type="text" class="form-control text-center" placeholder="MM/AA" 
+                                 [(ngModel)]="datosTarjeta.expiracion" name="cardExp" maxlength="5" (input)="formatearExpiracion()" required>
+                      </div>
+                      <div class="col-6 mb-3">
+                          <label class="form-label small text-muted">CVV / CVC</label>
+                          <div class="input-group">
+                              <input type="password" class="form-control text-center" placeholder="123" 
+                                     [(ngModel)]="datosTarjeta.cvv" name="cardCvv" maxlength="4" required>
+                              <span class="input-group-text bg-white border-start-0"><i class="fas fa-lock text-muted small"></i></span>
+                          </div>
+                      </div>
+                  </div>
+              </form>
+
+              <div class="alert alert-info d-flex align-items-center py-2 small mt-2">
+                  <i class="fas fa-shield-alt me-2"></i>
+                  <span>Pago 100% Seguro y Encriptado</span>
+              </div>
+           </div>
+           
+           <div class="cart-footer">
+              <button 
+                class="btn btn-success w-100 py-3 fw-bold text-uppercase ls-1 d-flex justify-content-center align-items-center gap-2" 
+                (click)="realizarCompra()" 
+                [disabled]="loading"
+              >
+                  <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
+                  <span *ngIf="!loading">Pagar Ahora ${{getTotalCarrito()}}</span>
+              </button>
+           </div>
         </div>
-        <div *ngSwitchCase="'success'" class="d-flex flex-column h-100">
-           <div class="cart-content checkout-view text-center"><i class="fas fa-check-circle fa-3x text-success"></i><h5>¡Éxito!</h5></div>
-           <div class="cart-footer"><button class="btn btn-primary w-100" (click)="finalizarYVolver()">Volver a la tienda</button></div>
+
+        <div *ngSwitchCase="'success'" class="d-flex flex-column flex-grow-1 justify-content-center align-items-center text-center p-4 success-view">
+           <div class="success-icon mb-4">
+               <i class="fas fa-check-circle text-success fa-5x"></i>
+           </div>
+           <h4 class="mb-2">¡Pedido Confirmado!</h4>
+           <p class="text-muted">Gracias por tu compra, {{shippingInfo.nombre}}.</p>
+           
+           <div class="order-details bg-light p-3 rounded my-4 w-100">
+               <small class="text-muted d-block text-uppercase ls-1 mb-2">Número de Orden</small>
+               <strong>#{{ getOrderId() }}</strong>
+               <p class="mb-0 mt-2 small">Hemos enviado el recibo a <strong>{{shippingInfo.email}}</strong></p>
+           </div>
+
+           <button class="btn btn-dark w-100 py-3 text-uppercase" (click)="finalizarYVolver()">Seguir Comprando</button>
         </div>
+
      </div>
   </div>
+  
   <div class="cart-overlay" [class.active]="carritoAbierto" (click)="carritoAbierto = false"></div>
 
   <div class="auth-overlay" *ngIf="mostrarAuthModal">
     <div class="auth-card">
       <button class="btn-close position-absolute top-0 end-0 m-3" (click)="cerrarAuth()"></button>
+      
       <div class="text-center mb-4">
         <i class="fas fa-user-circle fa-3x text-primary mb-2"></i>
         <h4>{{ esRegistro ? 'Crear Cuenta' : 'Iniciar Sesión' }}</h4>
         <p class="text-muted small">{{ esRegistro ? 'Regístrate con tu correo' : 'Ingresa tu correo' }}</p>
       </div>
+
       <div *ngIf="authError" class="alert alert-danger py-2 small">{{ authError }}</div>
+
       <form (ngSubmit)="procesarAuth()">
-        <div class="mb-3"><input type="text" class="form-control" placeholder="Email" [(ngModel)]="authData.email" name="email" required></div>
-        <div class="mb-4"><div class="input-group"><input [type]="mostrarPassword ? 'text' : 'password'" class="form-control border-end-0" placeholder="Contraseña" [(ngModel)]="authData.password" name="password" required><button class="btn btn-outline-secondary border-start-0 bg-light text-muted" type="button" (click)="mostrarPassword = !mostrarPassword"><i class="fas" [ngClass]="mostrarPassword ? 'fa-eye-slash' : 'fa-eye'"></i></button></div></div>
-        <button type="submit" class="btn btn-primary w-100 mb-3" [disabled]="authLoading">{{ authLoading ? 'Procesando...' : (esRegistro ? 'Registrarse' : 'Entrar') }}</button>
-        <div class="text-center"><button type="button" class="btn btn-link btn-sm text-decoration-none" (click)="esRegistro = !esRegistro">{{ esRegistro ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}</button></div>
+        <div class="mb-3">
+          <input type="text" class="form-control" placeholder="Email" [(ngModel)]="authData.email" name="email" required>
+        </div>
+        <div class="mb-4">
+          <div class="input-group">
+            <input [type]="mostrarPassword ? 'text' : 'password'" class="form-control border-end-0" placeholder="Contraseña" [(ngModel)]="authData.password" name="password" required>
+            <button class="btn btn-outline-secondary border-start-0 bg-light text-muted" type="button" (click)="mostrarPassword = !mostrarPassword">
+              <i class="fas" [ngClass]="mostrarPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 mb-3" [disabled]="authLoading">
+          {{ authLoading ? 'Procesando...' : (esRegistro ? 'Registrarse' : 'Entrar') }}
+        </button>
+
+        <div class="text-center">
+          <button type="button" class="btn btn-link btn-sm text-decoration-none" (click)="esRegistro = !esRegistro">
+            {{ esRegistro ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate' }}
+          </button>
+        </div>
       </form>
     </div>
   </div>
