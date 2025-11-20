@@ -31,10 +31,11 @@ export class Vender implements OnInit {
   mostrarModalReporte = false;
   mostrarModalTarjeta = false;
   mostrarModalTicket = false;
-  fechaVenta = new Date().toLocaleString();
-  cliente = 'Cliente General';
-  nombreTitularTarjeta = '';
-  tipoPago = '';
+
+  fechaVenta = "";
+  cliente = "";
+  nombreTitularTarjeta = "";
+  tipoPago = "";
   mensajeCarritoVacio = false;
 
   constructor(private supabaseService: SupabaseService) {}
@@ -150,13 +151,17 @@ export class Vender implements OnInit {
 
   pagar(metodo: string) {
     this.tipoPago = metodo;
+
     if (metodo === 'efectivo') {
-      this.cliente = 'Cliente General';
+      if (!this.cliente.trim()) {
+        this.cliente = 'Cliente General';
+      }
       this.mostrarModalPago = false;
       this.mostrarModalTicket = true;
       this.fechaVenta = new Date().toLocaleString();
       this.registrarVenta();
     }
+
     if (metodo === 'tarjeta') {
       this.mostrarModalPago = false;
       this.mostrarModalTarjeta = true;
@@ -169,9 +174,9 @@ export class Vender implements OnInit {
   }
 
   confirmarTarjeta() {
-    this.cliente = this.nombreTitularTarjeta || 'Cliente Tarjeta';
     this.mostrarModalTarjeta = false;
     this.mostrarModalTicket = true;
+
     this.fechaVenta = new Date().toLocaleString();
     this.registrarVenta();
   }
@@ -180,9 +185,6 @@ export class Vender implements OnInit {
     this.mostrarModalTicket = false;
     this.carrito = [];
     this.total = 0;
-    this.mostrarModalPago = false;
-    this.mostrarModalTarjeta = false;
-    this.mostrarModalConfirmacion = false;
   }
 
   guardarTicket() {
@@ -206,17 +208,13 @@ export class Vender implements OnInit {
     this.mostrarModalTicket = false;
   }
 
-  imprimirTicket() {
-    window.print();
-  }
-
   registrarVenta() {
     this.ventas.push({
       fecha: this.fechaVenta,
       total: this.total,
       cliente: this.cliente,
       metodo: this.tipoPago,
-      productos: JSON.parse(JSON.stringify(this.carrito))
+      productos: JSON.parse(JSON.stringify(this.carrito)),
     });
   }
 
@@ -235,9 +233,11 @@ export class Vender implements OnInit {
     texto += `Cliente: ${this.reporteSeleccionado.cliente}\n`;
     texto += `Método de pago: ${this.reporteSeleccionado.metodo}\n\n`;
     texto += `Productos:\n`;
+
     this.reporteSeleccionado.productos.forEach((item: any) => {
       texto += `${item.nombre} x${item.cantidad} - $${(item.precio * item.cantidad).toFixed(2)}\n`;
     });
+
     texto += `\nTOTAL: $${this.reporteSeleccionado.total.toFixed(2)}\n\nPastelería Dulce Encanto 🍰\n`;
 
     const blob = new Blob([texto], { type: 'text/plain' });

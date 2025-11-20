@@ -59,7 +59,7 @@
 
     <!-- Historial de Ventas -->
     <section class="ventas">
-      <h2>Historial de Ventas</h2>
+      <h3>Historial de Ventas</h3>
       <button class="btn-toggle" (click)="toggleTodasVentas()">
         {{ mostrarVentas ? "Ocultar ventas" : "Mostrar todas las ventas" }}
       </button>
@@ -67,7 +67,7 @@
       <div class="lista-reportes" *ngIf="mostrarVentas">
         <div class="reporte-item" *ngFor="let v of ventas; let i = index">
           <div class="reporte-header">
-            <span><strong>Venta #{{ i + 1 }}</strong> — {{ v.fecha }}</span>
+            <span><strong>Venta {{ i + 1 }}</strong>_ {{ v.fecha }}</span>
             <button class="btn-reporte" (click)="verReporte(i)">Reporte</button>
           </div>
           <!-- Detalle completo se muestra solo en el modal de reporte -->
@@ -160,7 +160,6 @@
       <p class="sub-ticket">🧾 Ticket de Venta</p>
       <div class="linea"></div>
       <p><strong>Fecha:</strong> {{ fechaVenta }}</p>
-      <p><strong>Cliente:</strong> {{ cliente }}</p>
       <div class="linea"></div>
       <p><strong>Productos:</strong></p>
       <div class="lista-ticket">
@@ -186,7 +185,6 @@
       <h2 class="titulo-reporte">Reporte de Venta</h2>
       <p><strong>Fecha:</strong> {{ reporteSeleccionado?.fecha }}</p>
       <div class="linea"></div>
-      <p><strong>Cliente:</strong> {{ reporteSeleccionado?.cliente }}</p>
       <p><strong>Método de Pago:</strong> {{ reporteSeleccionado?.metodo }}</p>
       <div class="linea"></div>
       <p><strong>Productos:</strong></p>
