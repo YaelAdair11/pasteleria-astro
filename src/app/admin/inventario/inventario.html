@@ -52,7 +52,7 @@
       <tbody>
         <tr *ngFor="let p of productos" class="text-center">
           <td class="d-flex align-items-center gap-3">
-            <img *ngIf="p.imagen" [src]="p.imagen" class="object-fit-cover"
+            <img *ngIf="p.imagen" [src]="p.imagen" class="object-fit-cover rounded-2 border"
               style="width: 4rem; height: 4rem;" (error)="p.imagen = undefined">
             <div *ngIf="!p.imagen" class="rounded-circle text-white fw-bold d-flex justify-content-center align-items-center"
               [style.background]="colorAleatorio(p.nombre)"

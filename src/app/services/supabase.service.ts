@@ -548,4 +548,30 @@ export class SupabaseService {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'perfiles' }, callback)
       .subscribe();
   }
+
+  /**
+   * Envía un correo de recuperación.
+   * @param email El correo del usuario.
+   */
+  async resetPasswordForEmail(email: string) {
+    // redirectTo debe coincidir con la ruta en tu app.routes.ts
+    // window.location.origin obtiene tu dominio actual (localhost o producción)
+    const redirectTo = `${window.location.origin}/actualizar-contrasena`;
+    
+    const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectTo,
+    });
+    return { error };
+  }
+
+  /**
+   * Actualiza la contraseña del usuario que tiene la sesión activa.
+   * @param newPassword La nueva contraseña.
+   */
+  async updateUserPassword(newPassword: string) {
+    const { data, error } = await this.supabase.auth.updateUser({
+      password: newPassword
+    });
+    return { data, error };
+  }
 }

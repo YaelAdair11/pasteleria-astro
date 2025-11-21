@@ -11,12 +11,16 @@ import { Reportes } from './admin/reportes/reportes';
 import { Ventas } from './admin/ventas/ventas';
 import { Vender } from './empleado/vender/vender';
 import { TiendaComponent } from './tienda/tienda.component';
+import { ResetPassword } from './reset-password/reset-password';
+import { UpdatePassword } from './update-password/update-password';
 
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: Login },
   { path: 'tienda', component: TiendaComponent },
+  { path: 'olvide-contrasena', component: ResetPassword },
+  { path: 'actualizar-contrasena', component: UpdatePassword },
   {
     path: 'admin',
     component: Admin,
