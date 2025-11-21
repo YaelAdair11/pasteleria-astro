@@ -48,9 +48,8 @@ export class SupabaseService {
     });
   }
 
-  // ✅ Cargar los datos del usuario (solo 1 consulta)
+  // Cargar los datos del usuario (solo 1 consulta)
   private async cargarPerfil(userAuth: User): Promise<Usuario> {
-    // Leer datos desde tabla perfiles
     const { data: perfil } = await this.supabase
       .from('perfiles')
       .select('username, rol, avatar, email')
@@ -84,19 +83,16 @@ export class SupabaseService {
     });
   }
 
-  // Logout
   async signOut() {
     await this.supabase.auth.signOut();
     this.userSubject.next(null);
   }
 
-  // Devuelve la sesión actual
   async getSession(): Promise<Session | null> {
     const { data: { session } } = await this.supabase.auth.getSession();
     return session;
   }
 
-  // =================== ROLES ===================
   async getRolUsuario(userId: string) {
     return this.supabase
       .from('perfiles')
@@ -105,13 +101,27 @@ export class SupabaseService {
       .single();
   }
 
+  // 🔥 MÉTODOS RECUPERADOS (Para arreglar el error) 🔥
+  async resetPasswordForEmail(email: string) {
+    const redirectTo = `${window.location.origin}/actualizar-contrasena`;
+    const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectTo,
+    });
+    return { error };
+  }
+
+  async updateUserPassword(password: string) {
+    const { data, error } = await this.supabase.auth.updateUser({
+      password: password
+    });
+    return { data, error };
+  }
+
   // =================== EMPLEADOS / PERFILES ===================
-  
-  // ✅ NUEVO: Obtener todos los perfiles (para el filtro de vendedores)
   async getPerfiles() {
     const { data, error } = await this.supabase
       .from('perfiles')
-      .select('*') // Traemos todo para tener ID y Username
+      .select('*')
       .order('username', { ascending: true });
 
     if (error) throw error;
@@ -130,9 +140,6 @@ export class SupabaseService {
   }
 
   async crearEmpleado(empleadoData: any) {
-    console.log("Servicio: Creando USUARIO DE AUTH con:", empleadoData.email);
-
-    // 1. Crear en Auth (La "Recepción")
     const { data: authData, error: authError } = await this.supabase.auth.signUp({
       email: empleadoData.email,
       password: empleadoData.password
@@ -149,7 +156,6 @@ export class SupabaseService {
       return { data: null, error: new Error('No se pudo crear el usuario en Auth.') };
     }
 
-    // PASO 2: Perfil
     const { data: profileData, error: profileError } = await this.supabase
       .from('perfiles')
       .insert({
@@ -205,7 +211,6 @@ export class SupabaseService {
   }
 
   // =================== AGENDA / TURNOS ===================
-
   async getAgendaSemanal() {
     const { data, error } = await this.supabase
       .from('agenda_turnos')
@@ -335,17 +340,14 @@ export class SupabaseService {
   }
 
   // =================== VENTAS ===================
-
-  /**
-   * ✅ ACTUALIZADO: Obtiene el historial de ventas, INCLUYENDO EL VENDEDOR.
-   */
   async getVentas(filtro: string = '') {
-    // 1. Quitamos "perfiles ( username )" porque tu tabla ventas no tiene la columna de usuario todavía.
+    // Usamos '!ventas_usuario_id_fkey' para forzar la relación correcta
     let query = this.supabase
       .from('ventas')
       .select(`
         *,
-        productos!inner ( nombre )
+        productos!inner ( nombre ),
+        perfiles!ventas_usuario_id_fkey ( username ) 
       `) 
       .order('fecha', { ascending: false });
 
@@ -356,11 +358,11 @@ export class SupabaseService {
     const { data, error } = await query;
 
     if (error) {
-      console.error('Error en getVentas:', error);
+      console.warn('Error trayendo ventas:', error.message);
       throw new Error(error.message);
     }
     return data;
-  }
+  } 
 
   async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[]> {
     try {
@@ -515,6 +517,7 @@ export class SupabaseService {
           cantidad: ventaData.cantidad,
           total: ventaData.total,
           metodo_pago: ventaData.metodo_pago,
+          usuario_id: ventaData.usuario_id, 
           fecha: new Date().toISOString()
         }])
         .select()
@@ -550,29 +553,45 @@ export class SupabaseService {
       .subscribe();
   }
 
-  /**
-   * Envía un correo de recuperación.
-   * @param email El correo del usuario.
-   */
-  async resetPasswordForEmail(email: string) {
-    // redirectTo debe coincidir con la ruta en tu app.routes.ts
-    // window.location.origin obtiene tu dominio actual (localhost o producción)
-    const redirectTo = `${window.location.origin}/actualizar-contrasena`;
-    
-    const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectTo,
-    });
-    return { error };
+  // =================== PEDIDOS ESPECIALES ===================
+  async getPedidosActivos() {
+    const { data, error } = await this.supabase
+      .from('pedidos')
+      .select('*')
+      .neq('estado', 'entregado') 
+      .order('fecha_entrega', { ascending: true });
+
+    if (error) throw error;
+    return data || [];
   }
 
-  /**
-   * Actualiza la contraseña del usuario que tiene la sesión activa.
-   * @param newPassword La nueva contraseña.
-   */
-  async updateUserPassword(newPassword: string) {
-    const { data, error } = await this.supabase.auth.updateUser({
-      password: newPassword
-    });
-    return { data, error };
+  async crearPedido(pedido: any) {
+    const { Tipo, nombre, telefono, fecha, lugar, estado, ...detalles } = pedido;
+
+    const { data, error } = await this.supabase
+      .from('pedidos')
+      .insert({
+        tipo: Tipo,
+        cliente_nombre: nombre,
+        cliente_telefono: telefono,
+        fecha_entrega: fecha,
+        lugar_entrega: lugar,
+        estado: estado || 'en proceso',
+        detalles: detalles 
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async actualizarEstadoPedido(id: string, nuevoEstado: string) {
+    const { error } = await this.supabase
+      .from('pedidos')
+      .update({ estado: nuevoEstado })
+      .eq('id', id);
+
+    if (error) throw error;
   }
 }
