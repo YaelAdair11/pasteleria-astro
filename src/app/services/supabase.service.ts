@@ -132,7 +132,7 @@ export class SupabaseService {
   async crearEmpleado(empleadoData: any) {
     console.log("Servicio: Creando USUARIO DE AUTH con:", empleadoData.email);
 
-    // PASO 1: Auth
+    // 1. Crear en Auth (La "Recepción")
     const { data: authData, error: authError } = await this.supabase.auth.signUp({
       email: empleadoData.email,
       password: empleadoData.password
@@ -155,13 +155,14 @@ export class SupabaseService {
       .insert({
         id: authData.user.id, 
         username: empleadoData.username,
-        rol: empleadoData.rol
+        rol: empleadoData.rol,
+        email: empleadoData.email 
       })
       .select('id, username, email, avatar, rol') 
       .single();
 
     if (profileError) {
-      return { data: null, error: new Error('Se creó Auth pero falló perfil: ' + profileError.message) };
+      return { data: null, error: new Error('Error guardando perfil: ' + profileError.message) };
     }
 
     const fullProfile = { ...profileData, email: authData.user.email };

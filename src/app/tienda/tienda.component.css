@@ -13,13 +13,16 @@
 
 /* --- HEADER --- */
 .tienda-header {
-  background: rgba(255, 255, 255, 0.95); 
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(12px);
-  padding: 1.5rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 1rem 0; 
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   position: sticky;
   top: 0;
   z-index: 100;
+  height: 80px; 
+  display: flex;
+  align-items: center;
 }
 
 .tienda-title {
@@ -82,12 +85,9 @@
 
 /* --- SIDEBAR DE FILTROS --- */
 .filters-card {
-  background: transparent; 
-  border-radius: 0;
-  padding: 1rem 0;
-  box-shadow: none; 
-  margin-bottom: 2rem;
-  border-right: 1px solid transparent; 
+ border-right: 1px solid #eee;
+ padding-right: 1.5rem;
+ height: 100%;
 }
 
 @media (min-width: 768px) {
@@ -173,6 +173,9 @@
 }
 
 .product-card {
+  background: #fff;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
   background: transparent; 
   border-radius: 0; 
   overflow: visible;
@@ -186,7 +189,8 @@
 
 .product-card:hover {
   transform: translateY(-5px);
-  box-shadow: none; 
+  border-color: #eee;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
 }
 
 .product-badges {
@@ -337,14 +341,14 @@
   top: 0;
   right: -450px;
   width: 450px;
-  height: 100vh;
+  height: 100vh; 
   background: #fff;
-  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1); 
-  transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1); 
-  z-index: 1000;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1);
+  transition: transform 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+  z-index: 9999;
   display: flex;
   flex-direction: column;
-  transform: translateX(0);
+  overscroll-behavior: contain; 
 }
 
 .cart-sidebar.active {
@@ -373,6 +377,9 @@
   flex: 1;
   overflow-y: auto;
   padding: 0 2rem;
+  overscroll-behavior: contain;
+  min-height: 0;
+  height: 100%;
 }
 
 /* Items del carrito */
@@ -499,7 +506,7 @@
   opacity: 0;
   visibility: hidden;
   transition: all 0.5s ease;
-  z-index: 999;
+  z-index: 9998;
 }
 
 .cart-overlay.active {
@@ -598,4 +605,255 @@
   box-shadow: 0 5px 20px rgba(0,0,0,0.1) !important;
   font-weight: 500;
   letter-spacing: 0.5px;
+}
+
+.container-fluid.mt-4 {
+  max-width: 1600px; /* Evita que se estire demasiado en pantallas 4k */
+  margin: 0 auto;
+  padding-top: 1rem;
+}
+
+.filters-sidebar-col {
+  position: relative; 
+}
+
+.filters-sidebar-col {
+    position: sticky;
+    top: 100px; 
+    height: calc(100vh - 120px);
+    overflow-y: auto; 
+    scrollbar-width: thin;
+    padding-right: 10px;
+}
+
+/* --- MODAL DE AUTENTICACIÓN (Nuevo) --- */
+.auth-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* Fondo oscuro */
+  backdrop-filter: blur(5px);
+  z-index: 3000; /* Encima de todo, incluso del carrito */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.auth-card {
+  background: #fff;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 400px;
+  border-radius: 1rem;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  animation: slideUp 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.auth-card .form-control {
+  border-radius: 0.5rem;
+  padding: 0.8rem;
+  background: #f8f9fa;
+  border: 1px solid #eee;
+}
+
+.auth-card .form-control:focus {
+  background: #fff;
+  border-color: #111;
+  box-shadow: none;
+}
+
+.auth-card .btn-primary {
+  border-radius: 0.5rem;
+  padding: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+/* Animaciones simples */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(50px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* --- AJUSTES DEL HEADER --- */
+.tienda-header {
+  /* Aseguramos que el header sea flexible */
+  height: auto;
+  min-height: 80px;
+}
+
+/* Botones de perfil */
+.btn-outline-light {
+  color: #333;
+  border-color: transparent;
+}
+.btn-outline-light:hover {
+  background: #f0f0f0;
+  color: #000;
+}
+
+.input-group .form-control:focus {
+  z-index: 1; /* Para que el borde azul se vea bien */
+}
+.input-group button {
+  border-color: #eee;
+}
+.input-group button:hover {
+  background: #e9ecef;
+}
+
+.dropdown {
+  position: relative;
+}
+
+.user-dropdown-menu {
+  position: absolute;
+  top: 110%;
+  right: 0;
+  width: 200px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.user-dropdown-menu .dropdown-item {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 0.9rem;
+  padding: 0.7rem 1rem;
+  transition: background 0.2s;
+  color: #333;
+}
+
+.user-dropdown-menu .dropdown-item:hover {
+  background: #f8f9fa;
+}
+
+.fixed-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 999; /* Detrás del menú pero delante de todo lo demás */
+  cursor: default;
+}
+
+.checkout-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 0;
+  background: #fff;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.checkout-stepper .step {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #eee;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.checkout-stepper .step.active {
+  background: #111;
+  color: #fff;
+}
+
+.checkout-stepper .line {
+  width: 40px;
+  height: 2px;
+  background: #eee;
+  margin: 0 10px;
+}
+
+.checkout-stepper .line.active {
+  background: #111;
+}
+
+/* --- VISTA DE PAGO --- */
+.payment-form .form-control {
+  background: #f8f9fa;
+  border: 1px solid #eee;
+  font-size: 0.9rem;
+  padding: 0.7rem;
+}
+
+.payment-form .form-control:focus {
+  background: #fff;
+  border-color: #111;
+  box-shadow: none;
+}
+
+.payment-form .input-group-text {
+  border-color: #eee;
+  background: #f8f9fa;
+  color: #666;
+}
+
+.ls-1 {
+  letter-spacing: 1px;
+}
+
+.order-summary {
+  font-size: 0.9rem;
+}
+
+/* Botón de Pagar destacado */
+.btn-success {
+  background-color: #28a745;
+  border: none;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+}
+
+.btn-success:disabled {
+  background-color: #9cd6a9;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Flex grow para que el footer quede siempre abajo */
+.flex-grow-1 {
+  flex-grow: 1 !important;
+}
+.overflow-hidden {
+  overflow: hidden !important;
+}
+/* El contenido scrolleable */
+.cart-content {
+  overflow-y: auto;
+  height: 100%; 
+}
+
+.d-flex.flex-column.flex-grow-1 {
+  min-height: 0; 
+  overflow: hidden; 
 }
