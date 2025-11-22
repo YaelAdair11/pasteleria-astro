@@ -1,328 +1,198 @@
 <div class="dashboard-container">
+  
   <header class="header">
     <h1>🎂 Pastelería Dulce Arte</h1>
-
-    <!-- 🔘 Botones accesibles en la esquina derecha -->
     <div class="header-actions">
-      <button class="btn add" (click)="abrirModalAgregar()">➕ Agregar Pedido</button>
+      <button class="btn add" (click)="abrirModalAgregar()">➕ Agregar Pedido Especial</button>
       <button class="btn view" (click)="abrirModalPedidos()">📋 Ver Pedidos</button>
     </div>
   </header>
 
-  <!-- 📰 Sección de Noticias -->
+  <section class="stats-section">
+    <div class="card">
+      <h2>Ingresos Hoy</h2>
+      <div *ngIf="loadingStats" class="spinner-border text-primary spinner-border-sm" role="status"></div>
+      <p *ngIf="!loadingStats" class="value">${{ ingresosHoy | number:'1.2-2' }}</p>
+      <span class="tag success">Dinero en caja</span>
+    </div>
+    
+    <div class="card">
+      <h2>Ventas Hoy</h2>
+      <div *ngIf="loadingStats" class="spinner-border text-primary spinner-border-sm" role="status"></div>
+      <p *ngIf="!loadingStats" class="value">{{ ventasHoy }}</p>
+      <span class="tag info">Transacciones</span>
+    </div>
+
+    <div class="card">
+      <h2>Pedidos Pendientes</h2>
+      <div *ngIf="loadingPedidos && pedidos.length === 0" class="spinner-border text-warning spinner-border-sm" role="status"></div>
+      <p *ngIf="!loadingPedidos || pedidos.length > 0" class="value">{{ pedidos.length }}</p>
+      <span class="tag warning">Por entregar</span>
+    </div>
+  </section>
+
   <section class="news-section">
     <h2>🧁 Novedades y Lanzamientos</h2>
     <div class="news-container">
       <div class="news-card">
-        <img 
-          src="https://www.suqiee.com.mx/wp-content/uploads/2022/12/instagram-pastel-de-chocolate-1.jpg"
-          alt="Pastel de chocolate belga"
-          class="news-img-local"
-        />
+        <img src="https://www.suqiee.com.mx/wp-content/uploads/2022/12/instagram-pastel-de-chocolate-1.jpg" class="news-img-local"/>
         <div class="news-info">
-          <h3>🍫 Nuevo Pastel de Chocolate Belga</h3>
-          <p>Hecho con cacao 100% natural y ganache artesanal. ¡Una experiencia irresistible disponible ya en todas las sucursales!</p>
+          <h3>🍫 Nuevo Pastel de Chocolate</h3>
+          <p>Hecho con cacao 100% natural y ganache artesanal.</p>
+        </div>
+      </div>
+      
+      <div class="news-card">
+        <img src="https://aranzazu.com/wp-content/uploads/2025/08/pastel-Labubu.webp" alt="Pasteles personalizados" />
+        <div class="news-info">
+          <h3>🎨 Pasteles Temáticos</h3>
+          <p>Elige tu diseño favorito o envíanos tu idea.</p>
         </div>
       </div>
 
       <div class="news-card">
-        <img 
-          src="https://pasteleriacaty.com/wp-content/uploads/2019/12/San-Nicolas.jpg" 
-          alt="Nueva sucursal en Puebla" />
-        <div class="news-info">
-          <h3>🎉 Nueva Sucursal en Puebla</h3>
-          <p>Visítanos en Av. Reforma #321. Promociones de apertura durante todo el mes de noviembre.</p>
-        </div>
-      </div>
-
-      <div class="news-card">
-        <img 
-          src="https://aranzazu.com/wp-content/uploads/2025/08/pastel-Labubu.webp" 
-          alt="Pasteles personalizados" />
-        <div class="news-info">
-          <h3>🎨 Pasteles Temáticos Personalizados</h3>
-          <p>Elige tu diseño favorito o envíanos tu idea. ¡Perfecto para cumpleaños, bodas y eventos especiales!</p>
-        </div>
-      </div>
-
-      <div class="news-card">
-        <img 
-          src="https://static.promodescuentos.com/threads/raw/NrXHZ/795892_1/re/1024x1024/qt/60/795892_1.jpg" 
-          alt="Pasteles personalizados" />
+        <img src="https://static.promodescuentos.com/threads/raw/NrXHZ/795892_1/re/1024x1024/qt/60/795892_1.jpg" alt="Ofertas" />
         <div class="news-info">
           <h3>Ofertas en Tienda</h3>
-          <p>Descuentos en pasteles de existencia y por pedido a un precio más bajo.</p>
-        </div>
-      </div>
-
-      <div class="news-card">
-        <img 
-          src="https://i.ytimg.com/vi/Rxt-pxSZUk4/sddefault.jpg" 
-          alt="Pasteles personalizados" />
-        <div class="news-info">
-          <h3>Eventos exclusivos</h3>
-          <p>Concurso o evento donde se muestra a nuestros mejores pasteleros haciendo gala de su creatividad.</p>
-        </div>
-      </div>
-
-      <div class="news-card">
-        <img 
-          src="https://images.milenio.com/GwM4IUah3p1rrWmQT9Gz898H5vA=/345x194/uploads/media/2024/02/18/repostera-viral-pastel-forma-copa.jpg" 
-          alt="Pasteles personalizados" />
-        <div class="news-info">
-          <h3>Pasteles Exclusivos</h3>
-          <p>Pasteles hechos con la mejor creatividad de la industria y colaboraciones únicas.</p> 
+          <p>Descuentos en pasteles de existencia seleccionados.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 📊 Sección de estadísticas -->
-  <section class="stats-section">
-    <div class="card">
-      <h2>Ventas Hoy</h2>
-      <p class="value">$7,200</p>
-      <span class="tag success">+12% vs ayer</span>
-    </div>
-    <div class="card">
-      <h2>Ventas del Mes</h2>
-      <p class="value">$180,750</p>
-      <span class="tag neutral">Objetivo 75%</span>
-    </div>
-    <div class="card">
-      <h2>Ofertas</h2>
-      <p class="value">8</p>
-      <span class="tag warning">ver ofertas</span>
-    </div>
-    <div class="card">
-      <h2>Exclusivos</h2>
-      <p class="value">4</p>
-      <span class="tag info">Ver pasteles</span>
-    </div>
-  </section>
+  <div class="modal" *ngIf="mostrarAgregar">
+    <div class="modal-content pedido-card">
+      <h2>🍰 Agregar Pedido</h2>
 
-  <!-- 🌸 Modal Agregar Pedido -->
-<div class="modal" *ngIf="mostrarAgregar">
-  <div class="modal-content pedido-card">
-    <h2>🍰 Agregar Pedido</h2>
-
-    <form (ngSubmit)="guardarPedido()" class="pedido-form">
-
-      <!-- Tipo -->
-      <div class="form-step">
-        <label>Tipo de producto:</label>
-        <select [(ngModel)]="nuevoPedido.Tipo" name="Tipo" required>
-          <option value="">Selecciona un tipo</option>
-          <option *ngFor="let t of tiposProductos" [value]="t">{{ t }}</option>
-        </select>
-      </div>
-
-      <!-- 📌 Campos generales -->
-      <div class="form-step" *ngIf="nuevoPedido.Tipo">
-        <label>Nombre:</label>
-        <input type="text" [(ngModel)]="nuevoPedido.nombre" name="nombre" required />
-      </div>
-
-      <div class="form-step" *ngIf="nuevoPedido.nombre">
-        <label>Teléfono:</label>
-        <input type="tel" [(ngModel)]="nuevoPedido.telefono" name="telefono" required />
-      </div>
-
-      <div class="form-step" *ngIf="nuevoPedido.telefono">
-        <label>Domicilio o recoger en tienda:</label>
-        <input type="text" [(ngModel)]="nuevoPedido.lugar" name="lugar" placeholder="Ej. Domicilio o Sucursal Reforma" />
-      </div>
-
-      <div class="form-step" *ngIf="nuevoPedido.lugar !== null">
-        <label>Fecha de entrega:</label>
-        <input type="date" [(ngModel)]="nuevoPedido.fecha" name="fecha" required />
-      </div>
-
-      <!-- 🟣 CAMPOS DEPENDIENDO DEL PRODUCTO -->
-
-      <!-- 🎂 PASTEL -->
-      <div *ngIf="nuevoPedido.Tipo === 'Pastel'">
-
+      <form (ngSubmit)="guardarPedido()" class="pedido-form">
+        
         <div class="form-step">
-          <label>Color del pastel:</label>
-          <input type="text" [(ngModel)]="nuevoPedido.color" name="color" placeholder="Ej. Rosa pastel" />
-        </div>
-
-        <div class="form-step">
-          <label>Cantidad (Kg):</label>
-          <input type="number" min="1" [(ngModel)]="nuevoPedido.kilos" name="kilos" placeholder="Ej. 2" />
-        </div>
-
-        <div class="form-step">
-          <label>Relleno:</label>
-          <input type="text" [(ngModel)]="nuevoPedido.relleno" name="relleno" placeholder="Chocolate, fresa, nuez..." />
-        </div>
-
-        <div class="form-step">
-          <label>Temática:</label>
-          <input type="text" [(ngModel)]="nuevoPedido.tematica" name="tematica" placeholder="Ej. Princesas, Futbol, Floral" />
-        </div>
-
-      </div>
-
-      <!-- 🧃 BEBIDA -->
-      <div *ngIf="nuevoPedido.Tipo === 'Bebida'">
-
-        <div class="form-step">
-          <label>Sabor:</label>
-          <input type="text" [(ngModel)]="nuevoPedido.sabor" name="saborBebida" placeholder="Ej. Fresa, Mango..." />
-        </div>
-
-        <div class="form-step">
-          <label>Cantidad (piezas o litros):</label>
-          <input type="number" min="1" [(ngModel)]="nuevoPedido.cantidad" name="cantidadBebida" placeholder="Ej. 6" />
-        </div>
-
-      </div>
-
-      <!-- 🍪 GALLETAS -->
-      <div *ngIf="nuevoPedido.Tipo === 'Galletas'">
-
-        <div class="form-step">
-          <label>Sabor:</label>
-          <input type="text" [(ngModel)]="nuevoPedido.sabor" name="saborGalletas" placeholder="Chocolate, Vainilla..." />
-        </div>
-
-        <div class="form-step">
-          <label>Tamaño:</label>
-          <select [(ngModel)]="nuevoPedido.tamano" name="tamaño">
-            <option value="Chica">Chica</option>
-            <option value="Mediana">Mediana</option>
-            <option value="Grande">Grande</option>
+          <label>Tipo de producto:</label>
+          <select [(ngModel)]="nuevoPedido.Tipo" name="Tipo" required>
+            <option value="">Selecciona un tipo</option>
+            <option *ngFor="let t of tiposProductos" [value]="t">{{ t }}</option>
           </select>
         </div>
 
-        <div class="form-step">
-          <label>Temática:</label>
-          <input type="text" [(ngModel)]="nuevoPedido.tematica" name="tematicaGalletas" placeholder="Ej. Navidad, Princesas..." />
+        <div *ngIf="nuevoPedido.Tipo">
+            <div class="form-step">
+              <label>Nombre Cliente:</label>
+              <input type="text" [(ngModel)]="nuevoPedido.nombre" name="nombre" required />
+            </div>
+
+            <div class="form-step">
+              <label>Teléfono:</label>
+              <input type="tel" [(ngModel)]="nuevoPedido.telefono" name="telefono" required />
+            </div>
+
+            <div class="form-step">
+              <label>Lugar de Entrega:</label>
+              <input type="text" [(ngModel)]="nuevoPedido.lugar" name="lugar" placeholder="Sucursal o Domicilio" />
+            </div>
+
+            <div class="form-step">
+              <label>Fecha de entrega:</label>
+              <input type="date" [(ngModel)]="nuevoPedido.fecha" name="fecha" required />
+            </div>
         </div>
 
-        <div class="form-step">
-          <label>Cantidad de galletas:</label>
-          <input type="number" min="1" [(ngModel)]="nuevoPedido.cantidad" name="cantidadGalletas" />
+        <div *ngIf="nuevoPedido.Tipo === 'Pastel'">
+          <div class="form-step"><label>Kilos:</label><input type="number" [(ngModel)]="nuevoPedido.kilos" name="kilos"></div>
+          <div class="form-step"><label>Relleno:</label><input type="text" [(ngModel)]="nuevoPedido.relleno" name="relleno"></div>
+          <div class="form-step"><label>Temática:</label><input type="text" [(ngModel)]="nuevoPedido.tematica" name="tematica"></div>
         </div>
 
-      </div>
-
-      <!-- 🍮 POSTRE -->
-      <div *ngIf="nuevoPedido.Tipo === 'Postre'">
-
-        <div class="form-step">
-          <label>Tipo de postre:</label>
-          <input type="text" [(ngModel)]="nuevoPedido.tipoPostre" name="tipoPostre" placeholder="Gelatina, Flan, Pay..." />
+        <div *ngIf="nuevoPedido.Tipo === 'Bebida' || nuevoPedido.Tipo === 'Galletas' || nuevoPedido.Tipo === 'Postre'">
+           <div class="form-step"><label>Sabor:</label><input type="text" [(ngModel)]="nuevoPedido.sabor" name="sabor"></div>
+           <div class="form-step"><label>Cantidad:</label><input type="number" [(ngModel)]="nuevoPedido.cantidad" name="cantidad"></div>
         </div>
 
-        <div class="form-step">
-          <label>Sabor:</label>
-          <input type="text" [(ngModel)]="nuevoPedido.sabor" name="saborPostre" placeholder="Chocolate, limón..." />
+        <div class="modal-actions">
+          <button type="submit" class="btn save">💾 Guardar</button>
+          <button type="button" class="btn cancel" (click)="cerrarModal()">❌ Cancelar</button>
         </div>
 
-        <div class="form-step">
-          <label>Cantidad:</label>
-          <input type="number" min="1" [(ngModel)]="nuevoPedido.cantidad" name="cantidadPostre" />
-        </div>
-
-        <div class="form-step">
-          <label>Temática:</label>
-          <input type="text" [(ngModel)]="nuevoPedido.tematica" name="tematicaPostre" placeholder="Ej. Azul pastel, Mickey..." />
-        </div>
-
-      </div>
-
-      <!-- BOTONES -->
-      <div class="modal-actions">
-        <button type="submit" class="btn save">💾 Guardar</button>
-        <button type="button" class="btn cancel" (click)="cerrarModal()">❌ Cancelar</button>
-      </div>
-
-    </form>
+      </form>
+    </div>
   </div>
-</div>
 
-  <!-- 📋 Modal Pedidos -->
   <div class="modal" *ngIf="mostrarPedidos">
     <div class="modal-content">
-      <h2>Pedidos Registrados</h2>
-      <div *ngFor="let pedido of pedidos" class="pedido-item">
-        <p><strong>{{ pedido.nombre }}</strong> - {{ pedido.kilos }}kg - {{ pedido.tematica }}</p>
-        <p>📞 {{ pedido.telefono }} | Fecha: {{ pedido.fecha }}</p>
-        <p>
-          Estado:
-          <select [(ngModel)]="pedido.estado">
-            <option value="en proceso">En Proceso</option>
-            <option value="entregado">Entregado</option>
-          </select>
-        </p>
-        <button *ngIf="pedido.estado === 'entregado'" class="btn report" (click)="verReporte(pedido)">
-          📄 Reporte
-        </button>
+      <h2>Pedidos Pendientes</h2>
+      
+      <div *ngIf="loadingPedidos" class="text-center py-3">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p>Cargando pedidos...</p>
       </div>
+
+      <div *ngIf="!loadingPedidos && pedidos.length === 0" class="text-center py-3 text-muted">
+        <p>No hay pedidos pendientes por entregar.</p>
+      </div>
+
+      <div *ngIf="!loadingPedidos" class="lista-pedidos-scroll">
+        <div *ngFor="let pedido of pedidos" class="pedido-item">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <p class="mb-1"><strong>{{ pedido.Tipo }} - {{ pedido.nombre }}</strong></p>
+                <p class="mb-1 small text-muted">
+                    <span *ngIf="pedido.kilos">{{ pedido.kilos }}kg, </span>
+                    <span *ngIf="pedido.tematica">{{ pedido.tematica }}</span>
+                    <span *ngIf="pedido.sabor">{{ pedido.sabor }}</span>
+                </p>
+                <p class="mb-1 small">📞 {{ pedido.telefono }} | 📅 {{ pedido.fecha | date:'shortDate' }}</p>
+            </div>
+            
+            <button class="btn btn-sm btn-outline-info" (click)="verReporte(pedido)">
+                <i class="fa-solid fa-eye"></i>
+            </button>
+          </div>
+          
+          <hr class="my-2">
+          
+          <div class="d-flex align-items-center gap-2">
+            <label class="small mb-0">Estado:</label>
+            <select [(ngModel)]="pedido.estado" (change)="cambiarEstadoPedido(pedido)" class="form-select form-select-sm w-auto">
+              <option value="en proceso">En Proceso</option>
+              <option value="listo">Listo para entrega</option>
+              <option value="entregado">Entregado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div class="modal-actions">
         <button class="btn cancel" (click)="cerrarModal()">Cerrar</button>
       </div>
     </div>
   </div>
-  <!-- 📄 Modal Reporte Elegante -->
+
   <div class="modal" *ngIf="reporteSeleccionado">
-    <div class="reporte-card">
-        <!-- ============================
-        MODAL DE REPORTE DE PEDIDO
-      =============================== -->
-    <div class="modal" *ngIf="reporteSeleccionado">
-      <div class="modal-content">
-        <h2>Reporte del Pedido</h2>
+    <div class="modal-content">
+      <h2>Detalle del Pedido</h2>
+      <div class="reporte-info">
+          <p><strong>Tipo:</strong> {{ reporteSeleccionado.Tipo }}</p>
+          <p><strong>Cliente:</strong> {{ reporteSeleccionado.nombre }}</p>
+          <p><strong>Teléfono:</strong> {{ reporteSeleccionado.telefono }}</p>
+          <p><strong>Entrega:</strong> {{ reporteSeleccionado.fecha | date:'fullDate' }}</p>
+          <p><strong>Lugar:</strong> {{ reporteSeleccionado.lugar }}</p>
+          <hr>
+          
+          <div *ngIf="reporteSeleccionado.Tipo === 'Pastel'">
+             <p><strong>Kilos:</strong> {{ reporteSeleccionado.kilos }}</p>
+             <p><strong>Relleno:</strong> {{ reporteSeleccionado.relleno }}</p>
+             <p><strong>Temática:</strong> {{ reporteSeleccionado.tematica }}</p>
+             <p><strong>Color:</strong> {{ reporteSeleccionado.color }}</p>
+          </div>
 
-        <p><strong>Tipo:</strong> {{ reporteSeleccionado.Tipo }}</p>
-        <p><strong>Nombre:</strong> {{ reporteSeleccionado.nombre }}</p>
-        <p><strong>Teléfono:</strong> {{ reporteSeleccionado.telefono }}</p>
-        <p><strong>Fecha:</strong> {{ reporteSeleccionado.fecha }}</p>
-        <p><strong>Lugar de entrega:</strong> {{ reporteSeleccionado.lugar }}</p>
-
-        <!-- ============================
-            DATOS ESPECÍFICOS POR PRODUCTO
-        ================================ -->
-
-        <!-- 🟣 Pastel -->
-        <div *ngIf="reporteSeleccionado.Tipo === 'Pastel'">
-          <h3>Detalles del pastel</h3>
-          <p><strong>Color:</strong> {{ reporteSeleccionado.color }}</p>
-          <p><strong>Kilos:</strong> {{ reporteSeleccionado.kilos }}</p>
-          <p><strong>Relleno:</strong> {{ reporteSeleccionado.relleno }}</p>
-          <p><strong>Temática:</strong> {{ reporteSeleccionado.tematica }}</p>
-        </div>
-
-        <!-- 🟠 Bebida -->
-        <div *ngIf="reporteSeleccionado.Tipo === 'Bebida'">
-          <h3>Detalles de la bebida</h3>
-          <p><strong>Sabor:</strong> {{ reporteSeleccionado.sabor }}</p>
-          <p><strong>Cantidad:</strong> {{ reporteSeleccionado.cantidad }}</p>
-          <p><strong>Tamaño:</strong> {{ reporteSeleccionado.tamano }}</p>
-        </div>
-
-        <!-- 🟡 Galletas -->
-        <div *ngIf="reporteSeleccionado.Tipo === 'Galletas'">
-          <h3>Detalles de galletas</h3>
-          <p><strong>Sabor:</strong> {{ reporteSeleccionado.sabor }}</p>
-          <p><strong>Cantidad:</strong> {{ reporteSeleccionado.cantidad }}</p>
-          <p><strong>Decoración / temática:</strong> {{ reporteSeleccionado.tematica }}</p>
-        </div>
-
-        <!-- 🟢 Postre -->
-        <div *ngIf="reporteSeleccionado.Tipo === 'Postre'">
-          <h3>Detalles del postre</h3>
-          <p><strong>Tipo de postre:</strong> {{ reporteSeleccionado.tipoPostre }}</p>
-          <p><strong>Sabor:</strong> {{ reporteSeleccionado.sabor }}</p>
-          <p><strong>Cantidad:</strong> {{ reporteSeleccionado.cantidad }}</p>
-          <p><strong>Tamaño:</strong> {{ reporteSeleccionado.tamano }}</p>
-        </div>
-        <button class="cerrar" (click)="cerrarReporte()">Cerrar</button>
+          <div *ngIf="reporteSeleccionado.Tipo !== 'Pastel'">
+             <p><strong>Sabor:</strong> {{ reporteSeleccionado.sabor }}</p>
+             <p><strong>Cantidad:</strong> {{ reporteSeleccionado.cantidad }}</p>
+             <p><strong>Tamaño:</strong> {{ reporteSeleccionado.tamano }}</p>
+          </div>
       </div>
-     </div>
+      
+      <button class="cerrar" (click)="cerrarReporte()">Cerrar</button>
     </div>
   </div>
+
 </div>

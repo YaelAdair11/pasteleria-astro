@@ -87,11 +87,11 @@
             
             <td>
               <span class="badge border" 
-                [ngClass]="v.perfiles ? 'bg-light text-dark' : 'bg-secondary text-white'">
-                {{ v.perfiles?.username || 'Venta Online' }}
+                [ngClass]="v.perfiles?.username ? 'bg-light text-dark' : 'bg-warning text-dark'">
+                <i class="fa-solid" [ngClass]="v.perfiles?.username ? 'fa-user-tie' : 'fa-globe'"></i>
+                {{ v.perfiles?.username || (v.usuario_id ? 'Empleado (Sin nombre)' : 'Venta Online') }}
               </span>
             </td>
-
             <td>{{ v.cantidad }}</td>
             <td>
               <span class="badge" 
