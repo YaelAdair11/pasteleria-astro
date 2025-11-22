@@ -573,6 +573,7 @@ export class SupabaseService {
     const { data, error } = await this.supabase.auth.updateUser({
       password: newPassword
     });
+    console.log('updateUserPassword data:', data, 'error:', error);
     return { data, error };
   }
 }

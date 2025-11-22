@@ -12,64 +12,51 @@ import { filter, switchMap, take } from 'rxjs/operators';
   templateUrl: './update-password.html',
   styleUrls: ['./update-password.css']
 })
-export class UpdatePassword implements OnInit {
+export class UpdatePassword {
   form: FormGroup;
   loading = false;
-  verificandoSesion = true;
-  usuarioValido = false;
+  
+  // Estados para controlar la vista
+  verificando = true; 
+  linkValido = false; 
   error: string | null = null;
+  mensajeExito: string | null = null; // ✅ Nuevo estado para el mensaje de éxito
+  
   passwordVisible = false;
 
   constructor(
     private fb: FormBuilder, 
     private supabase: SupabaseService,
-    private router: Router,
-    private cdr: ChangeDetectorRef // 2. Inyectar ChangeDetectorRef
+    private router: Router
   ) {
     this.form = this.fb.group({
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
-    
-    this.form.disable();
   }
 
   ngOnInit() {
-    console.log('Iniciando verificación de sesión...');
-    
     this.supabase.ready$.pipe(
-      filter(isReady => isReady),
+      filter(isReady => isReady === true),
       switchMap(() => this.supabase.user$),
-      take(1)
+      take(1) 
     ).subscribe(user => {
-      this.verificandoSesion = false;
-
-      if (!user) {
-        console.error('No se encontró usuario autenticado.');
-        this.error = 'El enlace ha expirado o no es válido. Solicita uno nuevo.';
-        this.usuarioValido = false;
-        this.form.disable();
+      this.verificando = false;
+      if (user) {
+        console.log('Sesión recuperada para:', user.email);
+        this.linkValido = true;
       } else {
-        console.log('Usuario verificado:', user.email);
-        this.usuarioValido = true;
-        this.error = null;
-        this.form.enable();
+        console.error('No hay sesión activa.');
+        this.linkValido = false;
+        this.error = 'El enlace de recuperación ha expirado o no es válido. Por favor solicita uno nuevo.';
       }
-      // Forzamos actualización de la vista al terminar la verificación inicial
-      this.cdr.detectChanges();
     });
   }
 
   passwordMatchValidator(control: AbstractControl) {
     const password = control.get('password')?.value;
     const confirmPassword = control.get('confirmPassword')?.value;
-
-    if (password !== confirmPassword) {
-      control.get('confirmPassword')?.setErrors({ mismatch: true });
-      return { mismatch: true };
-    } else {
-      return null;
-    }
+    return password === confirmPassword ? null : { mismatch: true };
   }
 
   togglePasswordVisibility() {
@@ -79,43 +66,29 @@ export class UpdatePassword implements OnInit {
   async onSubmit() {
     if (this.form.invalid) return;
 
-    console.log('Enviando nueva contraseña a Supabase...');
     this.loading = true;
     this.error = null;
+    this.mensajeExito = null; // Limpiamos mensajes previos
     const { password } = this.form.value;
 
     try {
-      // 1. Creamos una promesa que falla automáticamente después de 10 segundos
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Tiempo de espera agotado. Por favor recarga la página (F5) e intenta de nuevo.')), 10000)
-      );
-
-      // 2. Ejecutamos la actualización compitiendo contra el timeout
-      const updatePromise = this.supabase.updateUserPassword(password);
+      const { error } = await this.supabase.updateUserPassword(password);
       
-      // Promise.race devuelve el resultado de la promesa que termine primero
-      const result: any = await Promise.race([updatePromise, timeoutPromise]);
-      
-      const { error } = result;
       if (error) throw error;
 
-      console.log('Contraseña actualizada correctamente.');
-      alert('Tu contraseña ha sido actualizada. Por favor inicia sesión.');
-      this.router.navigate(['/login']); 
+      // ✅ En lugar de alert, mostramos el mensaje en la UI
+      this.mensajeExito = 'Tu contraseña ha sido actualizada correctamente.';
+      
+      // Esperamos 2 segundos antes de redirigir para que el usuario lea el mensaje
+      setTimeout(() => {
+        this.router.navigate(['/login']);
+      }, 2500);
 
     } catch (err: any) {
-      console.error('Error en updatePassword:', err);
-      this.error = err.message || 'Ocurrió un error al actualizar la contraseña.';
-      
-      // Si el error es por el bloqueo, sugerimos recargar
-      if (err.message?.includes('Tiempo de espera')) {
-        alert('Parece que el navegador bloqueó la solicitud. Recarga la página (F5) y funcionará.');
-      }
-
-    } finally {
-      console.log('Finalizando proceso de carga.');
-      this.loading = false;
-      this.cdr.detectChanges();
+      console.error('Error:', err);
+      this.error = err.message || 'Error al actualizar. Intenta solicitar un nuevo correo.';
+      this.loading = false; // Solo quitamos loading si hay error
     }
+    // Nota: No ponemos loading = false en finally si hay éxito, para evitar que el formulario se reactive antes de redirigir.
   }
 }
