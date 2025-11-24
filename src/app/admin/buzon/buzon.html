@@ -1,0 +1,181 @@
+<div class="container-fluid p-3 bg-light">
+  
+  <!-- Encabezado y Filtros -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="fw-bold text-dark mb-0">
+      <i class="fa-solid fa-inbox me-2 text-primary"></i>Buzón de Solicitudes
+    </h4>
+    
+    <div class="btn-group shadow-sm">
+      <button class="btn px-4" 
+        [class.btn-primary]="filtroActual === 'pendiente'" 
+        [class.btn-outline-primary]="filtroActual !== 'pendiente'" 
+        (click)="cambiarFiltro('pendiente')">
+        Pendientes
+      </button>
+      <button class="btn px-4" 
+        [class.btn-secondary]="filtroActual === 'historial'" 
+        [class.btn-outline-secondary]="filtroActual !== 'historial'" 
+        (click)="cambiarFiltro('historial')">
+        Historial
+      </button>
+    </div>
+  </div>
+
+  <!-- Spinner -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2 text-muted">Cargando solicitudes...</p>
+  </div>
+
+  <!-- VISTA: PENDIENTES (Tarjetas de Acción) -->
+  <div *ngIf="!loading && filtroActual === 'pendiente'" class="row g-3">
+    
+    <!-- Estado Vacío -->
+    <div class="col-12 text-center py-5 text-muted" *ngIf="peticiones.length === 0">
+      <div class="bg-white d-inline-block p-4 rounded-circle shadow-sm mb-3">
+        <i class="fa-solid fa-check-double fa-3x text-success"></i>
+      </div>
+      <h4>¡Todo al día!</h4>
+      <p>No hay solicitudes pendientes de revisión.</p>
+    </div>
+
+    <!-- Tarjeta de Solicitud -->
+    <div class="col-md-6 col-xl-4" *ngFor="let p of peticiones">
+      <div class="card shadow-sm h-100 border-0 border-start border-5"
+           [class.border-primary]="p.tipo === 'stock'"
+           [class.border-success]="p.tipo === 'nuevo_producto'"
+           [class.border-warning]="p.tipo === 'editar_producto'"
+           [class.border-info]="p.tipo === 'nueva_categoria'">
+        
+        <!-- Header de la Tarjeta -->
+        <div class="card-header bg-white border-bottom-0 pt-3 d-flex justify-content-between align-items-start">
+          
+          <!-- Badge de Tipo -->
+          <span class="badge rounded-pill px-3 py-2" 
+            [ngClass]="{
+              'bg-primary-subtle text-primary': p.tipo === 'stock',
+              'bg-success-subtle text-success': p.tipo === 'nuevo_producto',
+              'bg-warning-subtle text-warning-emphasis': p.tipo === 'editar_producto',
+              'bg-info-subtle text-info-emphasis': p.tipo === 'nueva_categoria'
+            }">
+            <i class="fa-solid me-1" 
+               [class.fa-box]="p.tipo === 'stock'"
+               [class.fa-plus]="p.tipo === 'nuevo_producto'"
+               [class.fa-pen]="p.tipo === 'editar_producto'"
+               [class.fa-tags]="p.tipo === 'nueva_categoria'"></i>
+            {{ p.tipo === 'stock' ? 'STOCK' : (p.tipo | titlecase).replace('_', ' ') }}
+          </span>
+
+          <small class="text-muted" title="{{ p.creado_en }}">
+            <i class="fa-regular fa-clock me-1"></i>
+            {{ p.creado_en | date:'dd/MM HH:mm' }}
+          </small>
+        </div>
+        
+        <div class="card-body pt-1">
+          <!-- Título Principal (Producto o Categoría) -->
+          <h5 class="card-title fw-bold text-dark mb-1 fs-4">
+            {{ p.producto_nombre }}
+          </h5>
+          
+          <!-- Usuario que solicitó -->
+          <div class="d-flex align-items-center mb-3">
+            <div class="rounded-circle bg-light border text-secondary d-flex align-items-center justify-content-center fw-bold me-2" style="width: 24px; height: 24px; font-size: 0.7rem;">
+              {{ p.empleado?.username?.charAt(0).toUpperCase() || '?' }}
+            </div>
+            <small class="text-muted">Solicitado por <strong>{{ p.empleado?.username || 'Desconocido' }}</strong></small>
+          </div>
+
+          <!-- Contenido Específico: Cantidad para Stock -->
+          <div *ngIf="p.tipo === 'stock'" class="d-flex align-items-center p-3 bg-light rounded-3 mb-3 border">
+            <div class="me-3 bg-white p-2 rounded border">
+              <i class="fa-solid fa-layer-group fa-lg text-secondary"></i>
+            </div>
+            <div>
+              <span class="d-block text-muted small text-uppercase fw-bold">Cantidad Solicitada</span>
+              <span class="fs-4 fw-bold text-dark">{{ p.cantidad }} u.</span>
+            </div>
+          </div>
+          
+          <!-- Nota / Detalles -->
+          <div class="alert mb-0 small" 
+               [class.alert-light]="!p.nota" 
+               [class.alert-warning]="p.tipo === 'editar_producto'"
+               [class.alert-info]="p.tipo !== 'editar_producto' && p.nota">
+            <i class="fa-solid fa-circle-info me-2 opacity-50"></i>
+            <span class="fst-italic">{{ p.nota || 'Sin detalles adicionales.' }}</span>
+          </div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="card-footer bg-white border-top-0 pb-3 pt-0 d-flex gap-2">
+          <button class="btn btn-success flex-grow-1 fw-bold shadow-sm" (click)="resolver(p, 'completado')">
+            <i class="fa-solid fa-check me-2"></i>
+            {{ getTextoBoton(p.tipo) }}
+          </button>
+          <button class="btn btn-outline-danger shadow-sm" (click)="resolver(p, 'rechazado')" title="Rechazar">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VISTA: HISTORIAL (Tabla) -->
+  <div *ngIf="!loading && filtroActual === 'historial'" class="card shadow-sm border-0 overflow-hidden">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="ps-4">Fecha</th>
+            <th>Tipo</th>
+            <th>Detalle</th>
+            <th>Solicitante</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of peticiones">
+            <td class="ps-4 text-muted">{{ p.actualizado_en | date:'short' }}</td>
+            <td>
+              <span class="badge rounded-pill border" 
+                [class.text-bg-light]="true">
+                {{ p.tipo === 'stock' ? 'Stock' : (p.tipo === 'nuevo_producto' ? 'Nuevo' : 'Edición') }}
+              </span>
+            </td>
+            <td>
+              <div class="fw-semibold">{{ p.producto_nombre }}</div>
+              <small class="text-muted" *ngIf="p.tipo === 'stock'">Cant: {{ p.cantidad }}</small>
+              <small class="text-muted fst-italic d-block text-truncate" style="max-width: 200px;" *ngIf="p.nota">
+                {{ p.nota }}
+              </small>
+            </td>
+            <td>
+              <div class="d-flex align-items-center">
+                <div class="rounded-circle bg-secondary bg-opacity-10 text-secondary d-flex align-items-center justify-content-center fw-bold me-2" style="width: 24px; height: 24px; font-size: 10px;">
+                  {{ p.empleado?.username?.charAt(0).toUpperCase() }}
+                </div>
+                <span>{{ p.empleado?.username }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="badge rounded-pill" 
+                [ngClass]="{'bg-success': p.estado === 'completado', 'bg-danger': p.estado === 'rechazado'}">
+                <i class="fa-solid me-1" [class.fa-check]="p.estado === 'completado'" [class.fa-xmark]="p.estado === 'rechazado'"></i>
+                {{ p.estado | titlecase }}
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="peticiones.length === 0">
+            <td colspan="5" class="text-center py-5 text-muted">
+              <i class="fa-regular fa-folder-open fa-2x mb-2 d-block opacity-25"></i>
+              No hay historial disponible.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

@@ -13,6 +13,8 @@ import { Vender } from './empleado/vender/vender';
 import { TiendaComponent } from './tienda/tienda.component';
 import { ResetPassword } from './reset-password/reset-password';
 import { UpdatePassword } from './update-password/update-password';
+import { Buzon } from './admin/buzon/buzon';
+import { Peticiones } from './empleado/peticiones/peticiones';
 
 
 export const routes: Routes = [
@@ -32,6 +34,7 @@ export const routes: Routes = [
       { path: 'inventario', component: Inventario, data: { title: 'Inventario', icon: 'fa-boxes-stacked' } },
       { path: 'reportes', component: Reportes, data: { title: 'Reportes', icon: 'fa-cart-shopping' } },
       { path: 'ventas', component: Ventas, data: { title: 'Ventas', icon: 'fa-chart-line' } },
+      { path: 'buzon', component: Buzon, data: { title: 'Buzón', icon: 'fa-inbox' } },
     ]
   },
   {
@@ -40,8 +43,9 @@ export const routes: Routes = [
     canMatch: [RoleGuard],
     data: { role: 'empleado' },
     children: [
-      { path: '', component: InicioEmpleado },
-      { path: 'vender', component: Vender },
+      { path: '', component: InicioEmpleado, data: { title: 'Inicio', icon: 'fa-home' } },
+      { path: 'vender', component: Vender, data: { title: 'Vender', icon: 'fa-cash-register' } },
+      { path: 'peticiones', component: Peticiones, data: { title: 'Peticiones', icon: 'fa-clipboard-check' } },
     ]
   },
   { path: '**', redirectTo: '/login' }

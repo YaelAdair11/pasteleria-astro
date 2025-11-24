@@ -28,6 +28,7 @@ export class Inventario {
   filtroTexto: string = '';
   filtroActivo: string = '';
   filtroCategoria: string = '';
+  filtroStock: string = '';
 
   modoEdicion = false;
   productoSeleccionado: Producto | null = null;
@@ -397,16 +398,15 @@ export class Inventario {
       await this.supabase.deleteImagenProducto(productoAEliminar.imagen);
       this.productos = this.productos.filter(p => p.id !== productoAEliminar.id);
       this.productoSeleccionado = null;
-      this.modalEliminar.hide();
       this.mostrarMensaje('Producto Eliminado', `El producto "${productoAEliminar.nombre}" ha sido eliminado.`, 'success');
 
     } catch (err: any) {
       console.error('Error eliminando producto:', err);
-      this.modalEliminar.hide();
       this.mostrarMensaje('Error al Eliminar', err.message || 'No se pudo eliminar el producto.', 'error');
     }
-
+    
     this.procesando = false;
+    this.modalEliminar.hide();
   }
 
   async cargarCategorias() {
@@ -444,6 +444,12 @@ export class Inventario {
     }
   }
 
+  filtrarStock(event: any) {
+    const stockFiltro = event.target.value;
+    this.filtroStock = stockFiltro;
+    this.aplicarFiltros();
+  }
+
   aplicarFiltros() {
     let productosFiltrados = [...this.todosLosProductos];
 
@@ -464,6 +470,18 @@ export class Inventario {
       productosFiltrados = productosFiltrados.filter(p => p.activo);
     } else if (this.filtroActivo === 'false') {
       productosFiltrados = productosFiltrados.filter(p => !p.activo);
+    }
+
+    if (this.filtroStock) {
+      if (this.filtroStock === 'agotado') {
+        productosFiltrados = productosFiltrados.filter(p => p.stock <= 0);
+      } else if (this.filtroStock === 'critico') {
+        productosFiltrados = productosFiltrados.filter(p => p.stock > 0 && p.stock <= 4);
+      } else if (this.filtroStock === 'bajo') {
+        productosFiltrados = productosFiltrados.filter(p => p.stock > 4 && p.stock <= 9);
+      } else if (this.filtroStock === 'disponible') {
+        productosFiltrados = productosFiltrados.filter(p => p.stock > 9);
+      }
     }
 
     this.productos = productosFiltrados;
@@ -498,7 +516,7 @@ export class Inventario {
       this.aplicarFiltros(); 
       
       // Opcional: Mostrar mensaje de éxito rápido o toast
-      // this.mostrarMensaje('Estado Actualizado', 'El estado del producto ha cambiado.', 'success');
+      this.mostrarMensaje('Estado Actualizado', 'El estado del producto ha cambiado.', 'success');
 
     } catch (err: any) {
       console.error('Error al actualizar estado:', err);

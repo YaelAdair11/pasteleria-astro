@@ -1,0 +1,181 @@
+<div class="container-fluid p-3 bg-light">
+
+  <!-- Título -->
+  <div class="d-flex align-items-center mb-2 text-primary">
+    <i class="fa-solid fa-paper-plane fs-5 me-2"></i>
+    <h4 class="fw-bold mb-0">Centro de Solicitudes</h4>
+  </div>
+  <h5 class="ms-auto text-secondary fst-italic">Envía tus peticiones al admin</h5>
+
+  <!-- Tarjeta del Formulario -->
+  <div class="card shadow-sm border-0 mx-auto mt-3 mb-5">
+    <div class="card-body p-4">
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <!-- 1. TIPO DE SOLICITUD (Radio Buttons Estilizados) -->
+        <label class="form-label fw-bold text-uppercase text-secondary small mb-3">¿Qué necesitas?</label>
+
+        <div class="row g-2 mb-4">
+          <!-- Opción STOCK -->
+          <div class="col-6 col-md-3">
+            <input type="radio" class="btn-check" formControlName="tipo" value="stock" id="opt-stock"
+              (change)="resetForm()">
+            <label class="btn btn-outline-primary w-100 h-100 py-3 d-flex flex-column align-items-center gap-2"
+              for="opt-stock">
+              <i class="fa-solid fa-boxes-stacked fs-4"></i>
+              <span class="fw-semibold">Más Stock</span>
+            </label>
+          </div>
+          <!-- Opción NUEVO PRODUCTO -->
+          <div class="col-6 col-md-3">
+            <input type="radio" class="btn-check" formControlName="tipo" value="nuevo_producto" id="opt-new"
+              (change)="resetForm()">
+            <label class="btn btn-outline-success w-100 h-100 py-3 d-flex flex-column align-items-center gap-2"
+              for="opt-new">
+              <i class="fa-solid fa-plus fs-4"></i>
+              <span class="fw-semibold">Nuevo Producto</span>
+            </label>
+          </div>
+          <!-- Opción EDITAR -->
+          <div class="col-6 col-md-3">
+            <input type="radio" class="btn-check" formControlName="tipo" value="editar_producto" id="opt-edit"
+              (change)="resetForm()">
+            <label class="btn btn-outline-warning w-100 h-100 py-3 d-flex flex-column align-items-center gap-2"
+              for="opt-edit">
+              <i class="fa-solid fa-pen fs-4"></i>
+              <span class="fw-semibold">Editar Info</span>
+            </label>
+          </div>
+          <!-- Opción CATEGORÍA -->
+          <div class="col-6 col-md-3">
+            <input type="radio" class="btn-check" formControlName="tipo" value="nueva_categoria" id="opt-cat"
+              (change)="resetForm()">
+            <label class="btn btn-outline-info w-100 h-100 py-3 d-flex flex-column align-items-center gap-2"
+              for="opt-cat">
+              <i class="fa-solid fa-tags fs-4"></i>
+              <span class="fw-semibold">Nueva Categoría</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 2. CAMPOS DINÁMICOS (Fondo gris claro) -->
+        <div class="bg-light p-4 rounded-3 border">
+
+          <!-- A. Selector de Producto (Solo Stock o Editar) -->
+          <div class="mb-3" *ngIf="tipoActual === 'stock' || tipoActual === 'editar_producto'">
+            <label class="form-label fw-semibold">Seleccionar Producto</label>
+            <select class="form-select" formControlName="producto_id" (change)="onProductoChange()"
+              [class.is-invalid]="form.get('producto_id')?.invalid && form.get('producto_id')?.touched">
+              <option value="" disabled selected>Busca en la lista...</option>
+              <option *ngFor="let p of productos" [value]="p.id">
+                {{ p.nombre }} (Stock: {{ p.stock }})
+              </option>
+              <option value="otro" *ngIf="tipoActual === 'stock'">-- Producto no listado --</option>
+            </select>
+          </div>
+
+          <!-- B. Input de Nombre Manual (Nuevo prod/cat o "Otro") -->
+          <div class="mb-3"
+            *ngIf="tipoActual === 'nuevo_producto' || tipoActual === 'nueva_categoria' || (tipoActual === 'stock' && form.get('producto_id')?.value === 'otro')">
+            <label class="form-label fw-semibold">
+              {{ tipoActual === 'nueva_categoria' ? 'Nombre de la Categoría' : 'Nombre del Producto' }}
+            </label>
+            <input type="text" class="form-control" formControlName="producto_nombre"
+              [placeholder]="tipoActual === 'nueva_categoria' ? 'Ej. Bebidas Calientes' : 'Ej. Croissant de Almendra'"
+              [class.is-invalid]="form.get('producto_nombre')?.invalid && form.get('producto_nombre')?.touched">
+          </div>
+
+          <!-- C. Input de Cantidad (Solo Stock) -->
+          <div class="mb-3" *ngIf="tipoActual === 'stock'">
+            <label class="form-label fw-semibold">Cantidad a pedir</label>
+            <input type="number" class="form-control" formControlName="cantidad" min="1"
+              [class.is-invalid]="form.get('cantidad')?.invalid && form.get('cantidad')?.touched">
+          </div>
+
+          <!-- D. Input de Nota/Detalles -->
+          <div class="mb-0">
+            <label class="form-label fw-semibold">
+              {{ tipoActual === 'stock' ? 'Nota (Opcional)' : 'Detalles / Descripción' }}
+            </label>
+            <textarea class="form-control" formControlName="nota" rows="2" [placeholder]="getPlaceholderNota()"
+              [class.is-invalid]="form.get('nota')?.invalid && form.get('nota')?.touched"></textarea>
+
+            <div class="form-text text-warning mt-2" *ngIf="tipoActual === 'editar_producto'">
+              <i class="fa-solid fa-circle-info me-1"></i>
+              Describe el cambio (ej. "Cambiar precio a $45").
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Botón Enviar -->
+        <button type="submit" class="btn btn-primary w-100 mt-4 py-2 fw-bold shadow-sm"
+          [disabled]="form.invalid || loading">
+          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+          <span *ngIf="!loading"><i class="fa-solid fa-paper-plane me-2"></i>Enviar Solicitud</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. HISTORIAL DE SOLICITUDES -->
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h5 class="fw-bold text-secondary mb-0">Tus solicitudes recientes</h5>
+    <button class="btn btn-sm btn-outline-secondary" (click)="cargarMisPeticiones()">
+      <i class="fa-solid fa-rotate-right"></i> Actualizar
+    </button>
+  </div>
+
+  <div class="list-group shadow-sm rounded-3 overflow-hidden">
+
+    <!-- Item de Historial -->
+    <div *ngFor="let p of misPeticiones" class="list-group-item list-group-item-action p-3 border-start border-4"
+      [class.border-primary]="p.tipo === 'stock'" [class.border-success]="p.tipo === 'nuevo_producto'"
+      [class.border-warning]="p.tipo === 'editar_producto'" [class.border-info]="p.tipo === 'nueva_categoria'">
+
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <!-- Fila 1: Icono + Tipo + Nombre -->
+          <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+            <!-- Icono del Tipo -->
+            <span class="badge rounded-pill bg-opacity-10 text-dark border" [class.bg-primary]="p.tipo === 'stock'"
+              [class.bg-success]="p.tipo === 'nuevo_producto'" [class.bg-warning]="p.tipo === 'editar_producto'"
+              [class.bg-info]="p.tipo === 'nueva_categoria'">
+              <i class="fa-solid" [class.fa-box]="p.tipo === 'stock'" [class.fa-plus]="p.tipo === 'nuevo_producto'"
+                [class.fa-pen]="p.tipo === 'editar_producto'" [class.fa-tag]="p.tipo === 'nueva_categoria'"></i>
+            </span>
+
+            <span class="fw-bold text-dark fs-5">{{ p.producto_nombre }}</span>
+
+            <span class="badge bg-secondary" *ngIf="p.tipo === 'stock'">x{{ p.cantidad }}</span>
+          </div>
+
+          <!-- Fila 2: Fecha y Nota -->
+          <div class="text-muted small">
+            <span class="me-2"><i class="fa-regular fa-calendar me-1"></i>{{ p.creado_en | date:'short'
+              }}</span>
+            <span *ngIf="p.nota" class="fst-italic text-dark">• "{{ p.nota }}"</span>
+          </div>
+        </div>
+
+        <!-- Estado (Badge a la derecha) -->
+        <span class="badge rounded-pill border px-3 py-2" [ngClass]="{
+            'bg-light text-secondary': p.estado === 'pendiente',
+            'bg-success text-white': p.estado === 'completado',
+            'bg-danger text-white': p.estado === 'rechazado'
+          }">
+          <i class="fa-solid me-1" [class.fa-hourglass-half]="p.estado === 'pendiente'"
+            [class.fa-check]="p.estado === 'completado'" [class.fa-xmark]="p.estado === 'rechazado'"></i>
+          {{ p.estado | titlecase }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Estado Vacío -->
+    <div *ngIf="misPeticiones.length === 0" class="p-5 text-center bg-light">
+      <i class="fa-regular fa-folder-open fa-3x mb-3 text-secondary opacity-25"></i>
+      <p class="text-muted fw-semibold mb-0">No has enviado ninguna solicitud.</p>
+    </div>
+
+  </div>
+</div>

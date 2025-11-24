@@ -6,6 +6,7 @@ import { Empleado } from '../models/empleado.model';
 import { Usuario } from '../models/usuario.model';
 import { Producto } from '../models/producto.model';
 import { productosMasVendidos } from '../models/venta.model';
+import { Solicitud } from '../models/solicitud.model';
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
@@ -592,6 +593,46 @@ export class SupabaseService {
       .update({ estado: nuevoEstado })
       .eq('id', id);
 
+    if (error) throw error;
+  }
+
+  // =================== BUZÓN DE PETICIONES (STOCK/CAMBIOS) ===================
+
+  async crearSolicitud(datos: Solicitud) {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) throw new Error('No hay usuario autenticado');
+
+    const { error } = await this.supabase.from('peticiones').insert({
+      empleado_id: user.id,
+      tipo: datos.tipo,
+      producto_id: datos.producto_id || null,
+      producto_nombre: datos.producto_nombre,
+      cantidad: datos.cantidad || 0,
+      nota: datos.nota
+    });
+    if (error) throw error;
+  }
+
+  async getPeticionesStock(estado: 'pendiente' | 'completado' | 'rechazado' | 'todas' = 'pendiente') {
+    let query = this.supabase
+      .from('peticiones')
+      .select(`*, empleado:perfiles!empleado_id (username, email)`)
+      .order('creado_en', { ascending: false });
+
+    if (estado !== 'todas') {
+      query = query.eq('estado', estado);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data;
+  }
+
+  async actualizarEstadoPeticion(id: string, nuevoEstado: 'completado' | 'rechazado') {
+    const { error } = await this.supabase
+      .from('peticiones')
+      .update({ estado: nuevoEstado, actualizado_en: new Date() })
+      .eq('id', id);
     if (error) throw error;
   }
 }

@@ -1,16 +1,11 @@
 <div class="vender-container">
-
-  <header>
-    <h1>Panel de Ventas</h1>
-  </header>
-
   <div class="contenido">
 
     <!-- Productos -->
     <section class="productos">
-      <h2>Productos Disponibles</h2>
+      <h3>Productos Disponibles</h3>
 
-      <div class="mb-2">
+      <div class="mb-2 mt-3">
         <select id="categoria" class="form-select" (change)="filtrarCategoria($event)">
           <option value="">Todas las categorías</option>
           <option *ngFor="let c of categorias" [value]="c.nombre">{{ c.nombre }}</option>
@@ -29,7 +24,7 @@
 
     <!-- Carrito -->
     <section class="carrito">
-      <h2>Carrito</h2>
+      <h3>Carrito</h3>
 
       <div *ngIf="mensajeCarritoVacio" class="msg-carrito-vacio">
         🛒 Carrito sin productos
