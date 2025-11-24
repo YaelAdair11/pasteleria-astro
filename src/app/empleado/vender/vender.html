@@ -1,11 +1,16 @@
 <div class="vender-container">
+
+  <header>
+    <h1>Panel de Ventas</h1>
+  </header>
+
   <div class="contenido">
 
     <!-- Productos -->
     <section class="productos">
-      <h3>Productos Disponibles</h3>
+      <h2>Productos Disponibles</h2>
 
-      <div class="mb-2 mt-3">
+      <div class="mb-2">
         <select id="categoria" class="form-select" (change)="filtrarCategoria($event)">
           <option value="">Todas las categorías</option>
           <option *ngFor="let c of categorias" [value]="c.nombre">{{ c.nombre }}</option>
@@ -16,7 +21,7 @@
         <div class="producto" *ngFor="let p of productos">
           <img [src]="p.imagen" alt="producto" />
           <h3>{{ p.nombre }}</h3>
-          <p class="precio">${{ p.precio }}</p>
+          <p class="precio">${{ p.precio.toFixed(2) }}</p>
           <button class="btn-agregar" (click)="agregarAlCarrito(p)">Agregar</button>
         </div>
       </div>
@@ -24,19 +29,19 @@
 
     <!-- Carrito -->
     <section class="carrito">
-      <h3>Carrito</h3>
+      <h2>Carrito</h2>
 
       <div *ngIf="mensajeCarritoVacio" class="msg-carrito-vacio">
         🛒 Carrito sin productos
       </div>
 
-      <div class="lista-carrito">
+      <div class="lista-carrito" *ngIf="carrito.length > 0; else vacio">
         <div class="item-carrito" *ngFor="let item of carrito">
           <div class="carrito-info">
             <img [src]="item.imagen" class="img-carrito"/>
             <div>
               <span class="nombre">{{ item.nombre }}</span>
-              <span class="precio-item">${{ item.precio }}</span>
+              <span class="precio-item">${{ item.precio.toFixed(2) }}</span>
             </div>
           </div>
           <div class="controles">
@@ -44,13 +49,19 @@
             <span>{{ item.cantidad }}</span>
             <button class="btn-control" (click)="aumentarCantidad(item)">+</button>
           </div>
-          <strong class="subtotal">${{ item.precio * item.cantidad }}</strong>
+          <strong class="subtotal">${{ (item.precio * item.cantidad).toFixed(2) }}</strong>
           <button class="eliminar" (click)="eliminarDelCarrito(item)">✖</button>
         </div>
       </div>
 
-      <h3 class="total">Total: ${{ total }}</h3>
+      <ng-template #vacio>
+        <p class="texto-vacio">Tu carrito está vacío.</p>
+      </ng-template>
+
+      <h3 class="total">Total: ${{ total.toFixed(2) }}</h3>
       <button class="btn-finalizar" (click)="finalizarCompra()">Finalizar Compra</button>
+
+    </section>
 
     <!-- Historial de Ventas -->
     <section class="ventas">
@@ -62,15 +73,11 @@
       <div class="lista-reportes" *ngIf="mostrarVentas">
         <div class="reporte-item" *ngFor="let v of ventas; let i = index">
           <div class="reporte-header">
-            <span><strong>Venta {{ i + 1 }}</strong>_ {{ v.fecha }}</span>
+            <span><strong>Venta {{ i + 1 }}</strong> — {{ v.fecha }}</span>
             <button class="btn-reporte" (click)="verReporte(i)">Reporte</button>
           </div>
-          <!-- Detalle completo se muestra solo en el modal de reporte -->
         </div>
       </div>
-    </section>
-
-
     </section>
 
   </div>
@@ -87,11 +94,11 @@
           <div class="ticket-info">
             <span class="nombre">{{ item.nombre }}</span>
             <span class="cantidad">x{{ item.cantidad }}</span>
-            <span class="precio">${{ item.precio * item.cantidad }}</span>
+            <span class="precio">${{ (item.precio * item.cantidad).toFixed(2) }}</span>
           </div>
         </div>
       </div>
-      <h3 class="total-ticket">TOTAL: ${{ total }}</h3>
+      <h3 class="total-ticket">TOTAL: ${{ total.toFixed(2) }}</h3>
       <div class="modal-botones">
         <button class="btn-confirmar" (click)="abrirModalPago()">Confirmar</button>
         <button class="btn-cerrar" (click)="cerrarModal()">Cancelar</button>
@@ -127,23 +134,44 @@
   <div class="modal" *ngIf="mostrarModalTarjeta">
     <div class="modal-tarjeta">
       <h2 class="titulo-tarjeta">💳 Pago con Tarjeta</h2>
-      <form class="form-tarjeta">
+      <form class="form-tarjeta" (ngSubmit)="$event.preventDefault()">
         <label>Número de tarjeta</label>
-        <input type="text" maxlength="16" placeholder="1234 5678 9012 3456">
+
+        <!-- CAMBIO ACEPTA CUALQUIER NÚMERO -->
+        <input type="text" maxlength="19" placeholder="1234 5678 9012 3456"
+               [(ngModel)]="numeroTarjeta" name="numeroTarjeta"
+               inputmode="numeric">
+
         <label>Nombre del titular</label>
-        <input type="text" placeholder="Juan Pérez" [(ngModel)]="nombreTitularTarjeta">
+        <input type="text" placeholder="Juan Pérez"
+               [(ngModel)]="nombreTitularTarjeta" name="titular">
+
         <div class="fila-doble">
           <div>
             <label>Vencimiento</label>
-            <input type="text" maxlength="5" placeholder="MM/AA">
+
+            <!-- CAMBIO FORMATO MM/AA -->
+            <input  
+                type="text"
+                maxlength="4"
+                placeholder="MMAA"
+                [(ngModel)]="vencimientoTarjeta"
+                name="vencimiento"
+                inputmode="numeric"
+                pattern="\d*">
           </div>
+
           <div>
             <label>CVV</label>
-            <input type="password" maxlength="3" placeholder="•••">
+            <input type="password" maxlength="3" placeholder="•••"
+                   [(ngModel)]="cvvTarjeta" name="cvv">
           </div>
         </div>
-        <button type="button" class="btn-pagar-final" (click)="confirmarTarjeta()">Pagar</button>
-        <button type="button" class="btn-cancelar-tarjeta" (click)="cerrarTarjeta()">Cancelar</button>
+
+        <div class="modal-botones">
+          <button type="button" class="btn-pagar-final" (click)="confirmarTarjeta()">Pagar</button>
+          <button type="button" class="btn-cancelar-tarjeta" (click)="cerrarTarjeta()">Cancelar</button>
+        </div>
       </form>
     </div>
   </div>
@@ -189,7 +217,7 @@
         </li>
       </ul>
       <div class="linea"></div>
-      <h3>Total: ${{ reporteSeleccionado?.total.toFixed(2) }}</h3>
+      <h3>Total: ${{ reporteSeleccionado?.total?.toFixed(2) }}</h3>
       <div class="modal-botones">
         <button class="btn-descargar" (click)="descargarReporte()">Descargar</button>
         <button class="btn-cerrar" (click)="cerrarReporte()">Cerrar</button>

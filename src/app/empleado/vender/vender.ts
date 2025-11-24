@@ -14,22 +14,18 @@ import { Producto } from '../../models/producto.model';
 })
 export class Vender implements OnInit {
 
-  // Datos
   productos: Producto[] = [];
   todosLosProductos: Producto[] = [];
   categorias: Categoria[] = [];
   carrito: any[] = [];
   ventas: any[] = [];
-  
-  // 👤 Empleado actual
+
   usuario: any = null;
 
-  // Filtros y Totales
   filtroTexto: string = '';
   filtroCategoria: string = '';
   total = 0;
 
-  // Modales
   mostrarModalConfirmacion = false;
   mostrarModalPago = false;
   mostrarModalTarjeta = false;
@@ -37,13 +33,15 @@ export class Vender implements OnInit {
   mostrarModalReporte = false;
   mostrarVentas = false;
 
-  // Datos de venta
   fechaVenta = "";
   cliente = "";
   nombreTitularTarjeta = "";
   tipoPago = "";
-  
-  // Estados de UI
+
+  numeroTarjeta = "";
+  vencimientoTarjeta = "";
+  cvvTarjeta = "";
+
   mensajeCarritoVacio = false;
   loading = false;
   reporteSeleccionado: any = null;
@@ -52,8 +50,7 @@ export class Vender implements OnInit {
 
   async ngOnInit() {
     this.loading = true;
-    
-    // 1. Obtener el usuario logueado (el empleado)
+
     this.supabaseService.user$.subscribe(u => this.usuario = u);
 
     await this.cargarCategorias();
@@ -66,7 +63,7 @@ export class Vender implements OnInit {
   }
 
   async cargarProductos() {
-    const data = await this.supabaseService.getProductos(false); 
+    const data = await this.supabaseService.getProductos(false);
     this.todosLosProductos = data || [];
     this.aplicarFiltros();
   }
@@ -82,7 +79,7 @@ export class Vender implements OnInit {
     }
 
     const existe = this.carrito.find(p => p.id === producto.id);
-    
+
     if (existe) {
       if (existe.cantidad >= producto.stock) {
         alert('⚠️ No hay más stock disponible de este producto');
@@ -126,10 +123,10 @@ export class Vender implements OnInit {
   }
 
   actualizarTotal() {
-    this.total = this.carrito.reduce((acc, item) => acc + item.precio * item.cantidad, 0);
+    this.total = parseFloat(
+      this.carrito.reduce((acc, item) => acc + (item.precio * item.cantidad), 0).toFixed(2)
+    );
   }
-
-  // --- PROCESO DE PAGO ---
 
   finalizarCompra() {
     if (this.carrito.length === 0) {
@@ -147,7 +144,7 @@ export class Vender implements OnInit {
 
   pagar(metodo: string) {
     this.tipoPago = metodo === 'efectivo' ? 'Efectivo' : 'Tarjeta';
-    
+
     if (metodo === 'efectivo') {
       this.procesarVentaExitosa();
     } else {
@@ -156,7 +153,38 @@ export class Vender implements OnInit {
     }
   }
 
+  // 👉 YA MODIFICADO PARA ACEPTAR CUALQUIER TARJETA Y FECHA MM/AA
   confirmarTarjeta() {
+    const numeroLimpio = (this.numeroTarjeta || '').replace(/\s+/g, '');
+    const venc = (this.vencimientoTarjeta || '').trim();
+    const cvv = (this.cvvTarjeta || '').trim();
+    const titular = (this.nombreTitularTarjeta || '').trim();
+
+    // Número: permitir 8-19 dígitos (cualquier número)
+    if (!/^\d{8,19}$/.test(numeroLimpio)) {
+      alert('El número de tarjeta debe tener entre 8 y 19 dígitos.');
+      return;
+    }
+
+    // Fecha MM/AA (2 dígitos + 2 dígitos)
+    if (!/^(0[1-9]|1[0-2])\d{2}$/.test(venc)) {
+      alert('Ingrese el vencimiento como MMYY (4 números). Ejemplo: 0527');
+      return;
+    }
+
+    // CVV
+    if (!/^\d{3,4}$/.test(cvv)) {
+      alert('Ingrese un CVV válido (3 o 4 dígitos).');
+      return;
+    }
+
+    if (!titular) {
+      alert('Ingrese el nombre del titular.');
+      return;
+    }
+
+    this.tipoPago = 'Tarjeta';
+    this.mostrarModalTarjeta = false;
     this.procesarVentaExitosa();
   }
 
@@ -164,29 +192,26 @@ export class Vender implements OnInit {
     this.loading = true;
     this.mostrarModalPago = false;
     this.mostrarModalTarjeta = false;
-    
+    this.mostrarModalConfirmacion = false;
+
     try {
       this.fechaVenta = new Date().toLocaleString();
-      if (!this.cliente.trim()) this.cliente = 'Cliente General';
+      if (!this.cliente?.trim()) this.cliente = 'Cliente General';
 
       const promesasDeVenta = this.carrito.map(item => {
-        // ✅ CORRECCIÓN: Asegurar 2 decimales en el total para evitar errores
         const totalCalculado = parseFloat((item.precio * item.cantidad).toFixed(2));
-
         const ventaData = {
           producto_id: item.id,
           cantidad: item.cantidad,
-          total: totalCalculado, 
+          total: totalCalculado,
           metodo_pago: this.tipoPago,
-          usuario_id: this.usuario?.id // Esto funcionará cuando ejecutes el SQL
+          usuario_id: this.usuario?.id
         };
         return this.supabaseService.registrarVentaConStock(ventaData);
       });
 
       await Promise.all(promesasDeVenta);
 
-      this.mostrarModalTicket = true;
-      
       this.ventas.unshift({
         fecha: this.fechaVenta,
         total: this.total,
@@ -195,13 +220,16 @@ export class Vender implements OnInit {
         productos: JSON.parse(JSON.stringify(this.carrito)),
       });
 
+      this.mostrarModalTicket = true;
+
     } catch (error: any) {
       console.error('Error al procesar venta:', error);
-      alert('❌ Error al procesar la venta: ' + error.message);
+      alert('❌ Error al procesar la venta: ' + (error?.message || error));
     } finally {
       this.loading = false;
     }
   }
+
   cerrarModalTicket() {
     this.mostrarModalTicket = false;
     this.limpiarVenta();
@@ -210,7 +238,6 @@ export class Vender implements OnInit {
   guardarTicket() {
     let ticketTexto = '--- Ticket de Venta ---\n';
     ticketTexto += `Pastelería Dulce Arte\n`;
-    // Muestra el nombre del empleado en el ticket también
     ticketTexto += `Atendido por: ${this.usuario?.username || 'Cajero'}\n`;
     ticketTexto += `Fecha: ${this.fechaVenta}\nCliente: ${this.cliente}\nMetodo: ${this.tipoPago}\n\nProductos:\n`;
     this.carrito.forEach(item => {
@@ -234,7 +261,10 @@ export class Vender implements OnInit {
     this.total = 0;
     this.cliente = "";
     this.nombreTitularTarjeta = "";
-    this.cargarProductos(); 
+    this.numeroTarjeta = "";
+    this.vencimientoTarjeta = "";
+    this.cvvTarjeta = "";
+    this.cargarProductos();
   }
 
   filtrarCategoria(event: any) {
@@ -256,6 +286,7 @@ export class Vender implements OnInit {
         p.categoria?.nombre === this.filtroCategoria
       );
     }
+
     this.productos = productosFiltrados;
   }
 
@@ -272,12 +303,32 @@ export class Vender implements OnInit {
     this.mostrarModalReporte = false;
     this.reporteSeleccionado = null;
   }
-  
+
   descargarReporte() {
-     // ... Lógica existente de reporte TXT
+    if (!this.reporteSeleccionado) return;
+
+    let texto = `--- Reporte de Venta ---\n`;
+    texto += `Fecha: ${this.reporteSeleccionado.fecha}\n`;
+    texto += `Cliente: ${this.reporteSeleccionado.cliente || 'N/A'}\n`;
+    texto += `Metodo: ${this.reporteSeleccionado.metodo}\n\nProductos:\n`;
+    (this.reporteSeleccionado.productos || []).forEach((p: any) => {
+      texto += `${p.nombre} x${p.cantidad} - $${(p.precio * p.cantidad).toFixed(2)}\n`;
+    });
+    texto += `\nTotal: $${(this.reporteSeleccionado.total || 0).toFixed(2)}\n`;
+
+    const blob = new Blob([texto], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `reporte_venta_${Date.now()}.txt`;
+    a.click();
+    window.URL.revokeObjectURL(url);
   }
 
   cerrarModal() { this.mostrarModalConfirmacion = false; }
   cerrarPago() { this.mostrarModalPago = false; }
-  cerrarTarjeta() { this.mostrarModalTarjeta = false; this.mostrarModalPago = true; }
+  cerrarTarjeta() {
+    this.mostrarModalTarjeta = false;
+    this.mostrarModalPago = true;
+  }
 }
