@@ -33,7 +33,6 @@
         <option value="">Todas</option>
         <option value="disponible">Disponible</option>
         <option value="bajo">Bajo</option>
-        <option value="critico">Critico</option>
         <option value="agotado">Agotado</option>
       </select>
     </div>
@@ -77,10 +76,9 @@
             </td>
             <td>{{ p.categoria.nombre }}</td>
             <td class="text-light" [ngClass]="{
-                'bg-dark': p.stock <= 0,
-                'bg-danger': p.stock > 0 && p.stock <= 4,
-                'bg-warning': p.stock > 4 && p.stock <= 9,
-                'bg-success': p.stock > 9
+                'bg-danger': p.stock <= 0,
+                'bg-warning': p.stock > 0 && p.stock <= 4,
+                'bg-success': p.stock > 4
               }">{{ p.stock }}</td>
             <td>${{ p.precio }}</td>
             <td>

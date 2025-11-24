@@ -3,6 +3,8 @@ import { SupabaseService } from '../../services/supabase.service';
 import { CommonModule, DatePipe } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 
+declare var bootstrap: any;
+
 @Component({
   selector: 'app-buzon',
   imports: [CommonModule, ReactiveFormsModule],
@@ -11,8 +13,18 @@ import { ReactiveFormsModule } from '@angular/forms';
 })
 export class Buzon {
   peticiones: any[] = [];
-  loading = false;
+  procesando = false;
   filtroActual: 'pendiente' | 'historial' = 'pendiente';
+  
+  modalMensaje!: any;
+  mensajeTitulo: string = '';
+  mensajeCuerpo: string = '';
+  mensajeTipo: 'success' | 'error' = 'success';
+
+  modalConfirmar!: any;
+  peticionSeleccionada: any = null;
+  estadoSeleccionado: 'completado' | 'rechazado' | null = null;
+  mensajeAccion: string = '';
 
   constructor(
     private supabase: SupabaseService,
@@ -23,13 +35,32 @@ export class Buzon {
     this.cargarPeticiones();
   }
 
+  ngAfterViewInit() {
+    const elMensaje = document.getElementById('modalMensaje');
+    if (elMensaje) {
+      this.modalMensaje = new bootstrap.Modal(elMensaje);
+    }
+
+    const elConfirmar = document.getElementById('modalConfirmar');
+    if (elConfirmar) {
+      this.modalConfirmar = new bootstrap.Modal(elConfirmar);
+    }
+  }
+
+  mostrarMensaje(titulo: string, cuerpo: string, tipo: 'success' | 'error') {
+    this.mensajeTitulo = titulo;
+    this.mensajeCuerpo = cuerpo;
+    this.mensajeTipo = tipo;
+    this.modalMensaje.show();
+  }
+
   cambiarFiltro(filtro: 'pendiente' | 'historial') {
     this.filtroActual = filtro;
     this.cargarPeticiones();
   }
 
   async cargarPeticiones() {
-    this.loading = true;
+    this.procesando = true;
     this.cdr.detectChanges();
 
     try {
@@ -44,7 +75,7 @@ export class Buzon {
     } catch (error) {
       console.error('Error cargando peticiones:', error);
     } finally {
-      this.loading = false;
+      this.procesando = false;
       this.cdr.detectChanges();
     }
   }
@@ -60,38 +91,50 @@ export class Buzon {
     }
   }
 
-  async resolver(peticion: any, estado: 'completado' | 'rechazado') {
-    // Personalizamos el mensaje de confirmación
-    let mensajeAccion = '';
+  // Paso 1: Preparar y abrir el modal
+  resolver(peticion: any, estado: 'completado' | 'rechazado') {
+    this.peticionSeleccionada = peticion;
+    this.estadoSeleccionado = estado;
+
+    // Construimos el mensaje para el modal
     if (estado === 'rechazado') {
-      mensajeAccion = 'RECHAZAR esta solicitud';
+      this.mensajeAccion = 'RECHAZAR esta solicitud';
     } else {
-      // Mensaje positivo personalizado
       switch (peticion.tipo) {
-        case 'stock': mensajeAccion = 'marcar como SURTIDO (Stock actualizado)'; break;
-        case 'nuevo_producto': mensajeAccion = 'confirmar que el PRODUCTO FUE CREADO'; break;
-        case 'editar_producto': mensajeAccion = 'confirmar que los DATOS FUERON CORREGIDOS'; break;
-        default: mensajeAccion = 'marcar como COMPLETADO'; break;
+        case 'stock': this.mensajeAccion = 'marcar como SURTIDO (Stock actualizado)'; break;
+        case 'nuevo_producto': this.mensajeAccion = 'confirmar que el PRODUCTO FUE CREADO'; break;
+        case 'editar_producto': this.mensajeAccion = 'confirmar que los DATOS FUERON CORREGIDOS'; break;
+        default: this.mensajeAccion = 'marcar como COMPLETADO'; break;
       }
     }
 
-    if (!confirm(`¿Estás seguro de ${mensajeAccion}?`)) return;
-    
-    this.loading = true; 
+    this.modalConfirmar.show();
+  }
+
+  // Paso 2: Ejecutar la acción al confirmar en el modal
+  async confirmarResolucion() {
+    if (!this.peticionSeleccionada || !this.estadoSeleccionado) return;
+
+    this.procesando = true;
     this.cdr.detectChanges();
 
     try {
-      await this.supabase.actualizarEstadoPeticion(peticion.id, estado);
+      await this.supabase.actualizarEstadoPeticion(this.peticionSeleccionada.id, this.estadoSeleccionado);
       
-      // NOTA: Aquí podrías automatizar acciones futuras (ej. si es stock, sumar al inventario automáticamente)
-      // Por ahora, es un flujo de gestión manual/visual.
+      // Éxito: Cerramos modal y recargamos
+      this.modalConfirmar.hide();
+      this.peticionSeleccionada = null;
+      this.estadoSeleccionado = null;
       
-      await this.cargarPeticiones(); 
+      await this.cargarPeticiones();
+      
+      this.mostrarMensaje('¡Listo!', 'La solicitud ha sido actualizada correctamente.', 'success');
+      
     } catch (error) {
       console.error('Error al actualizar:', error);
-      alert('Ocurrió un error al intentar actualizar la solicitud.');
+      this.mostrarMensaje('Error', 'No se pudo actualizar la solicitud.', 'error');
     } finally {
-      this.loading = false;
+      this.procesando = false;
       this.cdr.detectChanges();
     }
   }

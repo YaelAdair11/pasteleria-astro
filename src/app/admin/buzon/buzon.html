@@ -23,13 +23,13 @@
   </div>
 
   <!-- Spinner -->
-  <div *ngIf="loading" class="text-center py-5">
+  <div *ngIf="procesando" class="text-center py-5">
     <div class="spinner-border text-primary" role="status"></div>
     <p class="mt-2 text-muted">Cargando solicitudes...</p>
   </div>
 
   <!-- VISTA: PENDIENTES (Tarjetas de Acción) -->
-  <div *ngIf="!loading && filtroActual === 'pendiente'" class="row g-3">
+  <div *ngIf="!procesando && filtroActual === 'pendiente'" class="row g-3">
     
     <!-- Estado Vacío -->
     <div class="col-12 text-center py-5 text-muted" *ngIf="peticiones.length === 0">
@@ -75,7 +75,7 @@
         
         <div class="card-body pt-1">
           <!-- Título Principal (Producto o Categoría) -->
-          <h5 class="card-title fw-bold text-dark mb-1 fs-4">
+          <h5 class="card-title fw-bold text-dark mb-1 fs-5">
             {{ p.producto_nombre }}
           </h5>
           
@@ -88,18 +88,18 @@
           </div>
 
           <!-- Contenido Específico: Cantidad para Stock -->
-          <div *ngIf="p.tipo === 'stock'" class="d-flex align-items-center p-3 bg-light rounded-3 mb-3 border">
+          <div *ngIf="p.tipo === 'stock'" class="d-flex align-items-center p-2 bg-light rounded-3 mb-3 border">
             <div class="me-3 bg-white p-2 rounded border">
               <i class="fa-solid fa-layer-group fa-lg text-secondary"></i>
             </div>
             <div>
-              <span class="d-block text-muted small text-uppercase fw-bold">Cantidad Solicitada</span>
-              <span class="fs-4 fw-bold text-dark">{{ p.cantidad }} u.</span>
+              <span class="d-block text-muted text-uppercase fw-bold" style="font-size: .82rem;">Cantidad Solicitada</span>
+              <span class="fs-5 fw-bold text-dark">{{ p.cantidad }} u.</span>
             </div>
           </div>
           
           <!-- Nota / Detalles -->
-          <div class="alert mb-0 small" 
+          <div class="alert mb-0 small p-2" 
                [class.alert-light]="!p.nota" 
                [class.alert-warning]="p.tipo === 'editar_producto'"
                [class.alert-info]="p.tipo !== 'editar_producto' && p.nota">
@@ -123,7 +123,7 @@
   </div>
 
   <!-- VISTA: HISTORIAL (Tabla) -->
-  <div *ngIf="!loading && filtroActual === 'historial'" class="card shadow-sm border-0 overflow-hidden">
+  <div *ngIf="!procesando && filtroActual === 'historial'" class="card shadow-sm border-0 overflow-hidden">
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
@@ -178,4 +178,81 @@
     </div>
   </div>
 
+</div>
+
+<!-- Modal Confirmación -->
+<div class="modal fade" id="modalConfirmar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      
+      <!-- Header dinámico: Verde si es Completar, Rojo si es Rechazar -->
+      <div class="modal-header text-white" *ngIf="estadoSeleccionado"
+           [ngClass]="{'bg-success': estadoSeleccionado === 'completado', 'bg-danger': estadoSeleccionado === 'rechazado'}">
+        <h5 class="modal-title fw-bold">
+          <i class="fa-solid me-2" [class.fa-check-circle]="estadoSeleccionado === 'completado'" [class.fa-circle-xmark]="estadoSeleccionado === 'rechazado'"></i>
+          Confirmar Acción
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" [disabled]="procesando"></button>
+      </div>
+
+      <div class="modal-body py-4">
+        <p class="mb-2 text-muted small text-uppercase fw-bold">Estás a punto de:</p>
+        <p class="fw-semibold mb-0">
+          {{ mensajeAccion }}
+        </p>
+        <div class="mt-3 p-3 bg-light rounded border-start border-4" *ngIf="peticionSeleccionada"
+             [class.border-success]="estadoSeleccionado === 'completado'"
+             [class.border-danger]="estadoSeleccionado === 'rechazado'">
+          <span class="d-block fw-bold">{{ peticionSeleccionada.producto_nombre }}</span>
+          <small class="text-muted">Solicitado por: {{ peticionSeleccionada.empleado?.username }}</small>
+        </div>
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" [disabled]="procesando">Cancelar</button>
+        <button type="button" class="btn fw-bold text-white" 
+                [ngClass]="{'btn-success': estadoSeleccionado === 'completado', 'btn-danger': estadoSeleccionado === 'rechazado'}"
+                (click)="confirmarResolucion()" 
+                [disabled]="procesando">
+          <span *ngIf="!procesando">Confirmar</span>
+          <span *ngIf="procesando">
+            <span class="spinner-border spinner-border-sm me-2"></span> Procesando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Mensaje -->
+<div class="modal fade" id="modalMensaje" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      
+      <!-- Header dinámico: Verde si es success, Rojo si es error -->
+      <div class="modal-header text-white"
+           [ngClass]="{'bg-success': mensajeTipo === 'success', 'bg-danger': mensajeTipo === 'error'}">
+        <h5 class="modal-title fw-bold">
+          <i class="fa-solid me-2" 
+             [class.fa-check-circle]="mensajeTipo === 'success'" 
+             [class.fa-triangle-exclamation]="mensajeTipo === 'error'"></i>
+          {{ mensajeTitulo }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body text-center py-4">
+        {{ mensajeCuerpo }}
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn text-white fw-semibold" 
+                [ngClass]="{'btn-success': mensajeTipo === 'success', 'btn-danger': mensajeTipo === 'error'}"
+                data-bs-dismiss="modal">
+          Entendido
+        </button>
+      </div>
+
+    </div>
+  </div>
 </div>

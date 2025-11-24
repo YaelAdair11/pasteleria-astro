@@ -475,10 +475,8 @@ export class Inventario {
     if (this.filtroStock) {
       if (this.filtroStock === 'agotado') {
         productosFiltrados = productosFiltrados.filter(p => p.stock <= 0);
-      } else if (this.filtroStock === 'critico') {
-        productosFiltrados = productosFiltrados.filter(p => p.stock > 0 && p.stock <= 4);
       } else if (this.filtroStock === 'bajo') {
-        productosFiltrados = productosFiltrados.filter(p => p.stock > 4 && p.stock <= 9);
+        productosFiltrados = productosFiltrados.filter(p => p.stock > 0 && p.stock <= 4);
       } else if (this.filtroStock === 'disponible') {
         productosFiltrados = productosFiltrados.filter(p => p.stock > 9);
       }

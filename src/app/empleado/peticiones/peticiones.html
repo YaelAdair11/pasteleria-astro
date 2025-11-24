@@ -110,9 +110,9 @@
 
         <!-- Botón Enviar -->
         <button type="submit" class="btn btn-primary w-100 mt-4 py-2 fw-bold shadow-sm"
-          [disabled]="form.invalid || loading">
-          <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
-          <span *ngIf="!loading"><i class="fa-solid fa-paper-plane me-2"></i>Enviar Solicitud</span>
+          [disabled]="form.invalid || procesando">
+          <span *ngIf="procesando" class="spinner-border spinner-border-sm me-2"></span>
+          <span *ngIf="!procesando"><i class="fa-solid fa-paper-plane me-2"></i>Enviar Solicitud</span>
         </button>
       </form>
     </div>
@@ -177,5 +177,38 @@
       <p class="text-muted fw-semibold mb-0">No has enviado ninguna solicitud.</p>
     </div>
 
+  </div>
+</div>
+
+
+<div class="modal fade" id="modalMensaje" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      
+      <!-- Header dinámico: Verde si es success, Rojo si es error -->
+      <div class="modal-header text-white"
+           [ngClass]="{'bg-success': mensajeTipo === 'success', 'bg-danger': mensajeTipo === 'error'}">
+        <h5 class="modal-title fw-bold">
+          <i class="fa-solid me-2" 
+             [class.fa-check-circle]="mensajeTipo === 'success'" 
+             [class.fa-triangle-exclamation]="mensajeTipo === 'error'"></i>
+          {{ mensajeTitulo }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body text-center py-4">
+        {{ mensajeCuerpo }}
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn text-white fw-semibold" 
+                [ngClass]="{'btn-success': mensajeTipo === 'success', 'btn-danger': mensajeTipo === 'error'}"
+                data-bs-dismiss="modal">
+          Entendido
+        </button>
+      </div>
+
+    </div>
   </div>
 </div>

@@ -5,6 +5,8 @@ import { Producto } from '../../models/producto.model';
 import { SupabaseService } from '../../services/supabase.service';
 import { Solicitud } from '../../models/solicitud.model';
 
+declare var bootstrap: any;
+
 @Component({
   selector: 'app-peticiones',
   imports: [CommonModule, ReactiveFormsModule],
@@ -15,7 +17,12 @@ export class Peticiones {
   form: FormGroup;
   productos: Producto[] = [];
   misPeticiones: any[] = [];
-  loading = false;
+  procesando = false;
+
+  modalMensaje!: any;
+  mensajeTitulo: string = '';
+  mensajeCuerpo: string = '';
+  mensajeTipo: 'success' | 'error' = 'success';
 
   constructor(private fb: FormBuilder, private supabase: SupabaseService) {
     this.form = this.fb.group({
@@ -27,6 +34,20 @@ export class Peticiones {
     });
     
     this.configurarValidaciones();
+  }
+
+  ngAfterViewInit() {
+    const elMensaje = document.getElementById('modalMensaje');
+    if (elMensaje) {
+      this.modalMensaje = new bootstrap.Modal(elMensaje);
+    }
+  }
+
+  mostrarMensaje(titulo: string, cuerpo: string, tipo: 'success' | 'error') {
+    this.mensajeTitulo = titulo;
+    this.mensajeCuerpo = cuerpo;
+    this.mensajeTipo = tipo;
+    this.modalMensaje.show();
   }
 
   get tipoActual() { return this.form.get('tipo')?.value; }
@@ -108,7 +129,7 @@ export class Peticiones {
       return;
     }
 
-    this.loading = true;
+    this.procesando = true;
     
     try {
       const formValue = this.form.value;
@@ -124,15 +145,15 @@ export class Peticiones {
 
       await this.supabase.crearSolicitud(datos);
       
-      alert('Solicitud enviada correctamente.');
+      this.mostrarMensaje('¡Enviado!', 'La solicitud se ha enviado correctamente al administrador.', 'success');
       this.resetForm();
       this.cargarMisPeticiones();
 
     } catch (error) {
       console.error(error);
-      alert('Error al enviar solicitud.');
+      this.mostrarMensaje('Error', 'Hubo un problema al enviar la solicitud.', 'error');
     } finally {
-      this.loading = false;
+      this.procesando = false;
     }
   }
 }
