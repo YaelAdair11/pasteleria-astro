@@ -262,6 +262,17 @@ export class SupabaseService {
     return data as Producto[];
   }
 
+  // Elimina un pedido por su ID
+async eliminarPedido(id: string) {
+  const { error } = await this.supabase
+    .from('pedidos')
+    .delete()
+    .eq('id', id);
+
+  if (error) throw error;
+}
+
+
   async addProducto(producto: any) {
     const { data, error } = await this.supabase
       .from('productos')
@@ -555,11 +566,10 @@ export class SupabaseService {
   }
 
   // =================== PEDIDOS ESPECIALES ===================
-  async getPedidosActivos() {
+  async getPedidos() {
     const { data, error } = await this.supabase
       .from('pedidos')
       .select('*')
-      .neq('estado', 'entregado') 
       .order('fecha_entrega', { ascending: true });
 
     if (error) throw error;
