@@ -826,3 +826,34 @@ header h1 {
 .bajostock {
   color: #ff9d1d;
 }
+
+
+/* Estilos para botón de reimpresión */
+.btn-reimprimir {
+  background: #6cb4ff;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  width: 100%;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  margin-top: 10px;
+}
+
+.btn-reimprimir:hover:not(:disabled) {
+  background: #4a9dee;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+}
+
+.btn-reimprimir:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}

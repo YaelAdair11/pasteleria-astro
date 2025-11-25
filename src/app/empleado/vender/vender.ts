@@ -19,6 +19,8 @@ export class Vender implements OnInit {
   categorias: Categoria[] = [];
   carrito: any[] = [];
   ventas: any[] = [];
+  ultimaVenta: any = null;
+
 
   usuario: any = null;
 
@@ -198,73 +200,91 @@ export class Vender implements OnInit {
     this.procesarVentaExitosa();
   }
 
-  async procesarVentaExitosa() {
-    this.loading = true;
-    this.mostrarModalPago = false;
-    this.mostrarModalTarjeta = false;
-    this.mostrarModalConfirmacion = false;
+ async procesarVentaExitosa() {
+  this.loading = true;
+  this.mostrarModalPago = false;
+  this.mostrarModalTarjeta = false;
+  this.mostrarModalConfirmacion = false;
 
-    try {
-      this.fechaVenta = new Date().toLocaleString();
-      if (!this.cliente?.trim()) this.cliente = 'Cliente General';
+  try {
+    this.fechaVenta = new Date().toLocaleString();
+    if (!this.cliente?.trim()) this.cliente = 'Cliente General';
 
-      const promesasDeVenta = this.carrito.map(item => {
-        const totalCalculado = parseFloat((item.precio * item.cantidad).toFixed(2));
-        const ventaData = {
-          producto_id: item.id,
-          cantidad: item.cantidad,
-          total: totalCalculado,
-          metodo_pago: this.tipoPago,
-          usuario_id: this.usuario?.id
-        };
-        return this.supabaseService.registrarVentaConStock(ventaData);
-      });
-
-      await Promise.all(promesasDeVenta);
-
-      this.ventas.unshift({
-        fecha: this.fechaVenta,
-        total: this.total,
-        cliente: this.cliente,
-        metodo: this.tipoPago,
-        productos: JSON.parse(JSON.stringify(this.carrito)),
-      });
-
-      this.mostrarModalTicket = true;
-
-    } catch (error: any) {
-      console.error('Error al procesar venta:', error);
-      alert('❌ Error al procesar la venta: ' + (error?.message || error));
-    } finally {
-      this.loading = false;
-    }
-  }
-
-  cerrarModalTicket() {
-    this.mostrarModalTicket = false;
-    this.limpiarVenta();
-  }
-
-  guardarTicket() {
-    let ticketTexto = '--- Ticket de Venta ---\n';
-    ticketTexto += `Pastelería Dulce Arte\n`;
-    ticketTexto += `Atendido por: ${this.usuario?.username || 'Cajero'}\n`;
-    ticketTexto += `Fecha: ${this.fechaVenta}\nCliente: ${this.cliente}\nMetodo: ${this.tipoPago}\n\nProductos:\n`;
-    this.carrito.forEach(item => {
-      ticketTexto += `${item.nombre} x${item.cantidad} $${(item.precio * item.cantidad).toFixed(2)}\n`;
+    const promesasDeVenta = this.carrito.map(item => {
+      const totalCalculado = parseFloat((item.precio * item.cantidad).toFixed(2));
+      const ventaData = {
+        producto_id: item.id,
+        cantidad: item.cantidad,
+        total: totalCalculado,
+        metodo_pago: this.tipoPago,
+        usuario_id: this.usuario?.id
+      };
+      return this.supabaseService.registrarVentaConStock(ventaData);
     });
-    ticketTexto += `\nTotal: $${this.total.toFixed(2)}\n\n¡Gracias por su compra!\n`;
 
-    const blob = new Blob([ticketTexto], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `ticket_${Date.now()}.txt`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    await Promise.all(promesasDeVenta);
 
-    this.cerrarModalTicket();
+    // 🔥 NUEVO: GUARDAR ÚLTIMA VENTA PARA REIMPRESIÓN
+    this.ultimaVenta = {
+      fecha: this.fechaVenta,
+      total: this.total,
+      cliente: this.cliente,
+      metodo: this.tipoPago,
+      productos: JSON.parse(JSON.stringify(this.carrito)),
+      usuario: this.usuario?.username || 'Cajero'
+    };
+
+    this.ventas.unshift({
+      fecha: this.fechaVenta,
+      total: this.total,
+      cliente: this.cliente,
+      metodo: this.tipoPago,
+      productos: JSON.parse(JSON.stringify(this.carrito)),
+    });
+
+    this.mostrarModalTicket = true;
+
+  } catch (error: any) {
+    console.error('Error al procesar venta:', error);
+    alert('❌ Error al procesar la venta: ' + (error?.message || error));
+  } finally {
+    this.loading = false;
   }
+}
+
+// 🔥 NUEVO MÉTODO - Agregar al final de la clase, antes del último }
+reimprimirUltimoTicket() {
+  if (!this.ultimaVenta) {
+    alert('❌ No hay ventas recientes para reimprimir');
+    return;
+  }
+
+  let ticketTexto = '--- REIMPRESIÓN - Ticket de Venta ---\n';
+  ticketTexto += `Pastelería Dulce Arte\n`;
+  ticketTexto += `Atendido por: ${this.ultimaVenta.usuario}\n`;
+  ticketTexto += `Fecha: ${this.ultimaVenta.fecha}\n`;
+  ticketTexto += `Cliente: ${this.ultimaVenta.cliente}\n`;
+  ticketTexto += `Método: ${this.ultimaVenta.metodo}\n\n`;
+  ticketTexto += 'Productos:\n';
+  
+  this.ultimaVenta.productos.forEach((item: any) => {
+    ticketTexto += `${item.nombre} x${item.cantidad} $${(item.precio * item.cantidad).toFixed(2)}\n`;
+  });
+  
+  ticketTexto += `\nTotal: $${this.ultimaVenta.total.toFixed(2)}\n`;
+  ticketTexto += '¡Gracias por su compra!\n';
+
+  // Crear y descargar archivo
+  const blob = new Blob([ticketTexto], { type: 'text/plain' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ticket_reimpreso_${Date.now()}.txt`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+  
+  alert('✅ Ticket reimpreso correctamente');
+}
 
   limpiarVenta() {
     this.carrito = [];
@@ -341,4 +361,31 @@ export class Vender implements OnInit {
     this.mostrarModalTarjeta = false;
     this.mostrarModalPago = true;
   }
+
+  cerrarModalTicket(): void {
+  this.mostrarModalTicket = false;
+  this.limpiarVenta();
+}
+
+guardarTicket(): void {
+  let ticketTexto = '--- Ticket de Venta ---\n';
+  ticketTexto += `Pastelería Dulce Arte\n`;
+  ticketTexto += `Atendido por: ${this.usuario?.username || 'Cajero'}\n`;
+  ticketTexto += `Fecha: ${this.fechaVenta}\nCliente: ${this.cliente}\nMétodo: ${this.tipoPago}\n\nProductos:\n`;
+  this.carrito.forEach(item => {
+    ticketTexto += `${item.nombre} x${item.cantidad} $${(item.precio * item.cantidad).toFixed(2)}\n`;
+  });
+  ticketTexto += `\nTotal: $${this.total.toFixed(2)}\n\n¡Gracias por su compra!\n`;
+
+  const blob = new Blob([ticketTexto], { type: 'text/plain' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `ticket_${Date.now()}.txt`;
+  a.click();
+  window.URL.revokeObjectURL(url);
+
+  this.cerrarModalTicket();
+}
+
 }

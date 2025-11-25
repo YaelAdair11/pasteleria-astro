@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Chart, registerables } from 'chart.js';
 import { SupabaseService } from '../../services/supabase.service';
 import { productosMasVendidos } from '../../models/venta.model';
+import { EstadoVentasService } from '../../services/estado-ventas.service';
 
 @Component({
   selector: 'app-inicio',
@@ -27,7 +28,9 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
   private categoriasChart: any;
   private subscriptions: any[] = [];
 
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private supabaseService: SupabaseService,
+    private estadoVentas: EstadoVentasService
+  ) {}
 
   async ngAfterViewInit() {
   Chart.register(...registerables);
@@ -37,16 +40,28 @@ export class InicioComponent implements AfterViewInit, OnDestroy {
   setTimeout(async () => {
     console.log('🟡 setTimeout EJECUTADO - Creando gráfico...');
     this.crearGraficoVentas();
-    
-    
     await this.cargarDatosReales();
   }, 100);
   
   this.suscribirCambiosTiempoReal();
+  this.suscribirActualizacionesVentas(); 
 
   setInterval(() => {
     this.now = new Date();
   }, 60000);
+}
+
+private suscribirActualizacionesVentas() {
+  console.log('📡 Suscribiéndose a actualizaciones de ventas...');
+  
+  const subVentas = this.estadoVentas.ventasActualizadas$.subscribe(actualizado => {
+    if (actualizado) {
+      console.log('🔄 Actualizando dashboard por anulación de venta...');
+      this.cargarDatosReales();
+    }
+  });
+  
+  this.subscriptions.push(subVentas);
 }
 
   ngOnDestroy() {
@@ -332,6 +347,14 @@ private actualizarGraficoVentas(ventasData: any, ventasHoy: number) {
     const maxValor = Math.max(...datosCorregidos);
     const maxEjeY = maxValor * 1.2; // 20% más alto que el valor máximo
     
+    // Verificar que el canvas todavía existe
+    const ctx = document.getElementById('ventasChart') as HTMLCanvasElement;
+    if (!ctx) {
+      console.log('❌ Canvas del gráfico no encontrado, recreando...');
+      this.crearGraficoVentas();
+      return;
+    }
+    
     this.ventasChart.data.labels = labels;
     this.ventasChart.data.datasets[0].data = datosCorregidos;
     this.ventasChart.data.datasets[0].backgroundColor = datosCorregidos.map((valor: number) => 
@@ -341,11 +364,15 @@ private actualizarGraficoVentas(ventasData: any, ventasHoy: number) {
     // ✅ ACTUALIZAR MÁXIMO DEL EJE Y
     this.ventasChart.options.scales.y.max = maxEjeY;
     
-    this.ventasChart.update('active');
+    // Usar update con modo 'none' para evitar errores
+    this.ventasChart.update('none');
     console.log('🎯 GRÁFICO ACTUALIZADO CON MÁXIMO DINÁMICO:', maxEjeY);
     
   } catch (error) {
     console.error('❌ Error actualizando gráfico:', error);
+    //  Recrear el gráfico si falla
+    console.log('🔄 Recreando gráfico...');
+    this.crearGraficoVentas();
   }
 }
 

@@ -2,19 +2,17 @@
   <div class="d-flex justify-content-between align-items-center mb-3">
     <h3 class="fw-bold mb-0">Historial de Ventas (Hoy)</h3>
     <button class="btn btn-sm btn-light" (click)="loadVentas()" title="Actualizar">
-      <i class="bi bi-arrow-clockwise"></i>
+      Actualizar
     </button>
   </div>
 
+  <!-- Filtros -->
   <div class="row g-2 mb-3">
     <div class="col-md-6">
-      <div class="input-group">
-        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-        <input type="text" class="form-control" 
-               placeholder="Buscar por nombre de producto..."
-               [(ngModel)]="filtroNombre" 
-               (input)="aplicarFiltros()"> 
-      </div>
+      <input type="text" class="form-control" 
+             placeholder="Buscar por nombre de producto..."
+             [(ngModel)]="filtroNombre" 
+             (input)="aplicarFiltros()"> 
     </div>
 
     <div class="col-md-4">
@@ -28,11 +26,12 @@
 
     <div class="col-md-2">
       <button class="btn btn-outline-secondary w-100" (click)="limpiarFiltros()">
-        <i class="bi bi-x-lg"></i> Limpiar
+        Limpiar
       </button>
     </div>
   </div>
 
+  <!-- Resumen -->
   <div class="row text-center bg-light p-3 rounded mb-4" *ngIf="!loading && !error">
     <div class="col">
       <h5 class="text-muted mb-1">Ventas de Hoy</h5>
@@ -41,70 +40,185 @@
     </div>
   </div>
 
+  <!-- Tabla de ventas -->
   <div class="card shadow-sm border-0">
     <div class="card-body p-0">
-      <table class="table table-hover mb-0 align-middle">
-        <thead class="table-light">
-          <tr>
-            <th>Producto</th>
-            <th>Vendedor</th> 
-            <th>Cantidad</th>
-            <th>Método</th>
-            <th class="text-end">Total</th>
-            <th class="text-end">Hora</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngIf="loading">
-            <td colspan="6" class="text-center py-5">
-              <div class="spinner-border text-primary" role="status"></div>
-              <p class="text-muted mt-2 mb-0">Cargando ventas del día...</p>
-            </td>
-          </tr>
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Producto</th>
+              <th>Vendedor</th>
+              <th>Cantidad</th>
+              <th>Método</th>
+              <th class="text-end">Total</th>
+              <th class="text-end">Hora</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Estado de carga -->
+            <tr *ngIf="loading">
+              <td colspan="7" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <p class="text-muted mt-2 mb-0">Cargando ventas del día...</p>
+              </td>
+            </tr>
 
-          <tr *ngIf="!loading && error">
-            <td colspan="6" class="text-center py-5 text-danger">
-              <i class="bi bi-exclamation-triangle-fill fs-1 d-block mb-2"></i>
-              <strong>Error</strong>
-              <p>{{ error }}</p>
-            </td>
-          </tr>
+            <!-- Error -->
+            <tr *ngIf="!loading && error">
+              <td colspan="7" class="text-center py-5 text-danger">
+                <strong>Error</strong>
+                <p class="mb-0">{{ error }}</p>
+              </td>
+            </tr>
 
-          <tr *ngIf="!loading && !error && ventasFiltradas.length === 0">
-            <td colspan="6" class="text-center py-5 text-muted">
-              <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-              <h5 class="mb-1">No hay ventas hoy</h5>
-              <p class="mb-0">No se han encontrado registros con los filtros actuales.</p>
-            </td>
-          </tr>
+            <!-- Sin resultados -->
+            <tr *ngIf="!loading && !error && ventasFiltradas.length === 0">
+              <td colspan="7" class="text-center py-5 text-muted">
+                <h5 class="mb-1">No hay ventas hoy</h5>
+                <p class="mb-0">No se han encontrado registros con los filtros actuales.</p>
+              </td>
+            </tr>
 
-          <tr *ngFor="let v of ventasFiltradas">
-            <td>
-              <div class="fw-bold">
-                 {{ v.productos?.nombre || 'Producto no encontrado' }}
-              </div>
-            </td>
-            
-            <td>
-              <span class="badge border" 
-                [ngClass]="v.perfiles?.username ? 'bg-light text-dark' : 'bg-warning text-dark'">
-                <i class="fa-solid" [ngClass]="v.perfiles?.username ? 'fa-user-tie' : 'fa-globe'"></i>
-                {{ v.perfiles?.username || (v.usuario_id ? 'Empleado (Sin nombre)' : 'Venta Online') }}
-              </span>
-            </td>
-            <td>{{ v.cantidad }}</td>
-            <td>
-              <span class="badge" 
-                [ngClass]="{'bg-success': v.metodo_pago === 'Efectivo', 'bg-info': v.metodo_pago === 'Tarjeta'}">
-                {{ v.metodo_pago }}
-              </span>
-            </td>
-            <td class="text-end fw-bold">${{ v.total | number:'1.2-2' }}</td>
-            <td class="text-end text-muted">{{ v.fecha | date:'shortTime' }}</td>
-          </tr>
+            <!-- Lista de ventas -->
+            <tr *ngFor="let venta of ventasFiltradas" 
+                [class.table-danger]="venta.anulada"
+                [class.text-muted]="venta.anulada">
+              
+              <!-- Producto -->
+              <td>
+                <div class="fw-bold">
+                  {{ venta.productos?.nombre || 'Producto no encontrado' }}
+                  <span *ngIf="venta.anulada" class="badge bg-danger ms-1">ANULADA</span>
+                </div>
+              </td>
+              
+              <!-- Vendedor -->
+              <td>
+                <span class="badge bg-light text-dark border">
+                  {{ venta.perfiles?.username || (venta.usuario_id ? 'Empleado' : 'Venta Online') }}
+                </span>
+              </td>
+              
+              <!-- Cantidad -->
+              <td>
+                {{ venta.cantidad }}
+              </td>
+              
+              <!-- Método de pago -->
+              <td>
+                <span class="badge" 
+                      [ngClass]="{
+                        'bg-success': venta.metodo_pago === 'Efectivo',
+                        'bg-primary': venta.metodo_pago === 'Tarjeta',
+                        'bg-info': venta.metodo_pago === 'Transferencia'
+                      }">
+                  {{ venta.metodo_pago }}
+                </span>
+              </td>
+              
+              <!-- Total -->
+              <td class="text-end fw-bold">
+                ${{ venta.total | number:'1.2-2' }}
+              </td>
+              
+              <!-- Hora -->
+              <td class="text-end text-muted">
+                {{ venta.fecha | date:'shortTime' }}
+              </td>
+              
+              <!-- Acciones -->
+              <td class="text-center">
+                <div class="btn-group btn-group-sm" role="group">
+                  <!-- Botón para anular (solo si no está anulada) -->
+                  <button *ngIf="!venta.anulada" 
+                          class="btn btn-outline-danger btn-sm"
+                          (click)="anularVenta(venta)"
+                          title="Anular venta"
+                          [disabled]="anulandoVenta">
+                    Anular
+                  </button>
+                  
+                  <!-- Botón para ver detalles de anulación -->
+                  <button *ngIf="venta.anulada" 
+                          class="btn btn-outline-secondary btn-sm"
+                          (click)="verDetallesAnulacion(venta)"
+                          title="Ver detalles de anulación">
+                    Detalles
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-        </tbody>
-      </table>
+  <!-- Modal para anulación de venta -->
+  <div class="modal fade show d-block" *ngIf="ventaSeleccionadaParaAnular" 
+       style="background-color: rgba(0,0,0,0.5);" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title">
+            Anular Venta
+          </h5>
+          <button type="button" class="btn-close btn-close-white" 
+                  (click)="cancelarAnulacion()" 
+                  [disabled]="anulandoVenta"
+                  aria-label="Cerrar"></button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="alert alert-warning">
+            <strong>Advertencia:</strong> Esta acción no se puede deshacer. La venta será marcada como anulada y el stock será restaurado.
+          </div>
+
+          <div class="mb-3">
+            <strong>Detalles de la venta:</strong>
+            <ul class="mt-2 list-unstyled">
+              <li><strong>Producto:</strong> {{ ventaSeleccionadaParaAnular.productos?.nombre }}</li>
+              <li><strong>Cantidad:</strong> {{ ventaSeleccionadaParaAnular.cantidad }}</li>
+              <li><strong>Total:</strong> ${{ ventaSeleccionadaParaAnular.total | number:'1.2-2' }}</li>
+              <li><strong>Método:</strong> {{ ventaSeleccionadaParaAnular.metodo_pago }}</li>
+              <li><strong>Hora:</strong> {{ ventaSeleccionadaParaAnular.fecha | date:'shortTime' }}</li>
+            </ul>
+          </div>
+
+          <div class="mb-3">
+            <label for="motivoAnulacion" class="form-label">
+              <strong>Motivo de anulación *</strong>
+            </label>
+            <textarea id="motivoAnulacion" 
+                      class="form-control" 
+                      rows="3" 
+                      placeholder="Describe el motivo de la anulación (mínimo 10 caracteres)..."
+                      [(ngModel)]="motivoAnulacion"
+                      [disabled]="anulandoVenta"></textarea>
+            <div class="form-text">
+              Mínimo 10 caracteres. Este motivo quedará registrado en el historial.
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" 
+                  class="btn btn-secondary" 
+                  (click)="cancelarAnulacion()"
+                  [disabled]="anulandoVenta">
+            Cancelar
+          </button>
+          <button type="button" 
+                  class="btn btn-danger" 
+                  (click)="confirmarAnulacion()"
+                  [disabled]="anulandoVenta || !motivoAnulacion.trim() || motivoAnulacion.trim().length < 10">
+            <span *ngIf="anulandoVenta" class="spinner-border spinner-border-sm me-2"></span>
+            {{ anulandoVenta ? 'Anulando...' : 'Confirmar Anulación' }}
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
