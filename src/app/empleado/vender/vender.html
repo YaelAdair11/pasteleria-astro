@@ -79,6 +79,13 @@
       <h3 class="total">Total: ${{ total.toFixed(2) }}</h3>
       <button class="btn-finalizar" (click)="finalizarCompra()">Finalizar Compra</button>
 
+      <!-- 🔥 NUEVO BOTÓN - Reimprimir último ticket -->
+      <button class="btn-reimprimir" 
+              (click)="reimprimirUltimoTicket()"
+              [disabled]="!ultimaVenta">
+         Reimprimir Último Ticket
+      </button>
+
     </section>
 
     <!-- Historial de Ventas -->
@@ -198,7 +205,7 @@
   <div class="modal" *ngIf="mostrarModalTicket">
     <div class="ticket-real">
       <h2 class="titulo-ticket">PASTELERÍA DULCE ENCANTO</h2>
-      <p class="sub-ticket">🧾 Ticket de Venta</p>
+      <p class="sub-ticket"> Ticket de Venta</p>
       <div class="linea"></div>
       <p><strong>Fecha:</strong> {{ fechaVenta }}</p>
       <div class="linea"></div>
@@ -212,7 +219,7 @@
       <div class="linea"></div>
       <h3 class="total-final">TOTAL: ${{ total.toFixed(2) }}</h3>
       <div class="linea"></div>
-      <p class="gracias">¡Gracias por su compra! 😊</p>
+      <p class="gracias">¡Gracias por su compra! </p>
       <div class="botones-ticket">
         <button class="btn-ticket aceptar" (click)="cerrarModalTicket()">Aceptar</button>
         <button class="btn-ticket guardar" (click)="guardarTicket()">Guardar</button>
