@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import jsPDF from 'jspdf';
 import { SupabaseService } from '../../services/supabase.service';
 
 @Component({
@@ -190,4 +191,80 @@ export class InicioEmpleado implements OnInit {
 
   verReporte(pedido: any) { this.reporteSeleccionado = pedido; }
   cerrarReporte() { this.reporteSeleccionado = null; }
+
+  descargarPDF() {
+    const r = this.reporteSeleccionado;
+  
+    const pdf = new jsPDF();
+  
+    // ===== ENCABEZADO PASTEL =====
+    pdf.setFillColor(255, 182, 193); // Rosa pastel
+    pdf.rect(0, 0, 210, 30, 'F');
+  
+    pdf.setFontSize(20);
+    pdf.setTextColor(255, 255, 255);
+    pdf.text("Reporte de Pedido", 105, 15, { align: "center" });
+    pdf.text("Pasteleria Dulce Encanto", 105, 26, { align: "center" });
+  
+    let y = 45;
+  
+    // ===== SECCIÓN GENERAL =====
+    pdf.setFontSize(14);
+    pdf.setTextColor(50, 50, 50);
+    pdf.text("📌 Información del Pedido", 10, y);
+    y += 8;
+  
+    pdf.setFontSize(12);
+  
+    const agregar = (label: string, valor: any) => {
+      pdf.setFont("helvetica", "bold");
+      pdf.text(`${label}:`, 10, y);
+  
+      pdf.setFont("helvetica", "normal");
+      pdf.text(String(valor || "No especificado"), 60, y);
+  
+      y += 8;
+    };
+  
+    agregar("Tipo", r.Tipo);
+    agregar("Cliente", r.nombre);
+    agregar("Teléfono", r.telefono);
+    agregar("Fecha de entrega", new Date(r.fecha).toLocaleDateString());
+    agregar("Lugar", r.lugar);
+  
+    y += 5;
+    pdf.line(10, y, 200, y);
+    y += 10;
+  
+    // ===== DETALLE POR TIPO =====
+    if (r.Tipo === "Pastel") {
+      pdf.setFontSize(14);
+      pdf.text("🎂 Detalles del Pastel", 10, y);
+      y += 10;
+  
+      agregar("Kilos", r.kilos);
+      agregar("Relleno", r.relleno);
+      agregar("Temática", r.tematica);
+      agregar("Color", r.color);
+  
+    } else {
+      pdf.setFontSize(14);
+      pdf.text("🧁 Detalles del Producto", 10, y);
+      y += 10;
+  
+      agregar("Sabor", r.sabor);
+      agregar("Cantidad", r.cantidad);
+      agregar("Tamaño", r.tamano);
+    }
+  
+    // ===== FOOTER =====
+    pdf.setFontSize(11);
+    pdf.setTextColor(150);
+    pdf.text("Documento generado automáticamente.", 105, 290, { align: "center" });
+  
+    // ===== GUARDAR =====
+    pdf.save(`Reporte_${r.nombre}.pdf`);
+  }
+  
+
 }
