@@ -239,7 +239,7 @@ export class InicioEmpleado implements OnInit {
     // ===== DETALLE POR TIPO =====
     if (r.Tipo === "Pastel") {
       pdf.setFontSize(14);
-      pdf.text(" Detalles del Pastel", 10, y);
+      pdf.text("Detalles del Pastel", 10, y);
       y += 10;
   
       agregar("Kilos", r.kilos);
@@ -249,7 +249,7 @@ export class InicioEmpleado implements OnInit {
   
     } else {
       pdf.setFontSize(14);
-      pdf.text(" Detalles del Producto", 10, y);
+      pdf.text("Detalles del Producto", 10, y);
       y += 10;
   
       agregar("Sabor", r.sabor);
