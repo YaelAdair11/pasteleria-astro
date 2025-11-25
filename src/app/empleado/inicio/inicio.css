@@ -356,7 +356,7 @@ select:hover {
 /* Focus */
 select:focus {
   border-color: #81c784; /* verde pastel fuerte */
-  box-shadow: 0 0 8px rgba(129, 199, 132, 0.6);
+  box-shadow: 0 0 8px rgba(151, 186, 136, 0.6);
   outline: none;
 }
 /* Opciones del menú */
@@ -575,9 +575,456 @@ h3 {
 
 /* Tarjetas internas según el tipo de producto */
 .modal-content div {
-  background: #fff7fb;
+  background: #ffedf6;
   padding: 10px 15px;
   border-radius: 12px;
-  border: 2px solid #ffe3f1;
+  border: 2px solid #ffcfe7;
   margin-top: 10px;
+}
+
+/* Contenedor UL */
+.lista-entregados {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+/* Cada pedido entregado */
+.entregado-item {
+  background: #ffe6f2; /* rosa pastel */
+  border: 2px solid #ffd1e8;
+  border-radius: 14px;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  box-shadow: 0 4px 10px #ffb6db66;
+  transition: 0.2s;
+}
+
+/* Hover */
+.entregado-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(255, 182, 219, 0.6);
+}
+
+/* Texto */
+.entregado-info {
+  font-size: 15px;
+  color: #7a3d53;
+  font-weight: 600;
+}
+
+.entregado-info .fecha {
+  font-size: 13px;
+  color: #a8637a;
+}
+
+/* Botón reporte */
+.btn-reporte {
+  background: #d2f1e1;
+  border:  #78ac9263 2px solid;
+  color: #6c9d85;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: bold;
+
+  transition: 0.2s;
+}
+
+.btn-reporte:hover {
+  background: #50e69d87;
+  transform: scale(1.05);
+}
+
+.btn-reporte:active {
+  transform: scale(0.95);
+}
+
+/* UL de pedidos listos */
+.lista-listos {
+  list-style: none;
+  padding: 0;
+  margin-top: 10px;
+}
+
+/* Tarjeta de pedido listo */
+.listo-item {
+  background: #ffebf3; /* amarillo pastel */
+  border: 2px solid #fcc1dcb2;
+  border-radius: 14px;
+  padding: 12px 15px;
+  margin-bottom: 10px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+
+/* Texto */
+.listo-info {
+  font-size: 15px;
+  color: #7a3d53bd;
+  font-weight: 600;
+}
+
+.listo-info .fecha {
+  font-size: 13px;
+  color: #a8637a;
+}
+
+/* Reutilizar el botón rosa que ya te di */
+.btn-reporte {
+  background: #ff99c8;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.2s;
+}
+
+.btn-reporte:hover {
+  background: #ff99c991;
+  transform: scale(1.05);
+}
+
+.btn-reporte:active {
+  transform: scale(0.95);
+}
+
+.lista-listos {
+  list-style: none;
+  padding: 0;
+  margin: 15px 0;
+}
+
+.listo-item {
+  background: #ffe6f2;
+  border: 2px solid #ffb3d99a;
+  border-radius: 4px;
+  padding: 5px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 3px 6px rgba(255, 126, 186, 0.25);
+  transition: transform 0.2s;
+}
+
+.listo-item:hover {
+  transform: scale(1.02);
+}
+
+.listo-info {
+  font-weight: 600;
+  color: #a54b85;
+}
+
+.fecha {
+  font-size: 12px;
+  color: #a54b85;
+}
+
+.btn-entregar {
+  background-color: #ff80c0aa;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.btn-entregar:hover {
+  background-color: #f974b7;
+}
+
+/* ALERTA ÉXITO */
+.alert-success {
+  background: #ffeaf5;
+  color: #c2185b;
+  border-left: 6px solid #c2185b;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ALERTA ERROR */
+.alert-error {
+  background: #ffe0e0;
+  color: #d32f2f;
+  border-left: 6px solid #d32f2f;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ALERTA CONFIRMACIÓN */
+.alert-warning {
+  background: #fff4de;
+  color: #b66a00;
+  border-left: 6px solid #b66a00;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  animation: fadeIn 0.3s ease;
+}
+
+/* Animación suave */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 🌸 ALERTAS PASTEL */
+.alerta-pastel {
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 15px;
+  animation: fadeIn 0.3s ease;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.alert-success {
+  background: #ffeaf5;
+  color: #c2185b;
+  border-left: 6px solid #c2185b;
+}
+
+.alert-error {
+  background: #ffe0e0;
+  color: #d32f2f;
+  border-left: 6px solid #d32f2f;
+}
+
+.alert-warning {
+  background: #fff4de;
+  color: #b66a00;
+  border-left: 6px solid #b66a00;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-cancelarpedido {
+  background: #ffd1dc;
+  color: #b30038;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+.btn-cancelarpedido:hover {
+  background: #ffb3c6;
+  transform: scale(1.05);
+}
+
+/* Título que funciona como botón */
+.titulo-desplegable {
+  cursor: pointer;
+  background: #ffe4ec;
+  padding: 10px 15px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #b83263;
+  border: 2px solid #ffc8dd;
+  transition: 0.2s;
+}
+
+.titulo-desplegable:hover {
+  background: #ffd8e9;
+}
+
+/* Flecha animada */
+.flecha {
+  transition: transform 0.3s ease;
+}
+
+.flecha.abierto {
+  transform: rotate(180deg);
+}
+
+/* Lista entregados */
+.lista-entregados {
+  margin-top: 10px;
+  padding-left: 0;
+  animation: abrirLista 0.25s ease;
+}
+
+@keyframes abrirLista {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.titulo-seccion {
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  color: #5fa564;
+  margin-bottom: 20px;
+}
+
+.contenedor-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tarjeta-simple {
+  background: #ffe6f2;
+  border-radius: 15px;
+  padding: 15px;
+  border: 1px solid #ffcfe1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fila-superior {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.texto-info {
+  flex: 1;
+}
+
+.tipo-nombre {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: #d14c87;
+}
+
+.detalle {
+  font-size: 14px;
+  color: #a1456f;
+  margin: 0 0 2px 0;
+}
+
+.info {
+  font-size: 13px;
+  color: #6b2f55;
+  margin: 0;
+}
+
+.estado-mini {
+  background: #fff0f6;
+  border: 1px solid #ffbcd4;
+  border-radius: 8px;
+  padding: 5px 6px;
+  font-size: 13px;
+  color: #a83f6e;
+  cursor: pointer;
+}
+
+.estado-mini:focus {
+  outline: none;
+  border-color: #ff82aa;
+}
+
+.acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-eye {
+  background: #ffffff;
+  border: 1px solid #ffd0e1;
+  padding: 5px 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #b8487a;
+}
+
+.btn-eye:hover {
+  background: #ffdbe8;
+}
+
+.btn-cancel {
+  background: #ffccd7;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #8d2a3c;
+}
+
+.btn-cancel:hover {
+  background: #ffb3c4;
+}
+
+
+.cuadro-pendientes {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.fila-pedido {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #efefef;
+  padding: 12px 0;
+}
+
+.fila-pedido:last-child {
+  border-bottom: none;
+}
+
+.info-pedido {
+  max-width: 70%;
+}
+
+.acciones-vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  align-items: flex-end;
+}
+
+.estado-mini {
+  padding: 5px 6px;
+  font-size: 0.83rem;
+  border-radius: 6px;
+}
+
+.btn-eye, .btn-cancel {
+  padding: 6px 10px;
+  border-radius: 7px;
+  cursor: pointer;
+  text-align: center;
+  width: 90px;
 }

@@ -17,8 +17,15 @@ export class InicioEmpleado implements OnInit {
   ingresosHoy: number = 0;
   loadingStats: boolean = true;
 
+  // Mostrar listas
+  mostrarEntregados: boolean = false;
+  mostrarListos: boolean = false;
+  
   // Pedidos
   pedidos: any[] = [];
+  pedidosPendientes: any[] = [];
+  pedidosListos: any[] = [];
+  pedidosEntregados: any[] = [];
   loadingPedidos: boolean = false;
 
   // Modales
@@ -28,23 +35,29 @@ export class InicioEmpleado implements OnInit {
 
   tiposProductos = ['Pastel', 'Bebida', 'Galletas', 'Postre'];
   
-  // Objeto del formulario
+  // Formulario
   nuevoPedido: any = this.resetFormulario();
+
+  // 🌸 Alertas pastel
+  alerta = {
+    mostrar: false,
+    tipo: '',
+    mensaje: ''
+  };
+
+  mostrarAlerta(tipo: string, mensaje: string) {
+    this.alerta = { mostrar: true, tipo, mensaje };
+    setTimeout(() => this.alerta.mostrar = false, 3000);
+  }
 
   constructor(private supabaseService: SupabaseService) {}
 
   ngOnInit(): void {
     this.cargarEstadisticas();
-    this.cargarPedidos(); // Cargar pedidos al iniciar
+    this.cargarPedidos();
 
-    // Suscripciones Realtime
     this.supabaseService.suscribirCambiosVentas(() => this.cargarEstadisticas());
-    
-    // Suscribirse a nuevos pedidos (Opcional, si quieres que aparezcan solos)
-    this.supabaseService.suscribirCambiosEmpleados(() => {
-        // Usamos el canal genérico o creas uno específico para 'pedidos'
-        this.cargarPedidos();
-    });
+    this.supabaseService.suscribirCambiosEmpleados(() => this.cargarPedidos());
   }
 
   // --- ESTADÍSTICAS ---
@@ -62,22 +75,38 @@ export class InicioEmpleado implements OnInit {
     }
   }
 
-  // --- PEDIDOS (CONECTADO A DB) ---
+  // --- PEDIDOS ---
   async cargarPedidos() {
     this.loadingPedidos = true;
+
     try {
-      const data = await this.supabaseService.getPedidosActivos();
-      // Mapeamos para que la estructura coincida con tu HTML actual
+      // 🔥 CORREGIDO → Se usa getPedidos()
+      const data = await this.supabaseService.getPedidos();
+
       this.pedidos = data.map((p: any) => ({
         id: p.id,
-        Tipo: p.tipo,
+        Tipo: p.tipo ?? p.Tipo ?? '',
         nombre: p.cliente_nombre,
         telefono: p.cliente_telefono,
         fecha: p.fecha_entrega,
         lugar: p.lugar_entrega,
-        estado: p.estado,
-        ...p.detalles // Expandimos el JSON de detalles (kilos, sabor, etc.)
+        estado: (p.estado || '').toLowerCase(),
+        ...p.detalles
       }));
+
+      // Clasificación
+      this.pedidosPendientes = this.pedidos.filter(p => 
+        p.estado === 'pendiente' || p.estado === 'en proceso'
+      );
+
+      this.pedidosListos = this.pedidos.filter(p =>
+        p.estado === 'listo'
+      );
+
+      this.pedidosEntregados = this.pedidos.filter(p => 
+        p.estado === 'entregado'
+      );
+
     } catch (error) {
       console.error('Error cargando pedidos:', error);
     } finally {
@@ -85,53 +114,79 @@ export class InicioEmpleado implements OnInit {
     }
   }
 
+  // Crear pedido
   async guardarPedido() {
     try {
       await this.supabaseService.crearPedido(this.nuevoPedido);
-      alert('✅ Pedido guardado exitosamente');
+      this.mostrarAlerta("success", "Pedido guardado exitosamente");
       this.cerrarModal();
-      this.cargarPedidos(); // Recargar lista
+      this.cargarPedidos();
     } catch (error: any) {
-      alert('Error al guardar: ' + error.message);
+      this.mostrarAlerta("error", "Error al guardar: " + error.message);
     }
   }
 
+  // Cambiar estado pedido
   async cambiarEstadoPedido(pedido: any) {
     try {
       await this.supabaseService.actualizarEstadoPedido(pedido.id, pedido.estado);
-      if (pedido.estado === 'entregado') {
-        alert('Pedido marcado como entregado');
-        this.cargarPedidos(); // Desaparecerá de la lista de pendientes
-      }
+      this.cargarPedidos();
     } catch (error: any) {
-      alert('Error actualizando estado: ' + error.message);
+      this.mostrarAlerta("error", "Error actualizando estado");
     }
   }
 
-  // --- UTILIDADES FORMULARIO ---
+  // Marcar como entregado
+  async entregarPedido(pedido: any) {
+    try {
+      await this.supabaseService.actualizarEstadoPedido(pedido.id, 'entregado');
+      pedido.estado = 'entregado';
+      this.cargarPedidos();
+    } catch (error) {
+      console.error("Error entregando pedido:", error);
+    }
+  }
+
+  toggleEntregados() { this.mostrarEntregados = !this.mostrarEntregados; }
+  toggleListos() { this.mostrarListos = !this.mostrarListos; }
+
+  // Cancelar pedido
+  async cancelarPedido(pedido: any) {
+    const confirmar = confirm(`¿Seguro que deseas cancelar el pedido de ${pedido.nombre}?`);
+    if (!confirmar) return this.mostrarAlerta("warning", "Cancelación detenida");
+
+    try {
+      await this.supabaseService.eliminarPedido(pedido.id);
+      this.mostrarAlerta("success", "Pedido cancelado correctamente");
+      this.cargarPedidos();
+    } catch (error) {
+      this.mostrarAlerta("error", "Error al cancelar");
+    }
+  }
+
+  // --- FORMULARIO ---
   resetFormulario() {
     return {
-      Tipo: '', nombre: '', telefono: '', fecha: '', lugar: '',
-      color: '', kilos: null, relleno: '', tematica: '',
-      sabor: '', cantidad: null, tamano: '', tipoPostre: '',
-      estado: 'en proceso'
+      Tipo: '',
+      nombre: '',
+      telefono: '',
+      fecha: '',
+      lugar: '',
+      color: '',
+      kilos: null,
+      relleno: '',
+      tematica: '',
+      sabor: '',
+      cantidad: null,
+      tamano: '',
+      tipoPostre: '',
+      estado: 'pendiente'
     };
   }
 
-  abrirModalAgregar() { 
-    this.nuevoPedido = this.resetFormulario(); 
-    this.mostrarAgregar = true; 
-  }
-  
-  abrirModalPedidos() { 
-    this.cargarPedidos(); // Recargar al abrir para asegurar datos frescos
-    this.mostrarPedidos = true; 
-  }
-
-  cerrarModal() {
-    this.mostrarAgregar = false;
-    this.mostrarPedidos = false;
-  }
+  abrirModalAgregar() { this.nuevoPedido = this.resetFormulario(); this.mostrarAgregar = true; }
+  abrirModalPedidos() { this.cargarPedidos(); this.mostrarPedidos = true; }
+  cerrarModal() { this.mostrarAgregar = false; this.mostrarPedidos = false; }
 
   verReporte(pedido: any) { this.reporteSeleccionado = pedido; }
   cerrarReporte() { this.reporteSeleccionado = null; }
