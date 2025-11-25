@@ -635,4 +635,52 @@ export class SupabaseService {
       .eq('id', id);
     if (error) throw error;
   }
+
+  // =================== CORTES DE CAJA ===================
+async realizarCorteCaja(corteData: any) {
+  const { data: { user } } = await this.supabase.auth.getUser();
+  if (!user) throw new Error('No hay usuario autenticado');
+
+  const { data, error } = await this.supabase
+    .from('cortes_caja')
+    .insert({
+      usuario_id: user.id,
+      ...corteData
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async getCortesCajaRecientes() {
+  const { data, error } = await this.supabase
+    .from('cortes_caja')
+    .select(`
+      *,
+      usuario:perfiles!usuario_id (username, email)
+    `)
+    .order('fecha_corte', { ascending: false })
+    .limit(10);
+
+  if (error) throw error;
+  return data || [];
+}
+
+async getVentasParaCorte(fecha: Date) {
+  const dia = new Date(fecha);
+  const inicioDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 0, 0, 0).toISOString();
+  const finDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 23, 59, 59).toISOString();
+
+  const { data, error } = await this.supabase
+    .from('ventas')
+    .select('total, metodo_pago')
+    .gte('fecha', inicioDelDia)
+    .lte('fecha', finDelDia);
+
+  if (error) throw error;
+  return data || [];
+}
+
 }

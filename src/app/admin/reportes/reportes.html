@@ -1,9 +1,129 @@
 <div class="container-fluid py-3">
+  <!-- Modal de Corte de Caja -->
+  <div class="modal fade show d-block" *ngIf="mostrarModalCorte" style="background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 1050;">
+    <div class="modal-dialog modal-lg" style="margin-top: 5%;">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">
+            <i class="fa-solid fa-calculator me-2"></i>
+            📊 Corte de Caja - {{ fechaSeleccionada | date:'fullDate' }}
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="cerrarModalCorte()" [disabled]="procesandoCorte"></button>
+        </div>
+        
+        <div class="modal-body">
+          <!-- Resumen del día -->
+          <div class="row mb-4">
+            <div class="col-md-4">
+              <div class="card border-0 bg-light">
+                <div class="card-body text-center py-3">
+                  <h6 class="text-muted mb-2">Total Ventas</h6>
+                  <h4 class="text-primary mb-0">${{ reporte?.totalIngresos | number:'1.2-2' }}</h4>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card border-0 bg-light">
+                <div class="card-body text-center py-3">
+                  <h6 class="text-muted mb-2"># de Ventas</h6>
+                  <h4 class="text-info mb-0">{{ reporte?.totalVentas }}</h4>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card border-0 bg-light">
+                <div class="card-body text-center py-3">
+                  <h6 class="text-muted mb-2">Ticket Promedio</h6>
+                  <h4 class="text-success mb-0">${{ reporte?.ticketPromedio | number:'1.2-2' }}</h4>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Formulario de corte -->
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Fondo Inicial ($)</label>
+              <input type="number" class="form-control" [(ngModel)]="fondoInicial" step="0.01" min="0" 
+                     [disabled]="procesandoCorte" (input)="calcularDiferencia()">
+              <small class="text-muted">Dinero al iniciar el turno</small>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Fondo Final ($)</label>
+              <input type="number" class="form-control" [(ngModel)]="fondoFinal" step="0.01" min="0"
+                     [disabled]="procesandoCorte" (input)="calcularDiferencia()">
+              <small class="text-muted">Dinero al finalizar el turno</small>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Diferencia Calculada</label>
+              <div class="alert py-3" [ngClass]="{
+                'alert-success': calcularDiferencia() >= 0,
+                'alert-danger': calcularDiferencia() < 0,
+                'alert-warning': calcularDiferencia() === 0
+              }">
+                <div class="d-flex justify-content-between align-items-center">
+                  <strong class="fs-5">${{ calcularDiferencia() | number:'1.2-2' }}</strong>
+                  <span>
+                    <span *ngIf="calcularDiferencia() > 0" class="badge bg-success">
+                      <i class="fa-solid fa-arrow-up me-1"></i>Sobrante
+                    </span>
+                    <span *ngIf="calcularDiferencia() < 0" class="badge bg-danger">
+                      <i class="fa-solid fa-arrow-down me-1"></i>Faltante
+                    </span>
+                    <span *ngIf="calcularDiferencia() === 0" class="badge bg-warning text-dark">
+                      <i class="fa-solid fa-equals me-1"></i>Exacto
+                    </span>
+                  </span>
+                </div>
+                <small class="d-block mt-1">
+                  Fondo Inicial + Ventas Efectivo = Fondo Esperado
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mt-3">
+            <div class="col-12">
+              <label class="form-label fw-semibold">Observaciones</label>
+              <textarea class="form-control" [(ngModel)]="observaciones" 
+                        placeholder="Notas sobre el corte, observaciones, incidencias..."
+                        rows="3" [disabled]="procesandoCorte"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" 
+                  (click)="cerrarModalCorte()" [disabled]="procesandoCorte">
+            <i class="fa-solid fa-times me-1"></i>Cancelar
+          </button>
+          <button type="button" class="btn btn-success" 
+                  (click)="realizarCorte()" [disabled]="procesandoCorte || !fondoFinal">
+            <span *ngIf="procesandoCorte" class="spinner-border spinner-border-sm me-2"></span>
+            <i class="fa-solid fa-check me-1" *ngIf="!procesandoCorte"></i>
+            {{ procesandoCorte ? 'Procesando...' : 'Confirmar Corte' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenido principal -->
   <div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
     <h3 class="fw-bold mb-0">Reportes Financieros</h3>
-    <button class="btn btn-dark" (click)="imprimirReporte()" *ngIf="!loading && reporte && reporte.totalVentas > 0">
-      <i class="fa-solid fa-print me-2"></i> Imprimir / PDF
-    </button>
+    <div>
+      <button class="btn btn-success me-2" (click)="abrirModalCorte()" 
+              *ngIf="!loading && reporte && reporte.totalVentas > 0">
+        <i class="fa-solid fa-calculator me-2"></i> Realizar Corte
+      </button>
+      <button class="btn btn-dark" (click)="imprimirReporte()" 
+              *ngIf="!loading && reporte && reporte.totalVentas > 0">
+        <i class="fa-solid fa-print me-2"></i> Imprimir / PDF
+      </button>
+    </div>
   </div>
 
   <div *ngIf="loading" class="text-center py-5 d-print-none">
@@ -12,7 +132,7 @@
   </div>
 
   <div *ngIf="!loading && error" class="alert alert-danger d-print-none">
-    <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+    <i class="fa-solid fa-exclamation-triangle me-2"></i> {{ error }}
   </div>
 
   <div class="row" *ngIf="!loading && !error && reporte">
@@ -48,7 +168,7 @@
             <small class="text-muted d-block">TICKET PROMEDIO</small>
             <span class="fs-5 fw-semibold">${{ reporte.ticketPromedio | number:'1.2-2' }}</span>
           </div>
-          </div>
+        </div>
       </div>
     </div>
 
