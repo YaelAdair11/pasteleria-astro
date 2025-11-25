@@ -252,7 +252,7 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="procesando">Cancelar</button>
         <button class="btn btn-primary fw-semibold"
-                (click)="crearProducto()"
+                (click)="guardarProducto()"
                 [disabled]="formProducto.invalid || procesando">
           <span *ngIf="!procesando">
             <i class="fa-solid me-1" 
