@@ -558,7 +558,7 @@ header h1 {
   }
   
   .form-tarjeta label {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: bold;
     color: #903a66;
   }
@@ -570,7 +570,7 @@ header h1 {
     border: 1px solid #ffc3dc;
     background: #fff8fd;
     outline: none;
-    font-size: 15px;
+    font-size: 13px;
     transition: .2s ease;
   }
   
@@ -809,4 +809,20 @@ header h1 {
   transform: translateY(0);
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+.stock {
+  font-weight: bold;
+  color: #444;
+}
 
+.sin-stock {
+  color: red;
+}
+
+.btn-agregar[disabled] {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+.bajostock {
+  color: #ff9d1d;
+}

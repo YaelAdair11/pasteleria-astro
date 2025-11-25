@@ -350,34 +350,66 @@ export class Inventario {
     reader.readAsDataURL(file);
   }
 
-  async crearProducto() {
+  async guardarProducto() {
+    // 1. Validaciones
     if (this.formProducto.invalid) {
       this.formProducto.markAllAsTouched();
       return;
     }
+
     this.procesando = true;
+
     try {
-      const nuevo = { ...this.formProducto.value };
+      // 2. Preparar datos del formulario
+      const datos = { ...this.formProducto.value };
+
+      // 3. Lógica de Imagen (Común para ambos casos)
       if (this.archivoImagen) {
-        console.log('Subiendo imagen...');
+        // Si hay un archivo nuevo, lo subimos
+        console.log('Subiendo nueva imagen...');
         const imageUrl = await this.supabase.uploadImagenProducto(this.archivoImagen);
-        nuevo.imagen = imageUrl; 
+        datos.imagen = imageUrl;
+        
+        // (Opcional) Si estamos editando, aquí podrías borrar la imagen antigua para no ocupar espacio
+        // if (this.modoEdicion && this.productoSeleccionado?.imagen) { ... }
+
       } else {
-        if (nuevo.imagen === '') {
-          nuevo.imagen = null;
+        // Si no hay archivo nuevo, manejamos si se borró la URL
+        if (!datos.imagen || datos.imagen.trim() === '') {
+          datos.imagen = null;
         }
       }
-      console.log('Creando producto', nuevo);
-      await this.supabase.addProducto(nuevo);
+
+      // 4. Bifurcación: ¿Estamos Editando o Creando?
+      if (this.modoEdicion && this.productoSeleccionado) {
+        
+        // --- CASO EDITAR ---
+        console.log('Actualizando producto:', datos);
+        // Usamos el ID del producto seleccionado
+        await this.supabase.updateProducto(this.productoSeleccionado.id!, datos);
+        
+        this.mostrarMensaje('¡Producto Actualizado!', `El producto "${datos.nombre}" se actualizó correctamente.`, 'success');
+
+      } else {
+        
+        // --- CASO CREAR ---
+        console.log('Creando nuevo producto:', datos);
+        await this.supabase.addProducto(datos);
+        
+        this.mostrarMensaje('¡Producto Creado!', `El producto "${datos.nombre}" se ha creado correctamente.`, 'success');
+      }
+
+      // 5. Refrescar datos y cerrar
       await this.cargarProductos();
       this.modalCrearEditar.hide();
-      this.mostrarMensaje('¡Producto Creado!', `El producto "${nuevo.nombre}" se ha creado correctamente.`, 'success');
-    } catch (err: any) {
-      console.error('Error creando producto', err);
-      this.mostrarMensaje('Error al Crear', err.message || 'Ocurrió un problema al crear el producto.', 'error');
-    }
 
-    this.procesando = false;
+    } catch (err: any) {
+      console.error('Error al guardar producto', err);
+      const accion = this.modoEdicion ? 'Actualizar' : 'Crear';
+      this.mostrarMensaje(`Error al ${accion}`, err.message || `Ocurrió un problema al ${accion.toLowerCase()} el producto.`, 'error');
+    } finally {
+      this.procesando = false;
+    }
   }
 
   // ✨ --- AÑADE ESTA NUEVA FUNCIÓN ---

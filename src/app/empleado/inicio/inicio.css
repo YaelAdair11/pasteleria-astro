@@ -1028,3 +1028,20 @@ h3 {
   text-align: center;
   width: 90px;
 }
+
+.descargar {
+  background-color: #ff8db3;
+  color: white;
+  border: none;
+  padding: 11px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 100%;
+  margin-top: 10px;
+  transition: 0.2s;
+}
+
+.descargar:hover {
+  background-color: #ff6d9e;
+}

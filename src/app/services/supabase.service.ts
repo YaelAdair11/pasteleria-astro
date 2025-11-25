@@ -141,60 +141,63 @@ export class SupabaseService {
   }
 
   async crearEmpleado(empleadoData: any) {
-    const { data: authData, error: authError } = await this.supabase.auth.signUp({
-      email: empleadoData.email,
-      password: empleadoData.password
+    // Invoca la Edge Function 'crear-empleado' pasando los datos del empleado.
+    const { data, error } = await this.supabase.functions.invoke('crear-empleado', {
+      body: empleadoData,
     });
 
-    if (authError) {
-      if (authError.message.includes("User already registered")) {
-        return { data: null, error: new Error('Este email ya está registrado.') };
-      }
-      return { data: null, error: authError };
+    if (error) {
+      // Extrae y lanza el mensaje de error específico devuelto por la Edge Function.
+      const errorMessage = error.context?.reason?.error || error.message || 'Error desconocido al crear el empleado.';
+      throw new Error(errorMessage);
     }
-
-    if (!authData.user) {
-      return { data: null, error: new Error('No se pudo crear el usuario en Auth.') };
-    }
-
-    const { data: profileData, error: profileError } = await this.supabase
-      .from('perfiles')
-      .insert({
-        id: authData.user.id, 
-        username: empleadoData.username,
-        rol: empleadoData.rol,
-        email: empleadoData.email 
-      })
-      .select('id, username, email, avatar, rol') 
-      .single();
-
-    if (profileError) {
-      return { data: null, error: new Error('Error guardando perfil: ' + profileError.message) };
-    }
-
-    const fullProfile = { ...profileData, email: authData.user.email };
+    // Devuelve los datos del empleado creado por la función.
+    // La función devuelve un array, por lo que lo adaptamos a la estructura esperada.
+    const fullProfile = { ...(data as any)?.data, email: empleadoData.email };
     return { data: [fullProfile], error: null };
   }
 
   async borrarEmpleado(id: string) {
-    const { error } = await this.supabase.from('perfiles').delete().eq('id', id); 
-    if (error) return { error: error };
-    return { error: null }; 
+    // Invoca la Edge Function 'borrar-empleado' pasando el ID del usuario a eliminar.
+    const { error } = await this.supabase.functions.invoke('borrar-empleado', {
+      body: { user_id: id },
+    });
+
+    if (error) {
+      // Línea de depuración para ver el error completo en la consola del navegador.
+      console.error("Objeto de error completo de la Edge Function:", error);
+
+      // Extrae y devuelve el mensaje de error específico.
+      const errorMessage = error.context?.reason?.error || error.message || 'Error desconocido al borrar el empleado.';
+      return { error: new Error(errorMessage) };
+    }
+    return { error: null };
   }
 
   async updateEmpleado(id: string, empleadoData: any) {
-    const { data, error } = await this.supabase
+    // Invoca la Edge Function 'actualizar-empleado' con el ID y los datos a actualizar.
+    const { error } = await this.supabase.functions.invoke('actualizar-empleado', {
+        body: { user_id: id, updates: empleadoData },
+    });
+
+    if (error) {
+      const errorMessage = error.context?.reason?.error || error.message || 'Error desconocido al actualizar el empleado.';
+      return { data: null, error: new Error(errorMessage) };
+    }
+    
+    // Tras la actualización exitosa, vuelve a solicitar los datos actualizados del perfil
+    // para devolverlos al componente, manteniendo la consistencia de la UI.
+    const { data: updatedData, error: fetchError } = await this.supabase
       .from('perfiles')
-      .update({ 
-        username: empleadoData.username,
-        rol: empleadoData.rol
-      })
-      .eq('id', id)
       .select('id, username, email, avatar, rol')
+      .eq('id', id)
       .single();
 
-    if (error) return { data: null, error: error };
-    return { data: data, error: null };
+    if (fetchError) {
+      return { data: null, error: fetchError };
+    }
+
+    return { data: updatedData, error: null };
   }
 
   async contarEmpleadosActivos(): Promise<number> {
