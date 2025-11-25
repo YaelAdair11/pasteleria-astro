@@ -1,97 +1,97 @@
 <div class="container-fluid py-3">
-<!-- Modal de Corte de Caja - Versión Simplificada -->
-<div class="modal-backdrop fade show" *ngIf="mostrarModalCorte" style="z-index: 1040;"></div>
-<div class="modal fade show d-block" *ngIf="mostrarModalCorte" style="z-index: 1050;">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-primary text-white py-3">
-        <h5 class="modal-title mb-0">
-          <i class="fa-solid fa-calculator me-2"></i>
-          Corte de Caja
-        </h5>
-        <button type="button" class="btn-close btn-close-white" (click)="cerrarModalCorte()" [disabled]="procesandoCorte"></button>
-      </div>
-      
-      <div class="modal-body p-4">
-        <!-- Fecha -->
-        <div class="text-center mb-3">
-          <span class="text-muted">{{ fechaSeleccionada | date:'fullDate' }}</span>
+  <!-- Modal de Corte de Caja - Versión Simplificada -->
+  <div class="modal-backdrop fade show" *ngIf="mostrarModalCorte" style="z-index: 1040;"></div>
+  <div class="modal fade show d-block" *ngIf="mostrarModalCorte" style="z-index: 1050;">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white py-3">
+          <h5 class="modal-title mb-0">
+            <i class="fa-solid fa-calculator me-2"></i>
+            Corte de Caja
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="cerrarModalCorte()" [disabled]="procesandoCorte"></button>
         </div>
+        
+        <div class="modal-body p-4">
+          <!-- Fecha -->
+          <div class="text-center mb-3">
+            <span class="text-muted">{{ fechaSeleccionada | date:'fullDate' }}</span>
+          </div>
 
-        <!-- Resumen simple -->
-        <div class="row text-center mb-4">
-          <div class="col-4">
-            <div class="border rounded p-2">
-              <div class="text-muted small">Total</div>
-              <div class="fw-bold text-primary">${{ reporte?.totalIngresos | number:'1.2-2' }}</div>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="border rounded p-2">
-              <div class="text-muted small">Ventas</div>
-              <div class="fw-bold text-info">{{ reporte?.totalVentas }}</div>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="border rounded p-2">
-              <div class="text-muted small">Promedio</div>
-              <div class="fw-bold text-success">${{ reporte?.ticketPromedio | number:'1.2-2' }}</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Métodos de pago -->
-        <div class="mb-4">
-          <h6 class="border-bottom pb-2 mb-3">Métodos de Pago</h6>
-          <div class="row">
-            <div class="col-6">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-success">
-                  <i class="fa-solid fa-money-bill-wave me-1"></i>Efectivo
-                </span>
-                <strong>${{ getTotalEfectivo() | number:'1.2-2' }}</strong>
-              </div>
-              <div class="progress mb-3" style="height: 6px;">
-                <div class="progress-bar bg-success" [style.width.%]="reporte && reporte.totalIngresos > 0 ? (getTotalEfectivo() / reporte.totalIngresos * 100) : 0"></div>
+          <!-- Resumen simple -->
+          <div class="row text-center mb-4">
+            <div class="col-4">
+              <div class="border rounded p-2">
+                <div class="text-muted small">Total</div>
+                <div class="fw-bold text-primary">${{ reporte?.totalIngresos | number:'1.2-2' }}</div>
               </div>
             </div>
-            <div class="col-6">
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-info">
-                  <i class="fa-solid fa-credit-card me-1"></i>Tarjeta
-                </span>
-                <strong>${{ getTotalTarjeta() | number:'1.2-2' }}</strong>
+            <div class="col-4">
+              <div class="border rounded p-2">
+                <div class="text-muted small">Ventas</div>
+                <div class="fw-bold text-info">{{ reporte?.totalVentas }}</div>
               </div>
-              <div class="progress mb-3" style="height: 6px;">
-                <div class="progress-bar bg-info" [style.width.%]="reporte && reporte.totalIngresos > 0 ? (getTotalTarjeta() / reporte.totalIngresos * 100) : 0"></div>
+            </div>
+            <div class="col-4">
+              <div class="border rounded p-2">
+                <div class="text-muted small">Promedio</div>
+                <div class="fw-bold text-success">${{ reporte?.ticketPromedio | number:'1.2-2' }}</div>
               </div>
             </div>
           </div>
+
+          <!-- Métodos de pago -->
+          <div class="mb-4">
+            <h6 class="border-bottom pb-2 mb-3">Métodos de Pago</h6>
+            <div class="row">
+              <div class="col-6">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-success">
+                    <i class="fa-solid fa-money-bill-wave me-1"></i>Efectivo
+                  </span>
+                  <strong>${{ getTotalEfectivo() | number:'1.2-2' }}</strong>
+                </div>
+                <div class="progress mb-3" style="height: 6px;">
+                  <div class="progress-bar bg-success" [style.width.%]="reporte && reporte.totalIngresos > 0 ? (getTotalEfectivo() / reporte.totalIngresos * 100) : 0"></div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="text-info">
+                    <i class="fa-solid fa-credit-card me-1"></i>Tarjeta
+                  </span>
+                  <strong>${{ getTotalTarjeta() | number:'1.2-2' }}</strong>
+                </div>
+                <div class="progress mb-3" style="height: 6px;">
+                  <div class="progress-bar bg-info" [style.width.%]="reporte && reporte.totalIngresos > 0 ? (getTotalTarjeta() / reporte.totalIngresos * 100) : 0"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Observaciones -->
+          <div class="mb-3">
+            <label class="form-label small text-muted">Observaciones (opcional)</label>
+            <textarea class="form-control form-control-sm" [(ngModel)]="observaciones" 
+                      placeholder="Notas del día..."
+                      rows="2" [disabled]="procesandoCorte"></textarea>
+          </div>
         </div>
 
-        <!-- Observaciones -->
-        <div class="mb-3">
-          <label class="form-label small text-muted">Observaciones (opcional)</label>
-          <textarea class="form-control form-control-sm" [(ngModel)]="observaciones" 
-                    placeholder="Notas del día..."
-                    rows="2" [disabled]="procesandoCorte"></textarea>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" 
+                  (click)="cerrarModalCorte()" [disabled]="procesandoCorte">
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-primary btn-sm" 
+                  (click)="realizarCorte()" [disabled]="procesandoCorte">
+            <span *ngIf="procesandoCorte" class="spinner-border spinner-border-sm me-1"></span>
+            {{ procesandoCorte ? 'Guardando...' : 'Confirmar Corte' }}
+          </button>
         </div>
-      </div>
-
-      <div class="modal-footer">
-        <button type="button" class="btn btn-outline-secondary btn-sm" 
-                (click)="cerrarModalCorte()" [disabled]="procesandoCorte">
-          Cancelar
-        </button>
-        <button type="button" class="btn btn-primary btn-sm" 
-                (click)="realizarCorte()" [disabled]="procesandoCorte">
-          <span *ngIf="procesandoCorte" class="spinner-border spinner-border-sm me-1"></span>
-          {{ procesandoCorte ? 'Guardando...' : 'Confirmar Corte' }}
-        </button>
       </div>
     </div>
   </div>
-</div>
 
   <!-- Contenido principal -->
   <div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
@@ -101,9 +101,9 @@
               *ngIf="!loading && reporte">
         <i class="fa-solid fa-calculator me-2"></i> Realizar Corte
       </button>
-      <button class="btn btn-dark" (click)="imprimirReporte()" 
+      <button class="btn btn-primary" (click)="imprimirReporteCompleto()" 
               *ngIf="!loading && reporte">
-        <i class="fa-solid fa-print me-2"></i> Imprimir / PDF
+        <i class="fa-solid fa-print me-2"></i> Imprimir Reporte Completo
       </button>
     </div>
   </div>
@@ -156,13 +156,7 @@
 
     <div class="col-md-9 col-12 printable-area">
       
-      <div class="print-header mb-4" style="display: none;">
-        <h2 class="fw-bold">Reporte de Ventas Diario</h2>
-        <p class="mb-0">Fecha de corte: <strong>{{ fechaSeleccionada | date: 'fullDate' }}</strong></p>
-        <hr>
-      </div>
-
-      <div class="card shadow-sm border-0" [ngClass]="{'print-card': true}">
+      <div class="card shadow-sm border-0">
         <div *ngIf="reporte.totalVentas > 0; else noVentas">
           <div class="card-body p-4">
             
