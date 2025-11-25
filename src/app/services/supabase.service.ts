@@ -636,15 +636,19 @@ export class SupabaseService {
     if (error) throw error;
   }
 
-  // =================== CORTES DE CAJA ===================
+ // =================== CORTES DE CAJA ===================
 async realizarCorteCaja(corteData: any) {
-  const { data: { user } } = await this.supabase.auth.getUser();
-  if (!user) throw new Error('No hay usuario autenticado');
+  // Obtener la sesión actual
+  const { data: { session } } = await this.supabase.auth.getSession();
+  
+  if (!session?.user) {
+    throw new Error('No hay usuario autenticado. Por favor, inicia sesión nuevamente.');
+  }
 
   const { data, error } = await this.supabase
     .from('cortes_caja')
     .insert({
-      usuario_id: user.id,
+      usuario_id: session.user.id,
       ...corteData
     })
     .select()
@@ -682,5 +686,6 @@ async getVentasParaCorte(fecha: Date) {
   if (error) throw error;
   return data || [];
 }
+
 
 }

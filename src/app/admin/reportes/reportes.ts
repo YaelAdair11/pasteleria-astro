@@ -24,10 +24,8 @@ export class Reportes implements OnInit {
   loading: boolean = true;
   error: string | null = null;
 
-  // Nuevas propiedades para corte de caja
+  // Corte de caja
   mostrarModalCorte: boolean = false;
-  fondoInicial: number = 0;
-  fondoFinal: number = 0;
   observaciones: string = '';
   procesandoCorte: boolean = false;
 
@@ -61,9 +59,7 @@ export class Reportes implements OnInit {
   cambiarDia(dias: number): void {
     const nuevaFecha = new Date(this.fechaSeleccionada);
     nuevaFecha.setDate(nuevaFecha.getDate() + dias);
-
     if (nuevaFecha > new Date()) return; 
-
     this.fechaSeleccionada = nuevaFecha;
     this.loadReporte(); 
   }
@@ -84,69 +80,67 @@ export class Reportes implements OnInit {
     window.print();
   }
 
-  // =================== MÉTODOS CORTE DE CAJA ===================
-  
+  // =================== CORTE DE CAJA ===================
   abrirModalCorte(): void {
     this.mostrarModalCorte = true;
-    this.fondoInicial = 0;
-    this.fondoFinal = 0;
-    this.observaciones = '';
-  }
-
-  async realizarCorte(): Promise<void> {
-    if (!this.reporte) return;
-
-    this.procesandoCorte = true;
-    
-    try {
-      // Obtener ventas detalladas por método de pago
-      const ventasDelDia = await this.supabaseService.getVentasParaCorte(this.fechaSeleccionada);
-      
-      const totalEfectivo = ventasDelDia
-        .filter((v: any) => v.metodo_pago === 'Efectivo')
-        .reduce((sum: number, v: any) => sum + v.total, 0);
-      
-      const totalTarjeta = ventasDelDia
-        .filter((v: any) => v.metodo_pago === 'Tarjeta')
-        .reduce((sum: number, v: any) => sum + v.total, 0);
-
-      const diferencia = this.calcularDiferencia();
-
-      const corteData = {
-        total_ventas: this.reporte.totalIngresos,
-        total_efectivo: totalEfectivo,
-        total_tarjeta: totalTarjeta,
-        ventas_totales: this.reporte.totalVentas,
-        fondo_inicial: this.fondoInicial,
-        fondo_final: this.fondoFinal,
-        diferencia: diferencia,
-        observaciones: this.observaciones
-      };
-
-      const corte = await this.supabaseService.realizarCorteCaja(corteData);
-      
-      alert(`✅ Corte de caja realizado exitosamente\nDiferencia: $${diferencia.toFixed(2)}`);
-      this.mostrarModalCorte = false;
-      
-    } catch (error: any) {
-      console.error('Error en corte de caja:', error);
-      alert('❌ Error al realizar corte: ' + error.message);
-    }
-    
-    this.procesandoCorte = false;
-  }
-
-  calcularDiferencia(): number {
-    if (!this.reporte) return 0;
-    
-    const ventasEfectivo = this.detalleVentas
-      .filter((v: any) => v.metodo_pago === 'Efectivo')
-      .reduce((sum: number, v: any) => sum + v.total, 0);
-    
-    return this.fondoFinal - (this.fondoInicial + ventasEfectivo);
   }
 
   cerrarModalCorte(): void {
-    this.mostrarModalCorte = false;
+  this.mostrarModalCorte = false;
+  this.observaciones = '';
+  this.procesandoCorte = false; 
+}
+
+async realizarCorte(): Promise<void> {
+  if (!this.reporte) return;
+
+  this.procesandoCorte = true;
+  
+  try {
+    const ventasDelDia = await this.supabaseService.getVentasParaCorte(this.fechaSeleccionada);
+    
+    const totalEfectivo = this.getTotalEfectivo();
+    const totalTarjeta = this.getTotalTarjeta();
+
+    const corteData = {
+      total_ventas: this.reporte.totalIngresos,
+      total_efectivo: totalEfectivo,
+      total_tarjeta: totalTarjeta,
+      ventas_totales: this.reporte.totalVentas,
+      observaciones: this.observaciones
+    };
+
+    await this.supabaseService.realizarCorteCaja(corteData);
+    
+    this.cerrarModalCorte();
+    
+    alert(`✅ Corte de caja guardado\n\nTotal: $${this.reporte.totalIngresos.toFixed(2)}\nEfectivo: $${totalEfectivo.toFixed(2)}\nTarjeta: $${totalTarjeta.toFixed(2)}`);
+    
+  } catch (error: any) {
+    console.error('Error en corte de caja:', error);
+    alert('❌ Error: ' + error.message);
+    
+    this.procesandoCorte = false;
   }
+}
+
+  getTotalEfectivo(): number {
+    if (!this.detalleVentas) return 0;
+    return this.detalleVentas
+      .filter(v => v.metodo_pago === 'Efectivo')
+      .reduce((sum, v) => sum + v.total, 0);
+  }
+
+  getTotalTarjeta(): number {
+    if (!this.detalleVentas) return 0;
+    return this.detalleVentas
+      .filter(v => v.metodo_pago === 'Tarjeta')
+      .reduce((sum, v) => sum + v.total, 0);
+  }
+
+  calcularPorcentaje(partial: number, total: number): string {
+  if (!total || total === 0) return '0';
+  return ((partial / total) * 100).toFixed(0);
+}
+
 }
