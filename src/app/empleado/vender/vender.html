@@ -17,14 +17,32 @@
         </select>
       </div>
 
-      <div class="grid-productos">
-        <div class="producto" *ngFor="let p of productos">
-          <img [src]="p.imagen" alt="producto" />
-          <h3>{{ p.nombre }}</h3>
-          <p class="precio">${{ p.precio.toFixed(2) }}</p>
-          <button class="btn-agregar" (click)="agregarAlCarrito(p)">Agregar</button>
+      <section class="productos">
+        <h2>Productos Disponibles</h2>
+      
+        <div class="grid-productos">
+          <div class="producto" *ngFor="let p of productos">
+            <img [src]="p.imagen" alt="producto">
+      
+            <h3>{{ p.nombre }}</h3>
+      
+            <p class="stock" [ngClass]="{ 'sin-stock': p.stock <= 0 }">
+              Stock: {{ p.stock }}
+            </p>
+      
+            <p class="precio">${{ p.precio.toFixed(2) }}</p>
+      
+            <button
+              class="btn-agregar"
+              [disabled]="p.stock <= 0"
+              (click)="agregarAlCarrito(p)"
+            >
+              {{ p.stock > 0 ? "Agregar" : "Agotado" }}
+            </button>
+          </div>
         </div>
-      </div>
+      </section>      
+      
     </section>
 
     <!-- Carrito -->
