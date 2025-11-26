@@ -104,13 +104,14 @@
             </span>
           </div>
 
-          <!-- Acciones -->
+          <!-- Acciones CORREGIDAS -->
           <div class="col-md-3">
             <div class="btn-group w-100">
               <button 
                 class="btn btn-outline-primary btn-sm dropdown-toggle" 
                 type="button" 
-                data-bs-toggle="dropdown">
+                data-bs-toggle="dropdown" 
+                aria-expanded="false">
                 Cambiar Estado
               </button>
               <ul class="dropdown-menu">
@@ -143,8 +144,8 @@
                   <div class="col-md-6" *ngIf="pedido.detalles?.sabor">
                     <strong>Sabor:</strong> {{pedido.detalles.sabor}}
                   </div>
-                  <div class="col-md-6" *ngIf="pedido.detalles?.tamano"> <!-- ✅ CORREGIDO: tamaño → tamano -->
-                    <strong>Tamaño:</strong> {{pedido.detalles.tamano}} <!-- ✅ CORREGIDO -->
+                  <div class="col-md-6" *ngIf="pedido.detalles?.tamano">
+                    <strong>Tamaño:</strong> {{pedido.detalles.tamano}}
                   </div>
                   <div class="col-md-6" *ngIf="pedido.detalles?.cobertura">
                     <strong>Cobertura:</strong> {{pedido.detalles.cobertura}}

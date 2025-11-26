@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './login/login';
 import { Admin } from './admin/admin';
-import { InicioComponent } from './admin/inicio/inicio';
+import { InicioComponent } from './admin/inicio/inicio.component';
 import { InicioEmpleado } from './empleado/inicio/inicio';
 import { Empleados } from './admin/empleados/empleados';
 import { Empleado } from './empleado/empleado';
