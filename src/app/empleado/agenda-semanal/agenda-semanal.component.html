@@ -1,0 +1,43 @@
+<div class="agenda-empleado-container card-modern">
+  <div class="panel-header">
+    <h3 class="mb-0">
+      <i class="fa-solid fa-calendar-alt me-2 text-primary"></i>
+      Mi Agenda Semanal
+    </h3>
+  </div>
+
+  <div *ngIf="!currentEmployeeId" class="text-center text-muted p-4">
+    Cargando información del empleado...
+  </div>
+
+  <div *ngIf="currentEmployeeId" class="table-container">
+    <table class="table-modern agenda-table">
+      <thead>
+        <tr>
+          <th>Día</th>
+          <th>Tarea/Turno</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let dia of diasSemana">
+          <td>{{ dia.nombre }}</td>
+          <td>
+            <span class="agenda-item-readonly">
+              {{ getTareaForDia(dia.num) }}
+            </span>
+          </td>
+        </tr>
+        <tr *ngIf="diasSemana.length === 0">
+          <td colspan="2" class="text-center text-muted">
+            No hay días configurados para la agenda.
+          </td>
+        </tr>
+        <tr *ngIf="diasSemana.length > 0 && this.Object.keys(currentEmployeeAgenda).length === 0">
+          <td colspan="2" class="text-center text-muted">
+            No tienes tareas asignadas para esta semana.
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

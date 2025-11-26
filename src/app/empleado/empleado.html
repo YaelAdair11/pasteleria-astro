@@ -52,6 +52,14 @@
           }
         </a>
       </li>
+      <li class="nav-item mb-1">
+        <a routerLink="agenda-semanal" routerLinkActive="active" class="nav-link text-light" [ngClass]="{'px-2': !sidebarVisible}">
+          <i class="fa-solid fa-calendar-days"></i>
+          @if (sidebarVisible) {
+            <span class="ms-2">Mi Agenda Semanal</span>
+          }
+        </a>
+      </li>
 
       <li class="nav-item mb-1">
         <a routerLink="ventas" routerLinkActive="active" class="nav-link text-light" [ngClass]="{'px-2': !sidebarVisible}">

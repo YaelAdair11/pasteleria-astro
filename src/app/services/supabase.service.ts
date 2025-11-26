@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { createClient, Session, SupabaseClient, User } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { Empleado } from '../models/empleado.model';
 import { Usuario } from '../models/usuario.model';
 import { Producto } from '../models/producto.model';
@@ -16,6 +16,10 @@ export class SupabaseService {
   private userSubject = new BehaviorSubject<Usuario | null>(null);
   public user$ = this.userSubject.asObservable();
 
+  private agendaChangesSubject = new Subject<any>();
+  public agendaChanges$ = this.agendaChangesSubject.asObservable();
+
+
   private readySubject = new BehaviorSubject<boolean>(false);
   public ready$ = this.readySubject.asObservable();
 
@@ -25,7 +29,19 @@ export class SupabaseService {
       environment.supabaseAnonKey
     );
     this.initUser();
+    this.setupRealtimeAgenda();
   }
+
+  private setupRealtimeAgenda() {
+    this.supabase
+        .channel('agenda_turnos_channel') // A unique name for the channel
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'agenda_turnos' }, (payload) => {
+            console.log('Realtime agenda change received!', payload);
+            this.agendaChangesSubject.next(payload);
+        })
+        .subscribe();
+  }
+
 
   // Inicializa el BehaviorSubject al cargar la app
   private async initUser() {
@@ -101,6 +117,24 @@ export class SupabaseService {
       .eq('id', userId)
       .single();
   }
+
+  // Nuevo método para obtener el usuario actual (Usuario completo, no solo User de Supabase)
+  async getUser(): Promise<Usuario | null> {
+    // Intenta obtener el usuario del BehaviorSubject primero (es más eficiente y ya tiene el perfil cargado)
+    const currentUser = this.userSubject.getValue();
+    if (currentUser) {
+      return currentUser;
+    }
+
+    // Si el BehaviorSubject no tiene el usuario, intenta obtenerlo de la sesión de Supabase
+    const { data: { session } } = await this.supabase.auth.getSession();
+    if (session?.user) {
+      // Carga el perfil completo si solo tenemos el User de Supabase
+      return this.cargarPerfil(session.user);
+    }
+    return null;
+  }
+
 
   // 🔥 MÉTODOS RECUPERADOS (Para arreglar el error) 🔥
   async resetPasswordForEmail(email: string) {
