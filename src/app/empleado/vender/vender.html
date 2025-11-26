@@ -87,24 +87,6 @@
       </button>
 
     </section>
-
-    <!-- Historial de Ventas -->
-    <section class="ventas">
-      <h3>Historial de Ventas</h3>
-      <button class="btn-toggle" (click)="toggleTodasVentas()">
-        {{ mostrarVentas ? "Ocultar ventas" : "Mostrar todas las ventas" }}
-      </button>
-
-      <div class="lista-reportes" *ngIf="mostrarVentas">
-        <div class="reporte-item" *ngFor="let v of ventas; let i = index">
-          <div class="reporte-header">
-            <span><strong>Venta {{ i + 1 }}</strong> — {{ v.fecha }}</span>
-            <button class="btn-reporte" (click)="verReporte(i)">Reporte</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
   </div>
 
   <!-- Modales -->
