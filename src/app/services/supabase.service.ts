@@ -389,29 +389,59 @@ async eliminarPedido(id: string) {
   }
 
   // =================== VENTAS ===================
-  async getVentas(filtro: string = '') {
-    // Usamos '!ventas_usuario_id_fkey' para forzar la relación correcta
+  async getVentas(filtro: string = ''): Promise<any[]> {
+  try {
+    console.log('🔄 Cargando ventas desde Supabase...');
+    
+    // 🔥 AGREGAR HEADERS PARA EVITAR CACHE
     let query = this.supabase
       .from('ventas')
       .select(`
         *,
-        productos!inner ( nombre ),
-        perfiles!ventas_usuario_id_fkey ( username ) 
-      `) 
+        productos:producto_id(*),
+        perfiles:usuario_id(*),
+        anulaciones_ventas(*)
+      `)
       .order('fecha', { ascending: false });
-
-    if (filtro && filtro.trim()) {
-      query = query.filter('productos.nombre', 'ilike', `%${filtro.trim()}%`);
-    }
 
     const { data, error } = await query;
 
-    if (error) {
-      console.warn('Error trayendo ventas:', error.message);
-      throw new Error(error.message);
+    if (error) throw error;
+    
+    console.log('📊 Ventas cargadas de Supabase:', data?.length || 0);
+    
+    // 🔥 VERIFICAR DETALLADAMENTE EL ESTADO DE ANULACIONES
+    if (data && data.length > 0) {
+      const anuladas = data.filter(v => v.anulada === true);
+      console.log('🚫 Ventas anuladas en BD:', anuladas.length);
+      
+      if (anuladas.length > 0) {
+        console.log('📋 Detalles de ventas anuladas:');
+        anuladas.forEach(v => {
+          console.log({
+            id: v.id,
+            producto: v.productos?.nombre,
+            anulada: v.anulada,
+            fecha_anulacion: v.fecha_anulacion,
+            fecha: v.fecha
+          });
+        });
+      } else {
+        console.log('⚠️ NO HAY VENTAS ANULADAS EN LA BASE DE DATOS');
+      }
     }
-    return data;
-  } 
+    
+    return data.map(venta => ({
+      ...venta,
+      anulada: venta.anulada || false,
+      anulacion: venta.anulaciones_ventas?.[0] || null
+    }));
+
+  } catch (error) {
+    console.error('❌ Error en getVentas:', error);
+    throw error;
+  }
+}
 
   async getProductosMasVendidos(limite: number = 5): Promise<productosMasVendidos[]> {
     try {
@@ -456,25 +486,56 @@ async eliminarPedido(id: string) {
     }
   }
 
-  async getReportesPorDia(fecha: Date) {
-    const dia = new Date(fecha);
-    const inicioDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 0, 0, 0).toISOString();
-    const finDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 23, 59, 59).toISOString();
+  async getReportesPorDia(fecha: Date): Promise<any> {
+  try {
+    const fechaInicio = new Date(fecha);
+    fechaInicio.setHours(0, 0, 0, 0);
+    
+    const fechaFin = new Date(fecha);
+    fechaFin.setHours(23, 59, 59, 999);
+
+    console.log('📊 Calculando reporte para:', fechaInicio, 'hasta', fechaFin);
 
     const { data, error } = await this.supabase
       .from('ventas')
-      .select('total')
-      .gte('fecha', inicioDelDia)
-      .lte('fecha', finDelDia);
+      .select(`
+        *,
+        productos:producto_id(*)
+      `)
+      .gte('fecha', fechaInicio.toISOString())
+      .lte('fecha', fechaFin.toISOString())
+      .eq('anulada', false) // 🔥 NUEVO: Excluir ventas anuladas
+      .order('fecha', { ascending: false });
 
-    if (error) throw new Error(error.message);
+    if (error) throw error;
 
-    const totalVentas = data.length;
-    const totalIngresos = data.reduce((acc, v) => acc + v.total, 0);
+    console.log('📈 Ventas encontradas para reporte:', data?.length || 0);
+
+    // Calcular métricas EXCLUYENDO ventas anuladas
+    const ventasValidas = data?.filter(venta => !venta.anulada) || [];
+    const totalIngresos = ventasValidas.reduce((sum, venta) => sum + venta.total, 0);
+    const totalVentas = ventasValidas.length;
     const ticketPromedio = totalVentas > 0 ? totalIngresos / totalVentas : 0;
 
-    return { totalIngresos, totalVentas, ticketPromedio };
+    console.log('💰 Reporte calculado:', {
+      totalIngresos,
+      totalVentas,
+      ticketPromedio,
+      ventasValidas: ventasValidas.length,
+      ventasAnuladas: (data?.length || 0) - ventasValidas.length
+    });
+
+    return {
+      totalIngresos,
+      totalVentas,
+      ticketPromedio
+    };
+
+  } catch (error) {
+    console.error('❌ Error en getReportesPorDia:', error);
+    throw error;
   }
+}
 
   async getVentasPorFecha(fecha: Date) {
     const dia = new Date(fecha);
@@ -582,6 +643,37 @@ async eliminarPedido(id: string) {
       throw error;
     }
   }
+
+  // Si tienes este método en supabase.service.ts, también modifícalo
+async getVentasParaCorte(fecha: Date): Promise<any[]> {
+  try {
+    const fechaInicio = new Date(fecha);
+    fechaInicio.setHours(0, 0, 0, 0);
+    
+    const fechaFin = new Date(fecha);
+    fechaFin.setHours(23, 59, 59, 999);
+
+    const { data, error } = await this.supabase
+      .from('ventas')
+      .select(`
+        *,
+        productos:producto_id(*)
+      `)
+      .gte('fecha', fechaInicio.toISOString())
+      .lte('fecha', fechaFin.toISOString())
+      .eq('anulada', false) // 🔥 Excluir ventas anuladas
+      .order('fecha', { ascending: false });
+
+    if (error) throw error;
+    
+    return data || [];
+
+  } catch (error) {
+    console.error('Error en getVentasParaCorte:', error);
+    throw error;
+  }
+}
+
 
   // =================== REALTIME ===================
   suscribirCambiosVentas(callback: (payload: any) => void) {
@@ -719,20 +811,150 @@ async getCortesCajaRecientes() {
   return data || [];
 }
 
-async getVentasParaCorte(fecha: Date) {
-  const dia = new Date(fecha);
-  const inicioDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 0, 0, 0).toISOString();
-  const finDelDia = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), 23, 59, 59).toISOString();
+async getUsuarioActual(): Promise<any> {
+  try {
+    const { data: { user } } = await this.supabase.auth.getUser();
+    if (!user) return null;
 
-  const { data, error } = await this.supabase
-    .from('ventas')
-    .select('total, metodo_pago')
-    .gte('fecha', inicioDelDia)
-    .lte('fecha', finDelDia);
+    // Obtener perfil completo del usuario
+    const { data: perfil, error } = await this.supabase
+      .from('perfiles')
+      .select('*')
+      .eq('id', user.id)
+      .single();
 
-  if (error) throw error;
-  return data || [];
+    if (error) {
+      console.error('Error obteniendo perfil:', error);
+      return null;
+    }
+
+    return {
+      ...user,
+      ...perfil
+    };
+
+  } catch (error) {
+    console.error('Error en getUsuarioActual:', error);
+    return null;
+  }
 }
 
+async anularVenta(ventaId: string, motivo: string): Promise<void> {
+  try {
+    const usuario = await this.getUsuarioActual();
+    if (!usuario) throw new Error('Usuario no autenticado');
+    
+    if (usuario.rol !== 'admin' && usuario.rol !== 'gerente') {
+      throw new Error('No tienes permisos para anular ventas');
+    }
 
+    console.log('🔄 Iniciando anulación de venta:', ventaId);
+
+    // 1. Obtener datos de la venta
+    const { data: venta, error: errorVenta } = await this.supabase
+      .from('ventas')
+      .select(`
+        *,
+        productos:producto_id(*)
+      `)
+      .eq('id', ventaId)
+      .single();
+
+    if (errorVenta) throw errorVenta;
+    if (!venta) throw new Error('Venta no encontrada');
+    
+    console.log('📋 Venta a anular:', {
+      id: venta.id,
+      producto: venta.productos?.nombre,
+      anulada: venta.anulada,
+      cantidad: venta.cantidad
+    });
+
+    // Verificar si ya está anulada
+    if (venta.anulada) {
+      throw new Error('La venta ya está anulada');
+    }
+
+    // 2. Obtener stock actual
+    const { data: producto, error: errorProducto } = await this.supabase
+      .from('productos')
+      .select('stock')
+      .eq('id', venta.producto_id)
+      .single();
+
+    if (errorProducto) throw errorProducto;
+
+    const nuevoStock = (producto.stock || 0) + venta.cantidad;
+    console.log('📦 Actualizando stock:', producto.stock, '→', nuevoStock);
+
+    // 3. Actualizar stock del producto
+    const { error: errorStock } = await this.supabase
+      .from('productos')
+      .update({ 
+        stock: nuevoStock
+      })
+      .eq('id', venta.producto_id);
+
+    if (errorStock) throw errorStock;
+
+    // 4. Marcar venta como anulada - CON MÁS DETALLES DE ERROR
+const { data: dataAnulacion, error: errorAnulacion } = await this.supabase
+  .from('ventas')
+  .update({ 
+    anulada: true,
+    fecha_anulacion: new Date().toISOString()
+  })
+  .eq('id', ventaId)
+  .select(); // 🔥 Agregar .select() para ver qué devuelve
+
+if (errorAnulacion) {
+  console.error('❌ Error marcando venta como anulada:', errorAnulacion);
+  console.error('🔍 Detalles del error:', errorAnulacion.details, errorAnulacion.hint, errorAnulacion.message);
+  throw errorAnulacion;
+}
+
+console.log('✅ Respuesta de anulación:', dataAnulacion);
+
+    // 5. Verificar inmediatamente que se guardó correctamente
+    const { data: ventaVerificada, error: errorVerificacion } = await this.supabase
+      .from('ventas')
+      .select('anulada, fecha_anulacion')
+      .eq('id', ventaId)
+      .single();
+
+    if (errorVerificacion) {
+      console.error('❌ Error verificando anulación:', errorVerificacion);
+    } else {
+      console.log('🔍 VERIFICACIÓN - Venta después de anular:', {
+        anulada: ventaVerificada.anulada,
+        fecha_anulacion: ventaVerificada.fecha_anulacion
+      });
+    }
+
+    // 6. Crear registro en tabla de anulaciones
+    const { error: errorRegistro } = await this.supabase
+      .from('anulaciones_ventas')
+      .insert({
+        venta_id: ventaId,
+        motivo: motivo,
+        anulado_por: usuario.id,
+        fecha_anulacion: new Date().toISOString(),
+        monto_anulado: venta.total,
+        producto_id: venta.producto_id,
+        cantidad_restaurada: venta.cantidad
+      });
+
+    if (errorRegistro) {
+      console.warn('⚠️ Error creando registro de auditoría:', errorRegistro);
+    } else {
+      console.log('📝 Registro de anulación creado');
+    }
+
+    console.log(`✅ Venta ${ventaId} anulada completamente`);
+
+  } catch (error) {
+    console.error('❌ Error en anularVenta:', error);
+    throw error;
+  }
+}
 }

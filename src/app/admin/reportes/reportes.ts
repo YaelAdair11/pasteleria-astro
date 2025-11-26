@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common'; 
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../services/supabase.service';
+import { EstadoVentasService } from '../../services/estado-ventas.service';
+
 
 interface ReporteData {
   totalIngresos: number;
@@ -21,6 +23,7 @@ export class Reportes implements OnInit {
   
   reporte: ReporteData | null = null;
   detalleVentas: any[] = []; 
+  private subscriptions: any[] = [];
   loading: boolean = true;
   error: string | null = null;
 
@@ -29,32 +32,37 @@ export class Reportes implements OnInit {
   observaciones: string = '';
   procesandoCorte: boolean = false;
 
-  constructor(private supabaseService: SupabaseService) {}
+  constructor(private supabaseService: SupabaseService,
+    private estadoVentas: EstadoVentasService
+  ) {}
 
   ngOnInit(): void {
     this.loadReporte(); 
+    this.suscribirActualizacionesVentas();
   }
 
   async loadReporte(): Promise<void> {
-    this.loading = true;
-    this.error = null;
+  this.loading = true;
+  this.error = null;
 
-    try {
-      const [resumen, lista] = await Promise.all([
-        this.supabaseService.getReportesPorDia(this.fechaSeleccionada),
-        this.supabaseService.getVentasPorFecha(this.fechaSeleccionada)
-      ]);
+  try {
+    const [resumen, listaVentas] = await Promise.all([
+      this.supabaseService.getReportesPorDia(this.fechaSeleccionada),
+      this.supabaseService.getVentasParaCorte(this.fechaSeleccionada) 
+    ]);
 
-      this.reporte = resumen;
-      this.detalleVentas = lista;
+    this.reporte = resumen;
+    this.detalleVentas = listaVentas; 
 
-    } catch (error: any) {
-      console.error('Error al cargar reporte:', error);
-      this.error = 'No se pudo cargar el reporte. ' + error.message;
-    }
+    console.log('📋 Ventas en detalle:', listaVentas.length);
 
-    this.loading = false;
+  } catch (error: any) {
+    console.error('Error al cargar reporte:', error);
+    this.error = 'No se pudo cargar el reporte. ' + error.message;
   }
+
+  this.loading = false;
+}
 
   cambiarDia(dias: number): void {
     const nuevaFecha = new Date(this.fechaSeleccionada);
@@ -387,5 +395,32 @@ imprimirReporteCompleto(): void {
   ventanaImpresion.document.write(contenidoImpresion);
   ventanaImpresion.document.close();
 }
+
+// Suscribirse a actualizaciones de ventas
+private suscribirActualizacionesVentas() {
+  console.log('📡 Reportes - Suscribiéndose a actualizaciones de ventas...');
+  
+  const subVentas = this.estadoVentas.ventasActualizadas$.subscribe(actualizado => {
+    if (actualizado) {
+      console.log('🔄 Actualizando reportes por anulación de venta...');
+      this.loadReporte();
+    }
+  });
+  
+  this.subscriptions.push(subVentas);
+}
+
+// Limpiar suscripciones
+ngOnDestroy(): void {
+  console.log('🧹 Limpiando suscripciones de reportes...');
+  this.subscriptions.forEach(sub => {
+    if (sub && typeof sub.unsubscribe === 'function') {
+      sub.unsubscribe();
+    }
+  });
+  this.subscriptions = [];
+}
+
+
 
 }

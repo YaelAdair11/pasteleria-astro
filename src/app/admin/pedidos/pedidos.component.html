@@ -1,0 +1,182 @@
+<div class="container-fluid py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h3 mb-1">Gestión de Pedidos de Pasteles</h1>
+      <p class="text-muted mb-0">Organiza y gestiona los pedidos personalizados</p>
+    </div>
+    <button class="btn btn-primary" (click)="cargarPedidos()" [disabled]="loading">
+      <i class="fas fa-refresh" [class.fa-spin]="loading"></i>
+      Actualizar
+    </button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">Buscar</label>
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Cliente, teléfono o descripción..."
+            [(ngModel)]="searchTerm"
+            (input)="filtrarPedidos()">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Estado</label>
+          <select class="form-select" [(ngModel)]="filtroEstado" (change)="filtrarPedidos()">
+            <option value="todos">Todos los estados</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="en proceso">En Proceso</option>
+            <option value="completado">Completado</option>
+            <option value="cancelado">Cancelado</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Tipo</label>
+          <select class="form-select" [(ngModel)]="filtroTipo" (change)="filtrarPedidos()">
+            <option value="todos">Todos los tipos</option>
+            <option value="tienda">Pedido en Tienda</option>
+            <option value="web">Pedido Web</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-flex align-items-end">
+          <span class="badge bg-light text-dark">
+            {{pedidosFiltrados.length}} pedidos
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2 text-muted">Cargando pedidos...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error && !loading" class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    {{error}}
+  </div>
+
+  <!-- Lista de Pedidos -->
+  <div *ngIf="!loading && !error">
+    <div *ngIf="pedidosFiltrados.length === 0" class="text-center py-5">
+      <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+      <h4>No hay pedidos</h4>
+      <p class="text-muted">No se encontraron pedidos con los filtros aplicados</p>
+    </div>
+
+    <div *ngFor="let pedido of pedidosFiltrados" class="card mb-3">
+      <div class="card-body">
+        <div class="row align-items-center">
+          <!-- Información Principal -->
+          <div class="col-md-4">
+            <h5 class="card-title mb-1">{{pedido.cliente_nombre}}</h5>
+            <p class="text-muted mb-1">
+              <i class="fas fa-phone me-1"></i>{{pedido.cliente_telefono}}
+            </p>
+            <span class="badge bg-light text-dark">
+              <i class="fas fa-store me-1" *ngIf="pedido.tipo === 'tienda'"></i>
+              <i class="fas fa-globe me-1" *ngIf="pedido.tipo === 'web'"></i>
+              {{pedido.tipo === 'tienda' ? 'Tienda' : 'Web'}}
+            </span>
+          </div>
+
+          <!-- Detalles del Pedido -->
+          <div class="col-md-3">
+            <small class="text-muted d-block">Entrega</small>
+            <strong>{{formatearFecha(pedido.fecha_entrega)}}</strong>
+            <small class="text-muted d-block mt-1">{{pedido.lugar_entrega}}</small>
+          </div>
+
+          <!-- Estado Actual -->
+          <div class="col-md-2">
+            <small class="text-muted d-block">Estado Actual</small>
+            <span class="badge {{getBadgeClase(pedido.estado)}}">
+              {{getEstadoLabel(pedido.estado)}}
+            </span>
+          </div>
+
+          <!-- Acciones -->
+          <div class="col-md-3">
+            <div class="btn-group w-100">
+              <button 
+                class="btn btn-outline-primary btn-sm dropdown-toggle" 
+                type="button" 
+                data-bs-toggle="dropdown">
+                Cambiar Estado
+              </button>
+              <ul class="dropdown-menu">
+                <li *ngFor="let estado of estados">
+                  <a class="dropdown-item" 
+                     href="javascript:void(0)" 
+                     (click)="actualizarEstado(pedido.id, estado.valor)">
+                    {{estado.label}}
+                  </a>
+                </li>
+              </ul>
+              
+              <button 
+                class="btn btn-outline-danger btn-sm"
+                (click)="eliminarPedido(pedido.id)"
+                title="Eliminar pedido">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Detalles Expandibles -->
+        <div class="mt-3 border-top pt-3">
+          <div class="row">
+            <div class="col-12">
+              <h6 class="text-muted mb-2">Detalles del Pastel:</h6>
+              <div class="bg-light p-3 rounded">
+                <div class="row">
+                  <div class="col-md-6" *ngIf="pedido.detalles?.sabor">
+                    <strong>Sabor:</strong> {{pedido.detalles.sabor}}
+                  </div>
+                  <div class="col-md-6" *ngIf="pedido.detalles?.tamano"> <!-- ✅ CORREGIDO: tamaño → tamano -->
+                    <strong>Tamaño:</strong> {{pedido.detalles.tamano}} <!-- ✅ CORREGIDO -->
+                  </div>
+                  <div class="col-md-6" *ngIf="pedido.detalles?.cobertura">
+                    <strong>Cobertura:</strong> {{pedido.detalles.cobertura}}
+                  </div>
+                  <div class="col-md-6" *ngIf="pedido.detalles?.relleno">
+                    <strong>Relleno:</strong> {{pedido.detalles.relleno}}
+                  </div>
+                  <div class="col-12" *ngIf="pedido.detalles?.descripcion">
+                    <strong>Descripción:</strong> {{pedido.detalles.descripcion}}
+                  </div>
+                  <div class="col-12" *ngIf="pedido.detalles?.decoraciones">
+                    <strong>Decoraciones Especiales:</strong> {{pedido.detalles.decoraciones}}
+                  </div>
+                  <div class="col-md-6" *ngIf="pedido.detalles?.precio">
+                    <strong>Precio:</strong> ${{pedido.detalles.precio}}
+                  </div>
+                  <div class="col-md-6" *ngIf="pedido.detalles?.anticipo">
+                    <strong>Anticipo:</strong> ${{pedido.detalles.anticipo}}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fecha de creación -->
+        <div class="mt-2">
+          <small class="text-muted">
+            Creado: {{formatearFecha(pedido.creado_en)}}
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

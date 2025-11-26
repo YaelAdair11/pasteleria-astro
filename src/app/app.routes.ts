@@ -9,6 +9,7 @@ import { RoleGuard } from './guards/role.guard';
 import { Inventario } from './admin/inventario/inventario';
 import { Reportes } from './admin/reportes/reportes';
 import { Ventas } from './admin/ventas/ventas';
+import { Ventas as VentasEmpleado } from './empleado/ventas/ventas';
 import { Vender } from './empleado/vender/vender';
 import { TiendaComponent } from './tienda/tienda.component';
 import { ResetPassword } from './reset-password/reset-password';
@@ -16,6 +17,7 @@ import { UpdatePassword } from './update-password/update-password';
 import { Buzon } from './admin/buzon/buzon';
 import { Peticiones } from './empleado/peticiones/peticiones';
 import { AgendaSemanalEmpleadoComponent } from './empleado/agenda-semanal/agenda-semanal.component';
+import { PedidosComponent } from './admin/pedidos/pedidos.component'; 
 
 
 export const routes: Routes = [
@@ -36,6 +38,7 @@ export const routes: Routes = [
       { path: 'reportes', component: Reportes, data: { title: 'Reportes', icon: 'fa-cart-shopping' } },
       { path: 'ventas', component: Ventas, data: { title: 'Ventas', icon: 'fa-chart-line' } },
       { path: 'buzon', component: Buzon, data: { title: 'Buzón', icon: 'fa-inbox' } },
+      { path: 'pedidos', component: PedidosComponent, data: { title: 'Gestión de Pedidos', icon: 'fa-birthday-cake' } },
     ]
   },
   {
@@ -48,6 +51,7 @@ export const routes: Routes = [
       { path: 'vender', component: Vender, data: { title: 'Vender', icon: 'fa-cash-register' } },
       { path: 'peticiones', component: Peticiones, data: { title: 'Peticiones', icon: 'fa-clipboard-check' } },
       { path: 'agenda-semanal', component: AgendaSemanalEmpleadoComponent, data: { title: 'Mi Agenda Semanal', icon: 'fa-calendar-days' } },
+      { path: 'ventas', component: VentasEmpleado, data: { title: 'Ventas', icon: 'fa-list-check' } },
     ]
   },
   { path: '**', redirectTo: '/login' }
