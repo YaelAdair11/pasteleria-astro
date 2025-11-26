@@ -1,123 +1,208 @@
-.agenda-empleado-container {
+/* Estilo inspirado en Apple: minimalista, limpio y centrado en el contenido */
+
+/* Variables de diseño para fácil mantenimiento */
+:root {
+  --font-family-apple: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --background-color: #ffffff;
+  --container-border-color: #e5e5e5;
+  --text-color-primary: #1d1d1f;
+  --text-color-secondary: #6e6e73;
+  --pill-background-color: #f5f5f7;
+  --pill-free-day-border-color: #aee3b9;
+  --pill-free-day-text-color: #34c759;
+  --current-day-background: #f0f8ff; /* AliceBlue, un azul muy pálido */
+  --current-day-text-color: #007aff; /* Azul Apple */
+  --border-radius: 18px;
+  --container-shadow: 0px 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+/* Animación de entrada */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Contenedor principal */
+.agenda-container {
+  font-family: var(--font-family-apple);
+  background-color: var(--background-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--container-shadow);
+  padding: 24px;
+  max-width: 700px;
+  margin: 40px auto;
+  transition: all 0.3s ease;
+  overflow: hidden; /* Para contener los bordes redondeados */
+}
+
+/* Encabezado */
+.agenda-header {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--container-border-color);
+  margin-bottom: 16px;
+}
+
+.agenda-title {
+  font-size: 1.75rem; /* 28px */
+  font-weight: 600;
+  color: var(--text-color-primary);
+  margin: 0 0 4px 0;
+}
+
+.agenda-subtitle {
+  font-size: 1.0625rem; /* 17px */
+  font-weight: 400;
+  color: var(--text-color-secondary);
+  margin: 0;
+}
+
+/* Cuerpo de la agenda */
+.agenda-body {
+  padding-top: 8px;
+}
+
+.days-list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fila para cada día */
+.day-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 8px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+  /* Animación */
+  opacity: 0; /* Inicia invisible */
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.day-row:last-child {
+  border-bottom: none;
+}
+
+.day-row:hover {
+  background-color: #f9f9f9;
+  transform: scale(1.01);
+}
+
+/* Detalles del día (icono + nombre) */
+.day-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.day-icon {
+  width: 20px;
+  height: 20px;
+  color: var(--text-color-secondary);
+  opacity: 0.7;
+}
+
+.day-name {
+  font-size: 1rem; /* 16px */
+  font-weight: 500;
+  color: var(--text-color-primary);
+}
+
+/* Estilo para el día actual */
+.day-row.current-day {
+  background-color: var(--current-day-background);
+}
+.current-day .day-name {
+  font-weight: 700;
+  color: var(--current-day-text-color);
+}
+.current-day .day-icon {
+  color: var(--current-day-text-color);
+  opacity: 1;
+}
+
+
+/* Píldora de tarea */
+.task-pill {
+  font-size: 0.875rem; /* 14px */
+  font-weight: 500;
+  padding: 8px 16px;
+  background-color: var(--pill-background-color);
+  color: var(--text-color-secondary);
+  border-radius: 30px; /* Completamente redondeado */
+  text-align: center;
+  min-width: 100px;
+  transition: all 0.3s ease;
+}
+
+/* Estilo especial para la píldora de "Día Libre" (ahora con borde) */
+.task-pill.free-day {
+  background-color: transparent;
+  color: var(--pill-free-day-text-color);
+  border: 1.5px solid var(--pill-free-day-border-color);
+  font-weight: 600;
+}
+
+/* Estados de carga y vacío */
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-color-secondary);
+}
+
+.loading-state p,
+.empty-state p {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* Mensaje de pie de página */
+.footer-message {
+  text-align: center;
+  padding-top: 20px;
+  margin-top: 20px;
+  border-top: 1px solid var(--container-border-color);
+}
+
+.footer-message p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-color-secondary);
+  font-style: italic;
+}
+
+
+/* Media query para pantallas pequeñas */
+@media (max-width: 600px) {
+  .agenda-container {
+    margin: 20px;
     padding: 20px;
-    background-color: var(--color-background-card);
-    border-radius: var(--border-radius-card);
-    box-shadow: var(--shadow-card);
-    margin-bottom: 20px;
-}
+    border-radius: 12px;
+  }
 
-.panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid var(--color-border);
-}
+  .agenda-title {
+    font-size: 1.5rem; /* 24px */
+  }
 
-.panel-header h3 {
-    font-size: 1.5rem;
-    color: var(--color-heading);
-    display: flex;
-    align-items: center;
-}
+  .agenda-subtitle {
+    font-size: 1rem; /* 16px */
+  }
 
-.panel-header .fa-calendar-alt {
-    color: var(--color-primary);
-    margin-right: 10px;
-}
+  .day-row {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 8px;
+    transform: none !important; /* Desactivar hover scale en móvil */
+  }
 
-.table-container {
-    overflow-x: auto;
-}
-
-.table-modern {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-    font-size: 0.95rem;
-}
-
-.table-modern thead th {
-    background-color: var(--color-table-header-bg);
-    color: var(--color-table-header-text);
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 2px solid var(--color-border);
-}
-
-.table-modern tbody td {
-    padding: 12px 15px;
-    border-bottom: 1px solid var(--color-border-light);
-    color: var(--color-text);
-}
-
-.table-modern tbody tr:nth-child(even) {
-    background-color: var(--color-table-row-even);
-}
-
-.table-modern tbody tr:hover {
-    background-color: var(--color-table-row-hover);
-}
-
-.text-center {
-    text-align: center;
-}
-
-.text-muted {
-    color: var(--color-text-light);
-}
-
-.agenda-item-readonly {
-    display: block;
-    padding: 8px 12px;
-    background-color: var(--color-primary-light);
-    color: var(--color-primary-dark);
-    border-radius: var(--border-radius-small);
-    text-align: center;
-    font-weight: 500;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .panel-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .panel-header h3 {
-        margin-bottom: 10px;
-    }
-    .table-modern, .table-modern thead, .table-modern tbody, .table-modern th, .table-modern td, .table-modern tr {
-        display: block;
-    }
-    .table-modern thead tr {
-        position: absolute;
-        top: -9999px;
-        left: -9999px;
-    }
-    .table-modern tr {
-        margin-bottom: 15px;
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-card);
-        overflow: hidden;
-    }
-    .table-modern td {
-        border: none;
-        position: relative;
-        padding-left: 50%;
-        text-align: right;
-    }
-    .table-modern td:before {
-        content: attr(data-label);
-        position: absolute;
-        left: 15px;
-        width: 45%;
-        padding-right: 10px;
-        white-space: nowrap;
-        text-align: left;
-        font-weight: bold;
-        color: var(--color-heading);
-    }
-    .table-modern td:nth-of-type(1):before { content: "Día:"; }
-    .table-modern td:nth-of-type(2):before { content: "Tarea/Turno:"; }
+  .day-details {
+    margin-bottom: 12px;
+  }
 }

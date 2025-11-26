@@ -34,11 +34,16 @@ export class AgendaSemanalEmpleadoComponent implements OnInit, OnDestroy {
   currentEmployeeId: string | null = null;
   currentEmployeeAgenda: { [dia_num: number]: string } = {};
   public Object = Object; // Expose Object to the template
+  public currentDay: number;
 
   private userSubscription: Subscription | undefined;
   private agendaChangesSubscription: Subscription | undefined;
 
-  constructor(private supabase: SupabaseService) {}
+  constructor(private supabase: SupabaseService) {
+    const jsDay = new Date().getDay(); // 0 (Sun) to 6 (Sat)
+    // Adjust to match diasSemana structure (1=Mon, 7=Sun)
+    this.currentDay = jsDay === 0 ? 7 : jsDay;
+  }
 
   ngOnInit() {
     this.userSubscription = this.supabase.user$.subscribe(user => {

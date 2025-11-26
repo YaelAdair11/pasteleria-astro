@@ -1,43 +1,35 @@
-<div class="agenda-empleado-container card-modern">
-  <div class="panel-header">
-    <h3 class="mb-0">
-      <i class="fa-solid fa-calendar-alt me-2 text-primary"></i>
-      Mi Agenda Semanal
-    </h3>
+<div class="agenda-container">
+  <div class="agenda-header">
+    <h2 class="agenda-title">Mi Agenda</h2>
+    <p class="agenda-subtitle">Resumen de tus tareas para la semana.</p>
   </div>
 
-  <div *ngIf="!currentEmployeeId" class="text-center text-muted p-4">
-    Cargando información del empleado...
+  <div *ngIf="!currentEmployeeId" class="loading-state">
+    <p>Cargando tu agenda...</p>
   </div>
 
-  <div *ngIf="currentEmployeeId" class="table-container">
-    <table class="table-modern agenda-table">
-      <thead>
-        <tr>
-          <th>Día</th>
-          <th>Tarea/Turno</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let dia of diasSemana">
-          <td>{{ dia.nombre }}</td>
-          <td>
-            <span class="agenda-item-readonly">
-              {{ getTareaForDia(dia.num) }}
-            </span>
-          </td>
-        </tr>
-        <tr *ngIf="diasSemana.length === 0">
-          <td colspan="2" class="text-center text-muted">
-            No hay días configurados para la agenda.
-          </td>
-        </tr>
-        <tr *ngIf="diasSemana.length > 0 && this.Object.keys(currentEmployeeAgenda).length === 0">
-          <td colspan="2" class="text-center text-muted">
-            No tienes tareas asignadas para esta semana.
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div *ngIf="currentEmployeeId" class="agenda-body">
+    <div class="days-list">
+      <div *ngFor="let dia of diasSemana; let i = index" 
+           class="day-row" 
+           [class.current-day]="dia.num === currentDay"
+           [style.animation-delay]="i * 50 + 'ms'">
+        <span class="day-details">
+          <svg class="day-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>
+          <span class="day-name">{{ dia.nombre }}</span>
+        </span>
+        <span class="task-pill" [class.free-day]="getTareaForDia(dia.num) === 'Día Libre'">
+          {{ getTareaForDia(dia.num) }}
+        </span>
+      </div>
+    </div>
+
+    <div *ngIf="diasSemana.length > 0 && this.Object.keys(currentEmployeeAgenda).length === 0" class="empty-state">
+      <p>No tienes tareas asignadas para esta semana.</p>
+    </div>
+  </div>
+
+  <div class="footer-message">
+    <p>¡Que tengas una semana increíble!</p>
   </div>
 </div>
