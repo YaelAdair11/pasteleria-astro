@@ -1,0 +1,123 @@
+.agenda-empleado-container {
+    padding: 20px;
+    background-color: var(--color-background-card);
+    border-radius: var(--border-radius-card);
+    box-shadow: var(--shadow-card);
+    margin-bottom: 20px;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.panel-header h3 {
+    font-size: 1.5rem;
+    color: var(--color-heading);
+    display: flex;
+    align-items: center;
+}
+
+.panel-header .fa-calendar-alt {
+    color: var(--color-primary);
+    margin-right: 10px;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.table-modern {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    font-size: 0.95rem;
+}
+
+.table-modern thead th {
+    background-color: var(--color-table-header-bg);
+    color: var(--color-table-header-text);
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 2px solid var(--color-border);
+}
+
+.table-modern tbody td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--color-border-light);
+    color: var(--color-text);
+}
+
+.table-modern tbody tr:nth-child(even) {
+    background-color: var(--color-table-row-even);
+}
+
+.table-modern tbody tr:hover {
+    background-color: var(--color-table-row-hover);
+}
+
+.text-center {
+    text-align: center;
+}
+
+.text-muted {
+    color: var(--color-text-light);
+}
+
+.agenda-item-readonly {
+    display: block;
+    padding: 8px 12px;
+    background-color: var(--color-primary-light);
+    color: var(--color-primary-dark);
+    border-radius: var(--border-radius-small);
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .panel-header h3 {
+        margin-bottom: 10px;
+    }
+    .table-modern, .table-modern thead, .table-modern tbody, .table-modern th, .table-modern td, .table-modern tr {
+        display: block;
+    }
+    .table-modern thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    .table-modern tr {
+        margin-bottom: 15px;
+        border: 1px solid var(--color-border);
+        border-radius: var(--border-radius-card);
+        overflow: hidden;
+    }
+    .table-modern td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: right;
+    }
+    .table-modern td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: var(--color-heading);
+    }
+    .table-modern td:nth-of-type(1):before { content: "Día:"; }
+    .table-modern td:nth-of-type(2):before { content: "Tarea/Turno:"; }
+}

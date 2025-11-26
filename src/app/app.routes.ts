@@ -15,6 +15,7 @@ import { ResetPassword } from './reset-password/reset-password';
 import { UpdatePassword } from './update-password/update-password';
 import { Buzon } from './admin/buzon/buzon';
 import { Peticiones } from './empleado/peticiones/peticiones';
+import { AgendaSemanalEmpleadoComponent } from './empleado/agenda-semanal/agenda-semanal.component';
 
 
 export const routes: Routes = [
@@ -46,6 +47,7 @@ export const routes: Routes = [
       { path: '', component: InicioEmpleado, data: { title: 'Inicio', icon: 'fa-home' } },
       { path: 'vender', component: Vender, data: { title: 'Vender', icon: 'fa-cash-register' } },
       { path: 'peticiones', component: Peticiones, data: { title: 'Peticiones', icon: 'fa-clipboard-check' } },
+      { path: 'agenda-semanal', component: AgendaSemanalEmpleadoComponent, data: { title: 'Mi Agenda Semanal', icon: 'fa-calendar-days' } },
     ]
   },
   { path: '**', redirectTo: '/login' }
