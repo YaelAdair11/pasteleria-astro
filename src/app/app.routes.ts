@@ -15,7 +15,7 @@ import { ResetPassword } from './reset-password/reset-password';
 import { UpdatePassword } from './update-password/update-password';
 import { Buzon } from './admin/buzon/buzon';
 import { Peticiones } from './empleado/peticiones/peticiones';
-
+import { PedidosComponent } from './admin/pedidos/pedidos.component'; 
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -35,6 +35,7 @@ export const routes: Routes = [
       { path: 'reportes', component: Reportes, data: { title: 'Reportes', icon: 'fa-cart-shopping' } },
       { path: 'ventas', component: Ventas, data: { title: 'Ventas', icon: 'fa-chart-line' } },
       { path: 'buzon', component: Buzon, data: { title: 'Buzón', icon: 'fa-inbox' } },
+      { path: 'pedidos', component: PedidosComponent, data: { title: 'Gestión de Pedidos', icon: 'fa-birthday-cake' } },
     ]
   },
   {
