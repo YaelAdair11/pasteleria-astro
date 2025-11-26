@@ -6,6 +6,9 @@ import { SupabaseService } from '../../services/supabase.service';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 declare var bootstrap: any;
 
 @Component({
@@ -589,4 +592,55 @@ export class Inventario {
     return color;
   }
 
+  imprimirReporte() {
+    const doc = new jsPDF();
+    const fecha = new Date().toLocaleDateString();
+    const hora = new Date().toLocaleTimeString();
+
+    // 1. Encabezado del PDF
+    doc.setFontSize(18);
+    doc.text('Reporte de Inventario', 14, 20);
+    
+    doc.setFontSize(10);
+    doc.text(`Fecha: ${fecha} ${hora}`, 14, 28);
+    doc.text(`Total de productos listados: ${this.productos.length}`, 14, 33);
+
+    // 2. Definir las columnas
+    const head = [['Producto', 'Categoría', 'Stock', 'Precio', 'Estado']];
+
+    // 3. Mapear los datos (usamos 'this.productos' para respetar los filtros actuales)
+    const data = this.productos.map(p => [
+      p.nombre,
+      p.categoria?.nombre || 'Sin categoría',
+      p.stock,
+      `$${p.precio.toFixed(2)}`, // Formato moneda
+      p.activo ? 'Activo' : 'Inactivo'
+    ]);
+
+    // 4. Generar la tabla
+    autoTable(doc, {
+      head: head,
+      body: data,
+      startY: 40, // Empezar debajo del título
+      theme: 'grid', // Estilo de tabla ('striped', 'grid', 'plain')
+      styles: { fontSize: 9 },
+      headStyles: { fillColor: [44, 62, 80] }, // Color oscuro para encabezado
+      // Resaltar stock bajo en rojo
+      didParseCell: (data) => {
+        if (data.section === 'body' && data.column.index === 2) { // Columna 2 es Stock
+           const stock = parseInt(data.cell.raw as string);
+           if (stock <= 4) {
+             data.cell.styles.textColor = [220, 53, 69]; // Rojo
+             data.cell.styles.fontStyle = 'bold';
+           } else if (stock < 10) {
+             data.cell.styles.textColor = [255, 193, 7]; // Amarillo (Ocre)
+             data.cell.styles.fontStyle = 'bold';
+           }
+        }
+      }
+    });
+
+    // 5. Guardar el archivo
+    doc.save(`inventario_${fecha.replace(/\//g, '-')}.pdf`);
+  }
 }
