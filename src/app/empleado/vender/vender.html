@@ -77,19 +77,61 @@
       </ng-template>
 
       <h3 class="total">Total: ${{ total.toFixed(2) }}</h3>
+
+      <div class="form-group mb-3">
+        <label for="clienteNombre" class="form-label">Nombre del Cliente (Opcional para Ventas Pendientes):</label>
+        <input type="text" id="clienteNombre" class="form-control" [(ngModel)]="clientePendienteNombre" name="clientePendienteNombre" placeholder="Nombre del Cliente">
+      </div>
+
       <button class="btn-finalizar" (click)="finalizarCompra()">Finalizar Compra</button>
 
-      <!-- 🔥 NUEVO BOTÓN - Reimprimir último ticket -->
+      <!-- 🔥 NUEVO BOTÓN: Guardar Venta Pendiente -->
+      <button class="btn-guardar-pendiente" (click)="guardarVentaPendiente()">
+        <i class="fas fa-pause"></i> Guardar Pendiente
+      </button>
+
+      <!-- 🔥 NUEVO BOTÓN: Cargar Ventas Pendientes -->
+      <button class="btn-cargar-pendiente" (click)="toggleModalVentasPendientes()">
+        <i class="fas fa-folder-open"></i> Cargar Pendiente
+      </button>
+
+      <!-- 🔥 BOTÓN EXISTENTE - Reimprimir último ticket -->
       <button class="btn-reimprimir" 
               (click)="reimprimirUltimoTicket()"
               [disabled]="!ultimaVenta">
-         Reimprimir Último Ticket
+         <i class="fas fa-print"></i> Reimprimir Último Ticket
       </button>
 
     </section>
   </div>
 
-  <!-- Modales -->
+  <!-- Modal Ventas Pendientes -->
+  <div class="modal" *ngIf="mostrarModalVentasPendientes">
+    <div class="modal-contenido-lg pastel modal-ventas-pendientes">
+      <h2 class="titulo-ticket">Ventas Pendientes</h2>
+      <div *ngIf="ventasPendientes.length === 0" class="mensaje-vacio">
+        No hay ventas pendientes.
+      </div>
+      <div *ngIf="ventasPendientes.length > 0" class="lista-ventas-pendientes">
+        <div class="item-venta-pendiente" *ngFor="let venta of ventasPendientes">
+          <div class="info-venta">
+            <strong>Cliente:</strong> {{ venta.cliente_nombre || 'Sin nombre' }} <br>
+            <strong>Fecha:</strong> {{ venta.fecha_creacion | date:'medium' }} <br>
+            <strong>Productos:</strong> {{ venta.carrito.length }} items
+          </div>
+          <div class="acciones-venta">
+            <button class="btn-recuperar" (click)="seleccionarVentaPendiente(venta)">Recuperar</button>
+            <button class="btn-eliminar" (click)="eliminarVentaPendiente(venta.id)">Eliminar</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-botones">
+        <button class="btn-cerrar" (click)="toggleModalVentasPendientes()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modales Existentes (rest of the file remains unchanged) -->
 
   <!-- Modal Confirmación -->
   <div class="modal" *ngIf="mostrarModalConfirmacion">

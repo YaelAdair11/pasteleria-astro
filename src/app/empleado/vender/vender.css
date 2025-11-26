@@ -857,3 +857,161 @@ header h1 {
   transform: none;
   box-shadow: none;
 }
+
+/* ===== NUEVOS ESTILOS PARA VENTAS PENDIENTES ===== */
+
+.btn-guardar-pendiente,
+.btn-cargar-pendiente {
+  background: #ffe082; /* Amarillo pastel */
+  color: #5d4037; /* Marrón oscuro para contraste */
+  border: none;
+  padding: 12px 20px;
+  width: 100%;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+  margin-top: 10px; /* Espacio entre botones */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-guardar-pendiente:hover,
+.btn-cargar-pendiente:hover {
+  background: #ffcc80; /* Tonalidad más oscura al pasar el ratón */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+}
+
+.btn-guardar-pendiente:active,
+.btn-cargar-pendiente:active {
+  transform: scale(0.95);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.btn-guardar-pendiente i,
+.btn-cargar-pendiente i {
+  font-size: 18px;
+}
+
+/* Modal de Ventas Pendientes */
+.modal-ventas-pendientes {
+  width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  border-radius: 18px;
+  padding: 25px;
+  background: #e0f7fa; /* Azul claro pastel */
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  animation: pop .25s ease;
+  border: 1px solid #b2ebf2;
+}
+
+.modal-ventas-pendientes .titulo-ticket {
+  color: #00838f; /* Tonalidad de azul más fuerte */
+  border-bottom: 2px dashed #4dd0e1;
+  margin-bottom: 20px;
+}
+
+.mensaje-vacio {
+  text-align: center;
+  font-size: 18px;
+  color: #78909c;
+  padding: 30px 0;
+  background: #f0f4f7;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.lista-ventas-pendientes {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.item-venta-pendiente {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #e0f2f7;
+  box-shadow: 0px 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.1s ease;
+}
+
+.item-venta-pendiente:hover {
+  transform: translateY(-3px);
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.12);
+}
+
+.info-venta {
+  flex-grow: 1;
+  font-size: 15px;
+  color: #455a64;
+}
+
+.info-venta strong {
+  color: #263238;
+}
+
+.acciones-venta {
+  display: flex;
+  gap: 10px;
+  margin-left: 15px;
+}
+
+.btn-recuperar,
+.btn-eliminar {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 14px;
+}
+
+.btn-recuperar {
+  background: #80cbc4; /* Verde agua pastel */
+  color: #004d40;
+}
+
+.btn-recuperar:hover {
+  background: #4db6ac;
+}
+
+.btn-eliminar {
+  background: #ef9a9a; /* Rojo pastel */
+  color: #b71c1c;
+}
+
+.btn-eliminar:hover {
+  background: #e57373;
+}
+
+/* Estilo para inputs de formulario en el modal */
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #444;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box; /* Asegura que el padding no aumente el ancho total */
+}
+
+/* Modales existentes para ajustar a pastel */
+.pastel {
+  background-color: #fce4ec; /* light pink */
+  border: 1px solid #f8bbd0;
+}
