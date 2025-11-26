@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../services/supabase.service';
 import { Categoria } from '../../models/categoria.model';
 import { Producto } from '../../models/producto.model';
+import { VentaPendiente } from '../../models/venta-pendiente.model'; // Importamos la interfaz
 
 @Component({
   selector: 'app-vender',
@@ -21,7 +22,6 @@ export class Vender implements OnInit {
   ventas: any[] = [];
   ultimaVenta: any = null;
 
-
   usuario: any = null;
 
   filtroTexto: string = '';
@@ -34,6 +34,11 @@ export class Vender implements OnInit {
   mostrarModalTicket = false;
   mostrarModalReporte = false;
   mostrarVentas = false;
+
+  // Nuevas propiedades para ventas pendientes
+  mostrarModalVentasPendientes = false;
+  ventasPendientes: VentaPendiente[] = [];
+  clientePendienteNombre: string = ''; // Campo para el nombre del cliente en venta pendiente
 
   fechaVenta = "";
   cliente = "";
@@ -53,8 +58,15 @@ export class Vender implements OnInit {
   async ngOnInit() {
     this.loading = true;
     await this.cargarVentas();
-
-    this.supabaseService.user$.subscribe(u => this.usuario = u);
+    
+    // Obtener el usuario actual
+    this.supabaseService.user$.subscribe(async (u) => {
+      this.usuario = u;
+      if (this.usuario?.id) {
+        // Cargar ventas pendientes al iniciar el componente si hay un usuario
+        await this.cargarVentasPendientes();
+      }
+    });
 
     await this.cargarCategorias();
     await this.cargarProductos();
@@ -295,6 +307,7 @@ reimprimirUltimoTicket() {
     this.vencimientoTarjeta = "";
     this.cvvTarjeta = "";
     this.cargarProductos();
+    this.clientePendienteNombre = ''; // Limpiar también el nombre del cliente pendiente
   }
 
   filtrarCategoria(event: any) {
@@ -387,5 +400,109 @@ guardarTicket(): void {
 
   this.cerrarModalTicket();
 }
+
+  /**
+   * Guarda el estado actual del carrito como una venta pendiente.
+   * Permite al empleado pausar una venta para atender a otro cliente.
+   */
+  async guardarVentaPendiente() {
+    if (this.carrito.length === 0) {
+      alert('❌ El carrito está vacío. Agregue productos antes de guardar como pendiente.');
+      return;
+    }
+    if (!this.usuario?.id) {
+      alert('❌ No se pudo identificar al usuario. Por favor, inicie sesión nuevamente.');
+      return;
+    }
+
+    this.loading = true;
+    try {
+      // Usar el campo clientePendienteNombre para identificar la venta
+      const nombreCliente = this.clientePendienteNombre.trim() || `Cliente sin nombre - ${new Date().toLocaleTimeString()}`;
+      await this.supabaseService.guardarVentaPendiente(this.usuario.id, nombreCliente, this.carrito);
+      alert(`✅ Venta pendiente para "${nombreCliente}" guardada exitosamente.`);
+      this.limpiarVenta(); // Limpia el carrito después de guardar
+      await this.cargarVentasPendientes(); // Recarga la lista de ventas pendientes
+    } catch (error: any) {
+      console.error('Error al guardar venta pendiente:', error);
+      alert('❌ Error al guardar venta pendiente: ' + (error?.message || 'Error desconocido'));
+    } finally {
+      this.loading = false;
+    }
+  }
+
+  /**
+   * Carga la lista de ventas pendientes para el usuario actual.
+   * Se invoca al iniciar el componente o al guardar/eliminar una venta pendiente.
+   */
+  async cargarVentasPendientes() {
+    if (!this.usuario?.id) {
+      this.ventasPendientes = [];
+      return;
+    }
+    try {
+      this.ventasPendientes = await this.supabaseService.getVentasPendientes(this.usuario.id);
+    } catch (error) {
+      console.error('Error al cargar ventas pendientes:', error);
+      alert('❌ No se pudieron cargar las ventas pendientes.');
+      this.ventasPendientes = [];
+    }
+  }
+
+  /**
+   * Selecciona una venta pendiente y carga sus productos en el carrito actual.
+   * Luego, marca la venta pendiente como "recuperada" en la base de datos.
+   * @param venta La venta pendiente a recuperar.
+   */
+  async seleccionarVentaPendiente(venta: VentaPendiente) {
+    if (confirm(`¿Desea recuperar la venta pendiente de "${venta.cliente_nombre}"?`)) {
+      this.loading = true;
+      try {
+        this.limpiarVenta(); // Limpia el carrito actual antes de cargar la pendiente
+        this.carrito = venta.carrito;
+        this.cliente = venta.cliente_nombre || ''; // Establece el nombre del cliente
+        this.actualizarTotal();
+        await this.supabaseService.marcarVentaPendienteComoRecuperada(venta.id);
+        alert(`✅ Venta pendiente de "${venta.cliente_nombre}" recuperada.`);
+        this.mostrarModalVentasPendientes = false; // Cierra el modal
+        await this.cargarVentasPendientes(); // Actualiza la lista de pendientes
+      } catch (error: any) {
+        console.error('Error al recuperar venta pendiente:', error);
+        alert('❌ Error al recuperar venta pendiente: ' + (error?.message || 'Error desconocido'));
+      } finally {
+        this.loading = false;
+      }
+    }
+  }
+
+  /**
+   * Elimina una venta pendiente de la base de datos.
+   * @param ventaId ID de la venta pendiente a eliminar.
+   */
+  async eliminarVentaPendiente(ventaId: string) {
+    if (confirm('¿Está seguro de que desea eliminar esta venta pendiente?')) {
+      this.loading = true;
+      try {
+        await this.supabaseService.eliminarVentaPendiente(ventaId);
+        alert('✅ Venta pendiente eliminada.');
+        await this.cargarVentasPendientes(); // Recarga la lista
+      } catch (error: any) {
+        console.error('Error al eliminar venta pendiente:', error);
+        alert('❌ Error al eliminar venta pendiente: ' + (error?.message || 'Error desconocido'));
+      } finally {
+        this.loading = false;
+      }
+    }
+  }
+
+  /**
+   * Abre o cierra el modal de ventas pendientes y carga las ventas.
+   */
+  async toggleModalVentasPendientes() {
+    this.mostrarModalVentasPendientes = !this.mostrarModalVentasPendientes;
+    if (this.mostrarModalVentasPendientes) {
+      await this.cargarVentasPendientes();
+    }
+  }
 
 }

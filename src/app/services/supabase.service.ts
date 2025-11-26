@@ -7,6 +7,7 @@ import { Usuario } from '../models/usuario.model';
 import { Producto } from '../models/producto.model';
 import { productosMasVendidos } from '../models/venta.model';
 import { Solicitud } from '../models/solicitud.model';
+import { VentaPendiente } from '../models/venta-pendiente.model'; // Importar nueva interfaz
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
@@ -674,6 +675,109 @@ async getVentasParaCorte(fecha: Date): Promise<any[]> {
   }
 }
 
+  // =================== VENTAS PENDIENTES ===================
+  /**
+   * Guarda el estado actual de un carrito como una venta pendiente.
+   * @param userId ID del empleado que guarda la venta.
+   * @param clienteNombre Nombre opcional del cliente para identificar la venta.
+   * @param carrito Array de productos en el carrito.
+   * @returns La venta pendiente registrada.
+   */
+  async guardarVentaPendiente(userId: string, clienteNombre: string | null, carrito: any[]): Promise<VentaPendiente> {
+    if (!userId) throw new Error('Usuario no autenticado para guardar venta pendiente.');
+    if (!carrito || carrito.length === 0) throw new Error('El carrito está vacío, no se puede guardar una venta pendiente sin productos.');
+
+    // Asegurarse de que el carrito se guarda como un objeto JSON
+    const { data, error } = await this.supabase
+      .from('ventas_pendientes')
+      .insert({
+        usuario_id: userId,
+        cliente_nombre: clienteNombre,
+        carrito: carrito, // Supabase automáticamente convertirá esto a JSONB
+        estado: 'pendiente',
+        fecha_creacion: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error al guardar venta pendiente:', error);
+      throw error;
+    }
+    return data as VentaPendiente;
+  }
+
+  /**
+   * Obtiene todas las ventas pendientes para un usuario específico.
+   * @param userId ID del empleado.
+   * @returns Lista de ventas pendientes.
+   */
+  async getVentasPendientes(userId: string): Promise<VentaPendiente[]> {
+    if (!userId) return [];
+    const { data, error } = await this.supabase
+      .from('ventas_pendientes')
+      .select('*')
+      .eq('usuario_id', userId)
+      .eq('estado', 'pendiente') // Solo las ventas que aún están pendientes
+      .order('fecha_creacion', { ascending: false });
+
+    if (error) {
+      console.error('Error al obtener ventas pendientes:', error);
+      throw error;
+    }
+    return data as VentaPendiente[];
+  }
+
+  /**
+   * Carga una venta pendiente específica por su ID.
+   * @param ventaId ID de la venta pendiente.
+   * @returns La venta pendiente encontrada.
+   */
+  async cargarVentaPendiente(ventaId: string): Promise<VentaPendiente | null> {
+    const { data, error } = await this.supabase
+      .from('ventas_pendientes')
+      .select('*')
+      .eq('id', ventaId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 means no rows found
+      console.error('Error al cargar venta pendiente:', error);
+      throw error;
+    }
+    return data as VentaPendiente | null;
+  }
+
+  /**
+   * Elimina una venta pendiente.
+   * @param ventaId ID de la venta pendiente a eliminar.
+   */
+  async eliminarVentaPendiente(ventaId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from('ventas_pendientes')
+      .delete()
+      .eq('id', ventaId);
+
+    if (error) {
+      console.error('Error al eliminar venta pendiente:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Marca una venta pendiente como recuperada.
+   * @param ventaId ID de la venta pendiente a marcar.
+   */
+  async marcarVentaPendienteComoRecuperada(ventaId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from('ventas_pendientes')
+      .update({ estado: 'recuperada' })
+      .eq('id', ventaId);
+
+    if (error) {
+      console.error('Error al marcar venta pendiente como recuperada:', error);
+      throw error;
+    }
+  }
 
   // =================== REALTIME ===================
   suscribirCambiosVentas(callback: (payload: any) => void) {
