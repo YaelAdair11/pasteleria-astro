@@ -52,6 +52,7 @@ export class Vender implements OnInit {
 
   async ngOnInit() {
     this.loading = true;
+    await this.cargarVentas();
 
     this.supabaseService.user$.subscribe(u => this.usuario = u);
 
@@ -73,6 +74,15 @@ export class Vender implements OnInit {
   async cargarCategorias() {
     this.categorias = await this.supabaseService.getCategorias() || [];
   }
+  async cargarVentas() {
+    const data = await this.supabaseService.getVentas();
+    if (data) {
+      this.ventas = data;
+    } else {
+      console.error("Error obteniendo ventas");
+    }
+  }
+  
 
   agregarAlCarrito(producto: Producto) {
     if (producto.stock <= 0) {

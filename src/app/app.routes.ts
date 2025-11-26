@@ -9,6 +9,7 @@ import { RoleGuard } from './guards/role.guard';
 import { Inventario } from './admin/inventario/inventario';
 import { Reportes } from './admin/reportes/reportes';
 import { Ventas } from './admin/ventas/ventas';
+import { Ventas as VentasEmpleado } from './empleado/ventas/ventas';
 import { Vender } from './empleado/vender/vender';
 import { TiendaComponent } from './tienda/tienda.component';
 import { ResetPassword } from './reset-password/reset-password';
@@ -16,6 +17,7 @@ import { UpdatePassword } from './update-password/update-password';
 import { Buzon } from './admin/buzon/buzon';
 import { Peticiones } from './empleado/peticiones/peticiones';
 import { PedidosComponent } from './admin/pedidos/pedidos.component'; 
+
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -47,6 +49,7 @@ export const routes: Routes = [
       { path: '', component: InicioEmpleado, data: { title: 'Inicio', icon: 'fa-home' } },
       { path: 'vender', component: Vender, data: { title: 'Vender', icon: 'fa-cash-register' } },
       { path: 'peticiones', component: Peticiones, data: { title: 'Peticiones', icon: 'fa-clipboard-check' } },
+      { path: 'ventas', component: VentasEmpleado, data: { title: 'Ventas', icon: 'fa-list-check' } },
     ]
   },
   { path: '**', redirectTo: '/login' }
