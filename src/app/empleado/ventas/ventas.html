@@ -1,54 +1,72 @@
 <div class="ventas-container">
 
-    <!-- FILTRO DE FECHAS -->
-<div class="filtro-fechas">
+  <!-- FILTRO DE FECHAS -->
+  <div class="filtro-fechas">
     <div class="grupo">
       <label>Desde:</label>
       <input type="date" [(ngModel)]="fechaInicio">
     </div>
-  
+
     <div class="grupo">
       <label>Hasta:</label>
       <input type="date" [(ngModel)]="fechaFin">
     </div>
-  
-    <button class="btn-filtrar" (click)="filtrarPorFecha()">
-      Filtrar
-    </button>
-  
-    <button class="btn-limpiar" (click)="limpiarFiltro()">
-      Limpiar
-    </button>
-  </div>
-  
 
-    <header class="encabezado">
-      <h1>🍰 Historial de Ventas</h1>
-      <p class="subtitulo">Revisa todas las ventas realizadas</p>
-    </header>
-  
-    <section class="lista-ventas">
-      <div *ngIf="ventas.length === 0" class="sin-ventas">
-        <p>No hay ventas registradas aún.</p>
-      </div>
-  
-      <!-- Tarjeta de venta -->
-      <div class="venta-card" *ngFor="let v of ventas; let i = index">
-        <div class="venta-header">
-          <h3>Venta #{{ i + 1 }}</h3>
-          <span class="venta-fecha">{{ v.fecha }}</span>
-        </div>
-  
-        <div class="venta-detalle">
-          <p><strong>Cliente:</strong> {{ v.cliente || "No registrado" }}</p>
-          <p><strong>Total:</strong> ${{ v.total }}</p>
-        </div>
-  
-        <button class="btn-reporte" (click)="verReporte(i)">
-          Ver Reporte
-        </button>
-      </div>
-    </section>
-  
+    <button class="btn-filtrar" (click)="filtrarPorFecha()">Filtrar</button>
+    <button class="btn-limpiar" (click)="limpiarFiltro()">Limpiar</button>
   </div>
-  
+
+  <header class="encabezado">
+    <h1>🍰 Historial de Ventas</h1>
+    <p class="subtitulo">Revisa todas las ventas realizadas</p>
+  </header>
+
+  <!-- Lista de ventas -->
+  <section class="lista-ventas">
+    <div *ngIf="ventas.length === 0" class="sin-ventas">
+      <p>No hay ventas registradas aún.</p>
+    </div>
+
+    <div class="venta-card" *ngFor="let v of ventasFiltradas; let i = index">
+      <div class="venta-header">
+        <h3>Venta #{{ i + 1 }}</h3>
+        <span class="venta-fecha">{{ v.fecha }}</span>
+      </div>
+      
+      <div class="venta-detalle">
+        <p><strong>Cliente:</strong> {{ v.perfiles?.nombre || "No registrado" }}</p>
+        <p><strong>Método de Pago:</strong> {{ v.metodo || "No especificado" }}</p>
+        <p><strong>Total:</strong> ${{ v.total?.toFixed(2) || "0.00" }}</p>
+      </div>
+
+      <button class="btn-reporte" (click)="verReporte(v)">
+        Ver Reporte
+      </button>
+    </div>
+  </section>
+
+  <!-- Modal Reporte -->
+  <div class="modal" *ngIf="mostrarModalReporte">
+    <div class="modal-fondo" (click)="cerrarReporte()"></div>
+    <div class="reporte-contenido pastel">
+      <h2 class="titulo-reporte">Reporte de Venta</h2>
+      <p><strong>Fecha:</strong> {{ reporteSeleccionado?.fecha }}</p>
+      <div class="linea"></div>
+      <p><strong>Método de Pago:</strong> {{ reporteSeleccionado?.metodo || "No especificado" }}</p>
+      <div class="linea"></div>
+      <p><strong>Productos:</strong></p>
+      <ul>
+        <li *ngFor="let item of reporteSeleccionado?.productos">
+          {{ item.nombre }} x{{ item.cantidad }} — ${{ (item.precio * item.cantidad).toFixed(2) }}
+        </li>
+      </ul>
+      <div class="linea"></div>
+      <h3>Total: ${{ reporteSeleccionado?.total?.toFixed(2) || "0.00" }}</h3>
+      <div class="modal-botones">
+        <button class="btn-descargar" (click)="descargarReporte()">Descargar</button>
+        <button class="btn-cerrar" (click)="cerrarReporte()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+</div>

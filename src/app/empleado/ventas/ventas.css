@@ -1,169 +1,416 @@
 /* Contenedor general */
 .ventas-container {
-    max-width: 900px;
-    margin: auto;
-    padding: 20px;
-    font-family: 'Poppins', sans-serif;
-    color: #5a5a5a;
-  }
-  
-  /* Encabezado pastel */
-  .encabezado {
-    text-align: center;
-    background: #ffeef6;
-    padding: 25px;
-    border-radius: 18px;
-    box-shadow: 0 3px 10px #f7b9cc55;
-    margin-bottom: 25px;
-  }
-  
-  .encabezado h1 {
-    margin: 0;
-    font-size: 2rem;
-    color: #d96b9e;
-  }
-  
-  .subtitulo {
-    font-size: 1rem;
-    margin-top: 5px;
-    color: #a86d83;
-  }
-  
-  /* Lista de ventas */
-  .lista-ventas {
-    display: flex;
-    flex-direction: column;
-    gap: 22px;
-  }
-  
-  /* Mensaje sin ventas */
-  .sin-ventas {
-    text-align: center;
-    padding: 30px;
-    border-radius: 15px;
-    background: #fff7f0;
-    box-shadow: 0 3px 10px #e4d5b866;
-  }
-  
-  /* Tarjeta de venta */
-  .venta-card {
-    background: #ffffff;
-    padding: 20px;
-    border-radius: 18px;
-    box-shadow: 0 4px 12px #cbbbe566;
-    border-left: 6px solid #f7b9cc;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  
-  .venta-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 16px #d3c5e866;
-  }
-  
-  /* Encabezado de cada venta */
-  .venta-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  
-  .venta-header h3 {
-    margin: 0;
-    color: #c25a87;
-  }
-  
-  .venta-fecha {
-    font-size: 0.9rem;
-    color: #7e7e7e;
-  }
-  
-  /* Detalles */
-  .venta-detalle p {
-    margin: 6px 0;
-  }
-  
-  /* Botón pastel */
-  .btn-reporte {
-    margin-top: 12px;
-    padding: 10px 20px;
-    width: 100%;
-    border: none;
-    border-radius: 14px;
-    font-weight: bold;
-    background: linear-gradient(to right, #f8d7e3, #d6ccf0);
-    color: #5a5a5a;
-    cursor: pointer;
-    transition: 0.2s ease;
-  }
-  
-  .btn-reporte:hover {
-    background: linear-gradient(to right, #f7b9cc, #cbbbe5);
-    transform: scale(1.03);
-  }
-  
-  .filtro-fechas {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: #fff1f8;
-    padding: 15px;
-    border-radius: 16px;
-    box-shadow: 0 3px 10px #f7b9cc55;
-    margin-bottom: 25px;
-  }
-  
-  .filtro-fechas .grupo {
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .filtro-fechas label {
-    font-size: 0.85rem;
-    color: #c25a87;
-    font-weight: bold;
-  }
-  
-  .filtro-fechas input[type="date"] {
-    padding: 7px 10px;
-    border-radius: 10px;
-    border: 1px solid #f1c9d8;
-    background: #ffffff;
-    color: #5a5a5a;
-    box-shadow: 0 2px 6px #e3d6e866 inset;
-  }
-  
-  /* Botón filtrar */
-  .btn-filtrar {
-    padding: 9px 15px;
-    border: none;
-    border-radius: 12px;
-    background: linear-gradient(to right, #f7b9cc, #d6ccf0);
-    color: #5a5a5a;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  
-  .btn-filtrar:hover {
-    transform: scale(1.05);
-    background: linear-gradient(to right, #f8d7e3, #cbbbe5);
-  }
-  
-  /* Botón limpiar */
-  .btn-limpiar {
-    padding: 9px 15px;
-    border: none;
-    border-radius: 12px;
-    background: #ffe2e9;
-    color: #8a5a5a;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-  }
-  
-  .btn-limpiar:hover {
-    background: #ffd1df;
-    transform: scale(1.05);
-  }
-  
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+  font-family: 'Poppins', sans-serif;
+  color: #5a5a5a;
+}
+
+/* Encabezado pastel */
+.encabezado {
+  text-align: center;
+  background: #ffeef6;
+  padding: 25px;
+  border-radius: 18px;
+  box-shadow: 0 3px 10px #f7b9cc55;
+  margin-bottom: 25px;
+}
+
+.encabezado h1 {
+  margin: 0;
+  font-size: 2rem;
+  color: #d96b9e;
+}
+
+.subtitulo {
+  font-size: 1rem;
+  margin-top: 5px;
+  color: #a86d83;
+}
+
+/* Lista de ventas */
+.lista-ventas {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* Mensaje sin ventas */
+.sin-ventas {
+  text-align: center;
+  padding: 30px;
+  border-radius: 15px;
+  background: #fff7f0;
+  box-shadow: 0 3px 10px #e4d5b866;
+}
+
+/* Tarjeta de venta */
+.venta-card {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: 0 4px 12px #cbbbe566;
+  border-left: 6px solid #f7b9cc;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.venta-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px #d3c5e866;
+}
+
+/* Encabezado de cada venta */
+.venta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.venta-header h3 {
+  margin: 0;
+  color: #c25a87;
+}
+
+.venta-fecha {
+  font-size: 0.9rem;
+  color: #7e7e7e;
+}
+
+/* Detalles */
+.venta-detalle p {
+  margin: 6px 0;
+}
+
+/* Botón pastel */
+.btn-reporte {
+  margin-top: 12px;
+  padding: 10px 20px;
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  font-weight: bold;
+  background: linear-gradient(to right, #f8d7e3, #d6ccf0);
+  color: #5a5a5a;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.btn-reporte:hover {
+  background: linear-gradient(to right, #f7b9cc, #cbbbe5);
+  transform: scale(1.03);
+}
+
+.filtro-fechas {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: #fff1f8;
+  padding: 15px;
+  border-radius: 16px;
+  box-shadow: 0 3px 10px #f7b9cc55;
+  margin-bottom: 25px;
+}
+
+.filtro-fechas .grupo {
+  display: flex;
+  flex-direction: column;
+}
+
+.filtro-fechas label {
+  font-size: 0.85rem;
+  color: #c25a87;
+  font-weight: bold;
+}
+
+.filtro-fechas input[type="date"] {
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid #f1c9d8;
+  background: #ffffff;
+  color: #5a5a5a;
+  box-shadow: 0 2px 6px #e3d6e866 inset;
+}
+
+/* Botón filtrar */
+.btn-filtrar {
+  padding: 9px 15px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(to right, #f7b9cc, #d6ccf0);
+  color: #5a5a5a;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-filtrar:hover {
+  transform: scale(1.05);
+  background: linear-gradient(to right, #f8d7e3, #cbbbe5);
+}
+
+/* Botón limpiar */
+.btn-limpiar {
+  padding: 9px 15px;
+  border: none;
+  border-radius: 12px;
+  background: #ffe2e9;
+  color: #8a5a5a;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-limpiar:hover {
+  background: #ffd1df;
+  transform: scale(1.05);
+}
+
+/* Botón Descargar Reporte */
+.btn-descargar {
+background-color: #6cb4ff; /* azul verdoso pastel */
+color: #fff;
+border: none;
+border-radius: 12px;
+padding: 10px 20px;
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s ease;
+box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Contenedor general */
+.ventas-container {
+max-width: 900px;
+margin: auto;
+padding: 20px;
+font-family: 'Poppins', sans-serif;
+color: #5a5a5a;
+}
+
+/* Encabezado pastel */
+.encabezado {
+text-align: center;
+background: #ffeef6;
+padding: 25px;
+border-radius: 18px;
+box-shadow: 0 3px 10px #f7b9cc55;
+margin-bottom: 25px;
+}
+
+.encabezado h1 {
+margin: 0;
+font-size: 2rem;
+color: #d96b9e;
+}
+
+.subtitulo {
+font-size: 1rem;
+margin-top: 5px;
+color: #a86d83;
+}
+
+/* Lista de ventas */
+.lista-ventas {
+display: flex;
+flex-direction: column;
+gap: 22px;
+}
+
+/* Mensaje sin ventas */
+.sin-ventas {
+text-align: center;
+padding: 30px;
+border-radius: 15px;
+background: #fff7f0;
+box-shadow: 0 3px 10px #e4d5b866;
+}
+
+/* Tarjeta de venta */
+.venta-card {
+background: #ffffff;
+padding: 20px;
+border-radius: 18px;
+box-shadow: 0 4px 12px #cbbbe566;
+border-left: 6px solid #f7b9cc;
+transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.venta-card:hover {
+transform: translateY(-3px);
+box-shadow: 0 6px 16px #d3c5e866;
+}
+
+/* Encabezado de cada venta */
+.venta-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-bottom: 12px;
+}
+
+.venta-header h3 {
+margin: 0;
+color: #c25a87;
+}
+
+.venta-fecha {
+font-size: 0.9rem;
+color: #7e7e7e;
+}
+
+/* Detalles */
+.venta-detalle p {
+margin: 6px 0;
+}
+
+/* Botón pastel */
+.btn-reporte {
+margin-top: 12px;
+padding: 10px 20px;
+width: 100%;
+border: none;
+border-radius: 14px;
+font-weight: bold;
+background: linear-gradient(to right, #f8d7e3, #d6ccf0);
+color: #5a5a5a;
+cursor: pointer;
+transition: 0.2s ease;
+}
+
+.btn-reporte:hover {
+background: linear-gradient(to right, #f7b9cc, #cbbbe5);
+transform: scale(1.03);
+}
+
+/* Filtro de fechas */
+.filtro-fechas {
+display: flex;
+align-items: center;
+gap: 15px;
+background: #fff1f8;
+padding: 15px;
+border-radius: 16px;
+box-shadow: 0 3px 10px #f7b9cc55;
+margin-bottom: 25px;
+}
+
+.filtro-fechas .grupo {
+display: flex;
+flex-direction: column;
+}
+
+.filtro-fechas label {
+font-size: 0.85rem;
+color: #c25a87;
+font-weight: bold;
+}
+
+.filtro-fechas input[type="date"] {
+padding: 7px 10px;
+border-radius: 10px;
+border: 1px solid #f1c9d8;
+background: #ffffff;
+color: #5a5a5a;
+box-shadow: 0 2px 6px #e3d6e866 inset;
+}
+
+/* Botón filtrar */
+.btn-filtrar {
+padding: 9px 15px;
+border: none;
+border-radius: 12px;
+background: linear-gradient(to right, #f7b9cc, #d6ccf0);
+color: #5a5a5a;
+font-weight: bold;
+cursor: pointer;
+transition: 0.2s;
+}
+
+.btn-filtrar:hover {
+transform: scale(1.05);
+background: linear-gradient(to right, #f8d7e3, #cbbbe5);
+}
+
+/* Botón limpiar */
+.btn-limpiar {
+padding: 9px 15px;
+border: none;
+border-radius: 12px;
+background: #ffe2e9;
+color: #8a5a5a;
+font-weight: bold;
+cursor: pointer;
+transition: 0.2s;
+}
+
+.btn-limpiar:hover {
+background: #ffd1df;
+transform: scale(1.05);
+}
+
+/* Modal */
+.modal {
+position: fixed;
+top: 0;
+left: 0;
+display: flex;
+width: 100%;
+height: 100%;
+z-index: 1000;
+}
+
+.modal-fondo {
+position: absolute;
+width: 100%;
+height: 100%;
+background: rgba(0,0,0,0.4);
+}
+
+.reporte-contenido {
+position: relative;
+max-width: 500px;
+margin: 80px auto;
+padding: 20px;
+height: fit-content;
+background-color: #fff4f0;
+border-radius: 12px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+z-index: 1001;
+}
+
+.titulo-reporte {
+color: #d46a6a;
+text-align: center;
+margin-bottom: 15px;
+}
+
+.linea {
+border-top: 1px solid #f2d3c3;
+margin: 10px 0;
+}
+
+.modal-botones {
+display: flex;
+justify-content: space-between;
+margin-top: 15px;
+}
+
+.btn-descargar, .btn-cerrar {
+background-color: #6cb4ff; /* azul verdoso pastel */
+color: #fff;
+border: none;
+border-radius: 12px;
+padding: 10px 20px;
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s ease;
+}
+
+.btn-descargar:hover, .btn-cerrar:hover {
+transform: scale(1.05);
+background-color: #5aa0e0;
+}

@@ -3,6 +3,33 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../services/supabase.service';
 
+// 🔹 Interfaces internas
+interface ProductoVenta {
+  id: number;
+  nombre: string;
+  precio: number;
+  cantidad: number;
+}
+
+interface PerfilUsuario {
+  id: number;
+  nombre: string;
+  email?: string;
+}
+
+export interface Venta {
+  id: number;
+  cliente_id?: number;
+  fecha: string;
+  metodo?: string;
+  total?: number;
+  anulada: boolean;
+  anulacion?: any;
+  productos: any[];  // debe ser array
+  perfiles?: any;
+}
+
+
 @Component({
   selector: 'app-ventas',
   standalone: true,
@@ -12,14 +39,15 @@ import { SupabaseService } from '../../services/supabase.service';
 })
 export class Ventas implements OnInit {
 
-  ventas: any[] = [];
-  ventasFiltradas: any[] = [];
+  ventas: Venta[] = [];
+  ventasFiltradas: Venta[] = [];
 
   fechaInicio: string = "";
   fechaFin: string = "";
 
-  reporteSeleccionado: any = null;
+  reporteSeleccionado: Venta | null = null;
   mostrarModalReporte = false;
+  mostrarVentas = false;
 
   loading = false;
 
@@ -31,10 +59,11 @@ export class Ventas implements OnInit {
     this.loading = false;
   }
 
+
   // 🔹 Cargar ventas desde Supabase
   async cargarVentas() {
     try {
-      const data = await this.supabaseService.getVentas();
+      const data: Venta[] = await this.supabaseService.getVentas();
       this.ventas = data || [];
       this.ventasFiltradas = [...this.ventas];
     } catch (error) {
@@ -44,17 +73,13 @@ export class Ventas implements OnInit {
 
   // 🔹 Filtrar ventas por rango de fechas
   filtrarPorFecha() {
-    if (!this.fechaInicio || !this.fechaFin) {
-      return;
-    }
+    if (!this.fechaInicio || !this.fechaFin) return;
 
     const inicio = new Date(this.fechaInicio);
     const fin = new Date(this.fechaFin);
-
-    // Ajuste para incluir el día completo
     fin.setHours(23, 59, 59, 999);
 
-    this.ventasFiltradas = this.ventas.filter((v: any) => {
+    this.ventasFiltradas = this.ventas.filter((v: Venta) => {
       const fechaVenta = new Date(v.fecha);
       return fechaVenta >= inicio && fechaVenta <= fin;
     });
@@ -68,7 +93,8 @@ export class Ventas implements OnInit {
   }
 
   // 🔹 Abrir reporte
-  verReporte(venta: any) {
+  verReporte(venta: Venta) {
+    console.log(venta);
     this.reporteSeleccionado = venta;
     this.mostrarModalReporte = true;
   }
@@ -79,30 +105,34 @@ export class Ventas implements OnInit {
     this.reporteSeleccionado = null;
   }
 
+  toggleTodasVentas() {
+    this.mostrarVentas = !this.mostrarVentas;
+  }
+
   // 🔹 Descargar reporte como archivo TXT
   descargarReporte() {
     if (!this.reporteSeleccionado) return;
 
-    let texto = `----- Reporte de Venta -----\n`;
-    texto += `Fecha: ${this.reporteSeleccionado.fecha}\n`;
-    texto += `Cliente: ${this.reporteSeleccionado.cliente || 'N/A'}\n`;
-    texto += `Método: ${this.reporteSeleccionado.metodo}\n\nProductos:\n`;
+    const venta: Venta = this.reporteSeleccionado;
 
-    (this.reporteSeleccionado.productos || []).forEach((p: any) => {
+    let texto = `----- Reporte de Venta -----\n`;
+    texto += `Fecha: ${venta.fecha}\n`;
+    texto += `Cliente: ${venta.perfiles?.nombre || 'N/A'}\n`;
+    texto += `Método: ${venta.metodo || 'N/A'}\n\nProductos:\n`;
+
+    (venta.productos || []).forEach(p => {
       texto += `${p.nombre} x${p.cantidad} - $${(p.precio * p.cantidad).toFixed(2)}\n`;
     });
 
-    texto += `\nTotal: $${(this.reporteSeleccionado.total || 0).toFixed(2)}\n`;
+    texto += `\nTotal: $${(venta.total || 0).toFixed(2)}\n`;
     texto += `----------------------------\n`;
 
     const blob = new Blob([texto], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-
     a.href = url;
     a.download = `reporte_venta_${Date.now()}.txt`;
     a.click();
-
     URL.revokeObjectURL(url);
   }
 }
